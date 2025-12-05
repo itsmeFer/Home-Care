@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:home_care/chat.dart'; // ChatRoomPage + kBaseUrl
 import 'package:home_care/chat/chat_models.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; // ⬅️ TAMBAHKAN INI
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PasienChatListPage extends StatefulWidget {
@@ -24,83 +24,6 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
   void initState() {
     super.initState();
     _loadRooms();
-  }
-
-  Future<void> _deleteRoom(ChatRoom room) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Hapus Chat'),
-          content: Text(
-            'Yakin ingin menghapus chat dengan '
-            '${room.koordinatorName?.isNotEmpty == true ? room.koordinatorName! : (room.title.isEmpty ? 'koordinator ini' : room.title)}?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm != true) return;
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sesi login berakhir, silakan login ulang.'),
-          ),
-        );
-        return;
-      }
-
-      final res = await http.delete(
-        Uri.parse('$kBaseUrl/pasien/chat-rooms/${room.id}'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (res.statusCode == 200) {
-        // hapus dari list lokal
-        setState(() {
-          _rooms.removeWhere((r) => r.id == room.id);
-        });
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Chat berhasil dihapus')));
-      } else {
-        // coba baca pesan error dari backend
-        String msg = 'Gagal menghapus chat (${res.statusCode})';
-        try {
-          final body = json.decode(res.body) as Map<String, dynamic>;
-          if (body['message'] != null) {
-            msg = body['message'].toString();
-          }
-        } catch (_) {}
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(msg)));
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
-    }
   }
 
   Future<void> _loadRooms() async {
@@ -164,6 +87,134 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
     }
   }
 
+  // ===========================
+  // HAPUS ROOM (API DELETE)
+  // ===========================
+  Future<void> _deleteRoom(ChatRoom room) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Hapus Chat'),
+          content: Text(
+            'Yakin ingin menghapus chat dengan '
+            '${room.koordinatorName?.isNotEmpty == true ? room.koordinatorName! : (room.title.isEmpty ? 'koordinator ini' : room.title)}?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesi login berakhir, silakan login ulang.'),
+          ),
+        );
+        return;
+      }
+
+      final res = await http.delete(
+        Uri.parse('$kBaseUrl/pasien/chat-rooms/${room.id}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (res.statusCode == 200) {
+        setState(() {
+          _rooms.removeWhere((r) => r.id == room.id);
+        });
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Chat berhasil dihapus')));
+      } else {
+        String msg = 'Gagal menghapus chat (${res.statusCode})';
+        try {
+          final body = json.decode(res.body) as Map<String, dynamic>;
+          if (body['message'] != null) {
+            msg = body['message'].toString();
+          }
+        } catch (_) {}
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+    }
+  }
+
+  // ===========================
+  // BANGUN TILE ROOM
+  // ===========================
+  Widget _buildRoomTile(ChatRoom room) {
+    final title = room.koordinatorName?.isNotEmpty == true
+        ? room.koordinatorName!
+        : (room.title.isEmpty ? 'Chat Layanan' : room.title);
+
+    return ListTile(
+      leading: const CircleAvatar(child: Icon(Icons.support_agent)),
+      title: Text(title),
+      subtitle: room.lastMessage.isNotEmpty
+          ? Text(room.lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis)
+          : const Text('Belum ada pesan', style: TextStyle(fontSize: 12)),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (room.lastTime != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: Text(
+                DateFormat('dd MMM\nHH:mm').format(room.lastTime!),
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+            ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            tooltip: 'Hapus chat',
+            onPressed: () => _deleteRoom(room),
+          ),
+        ],
+      ),
+
+      // ⬇⬇⬇ INI YANG PENTING: TAP MASUK CHAT
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                ChatRoomPage(roomId: room.id, roomTitle: title, role: 'pasien'),
+          ),
+        );
+      },
+
+      // TAHAN LAMA UNTUK HAPUS JUGA (OPTIONAL)
+      onLongPress: () => _deleteRoom(room),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,59 +242,7 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final room = _rooms[index];
-
-                  return ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.support_agent),
-                    ),
-                    title: Text(
-                      room.koordinatorName?.isNotEmpty == true
-                          ? room.koordinatorName!
-                          : (room.title.isEmpty ? 'Chat Layanan' : room.title),
-                    ),
-                    subtitle: room.lastMessage.isNotEmpty
-                        ? Text(
-                            room.lastMessage,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        : const Text(
-                            'Belum ada pesan',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                    trailing: room.lastTime == null
-                        ? null
-                        : Text(
-                            DateFormat('dd MMM\nHH:mm').format(room.lastTime!),
-                            textAlign: TextAlign.right,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey,
-                            ),
-                          ),
-
-                    // ⬇⬇⬇ ini penting
-                    onTap: () {
-                      // tetap buat MASUK ke room chat
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChatRoomPage(
-                            roomId: room.id,
-                            roomTitle: room.koordinatorName?.isNotEmpty == true
-                                ? room.koordinatorName!
-                                : (room.title.isEmpty
-                                      ? 'Chat Layanan'
-                                      : room.title),
-                            role: 'pasien',
-                          ),
-                        ),
-                      );
-                    },
-
-                    // tahan lama untuk HAPUS chat
-                    onLongPress: () => _deleteRoom(room),
-                  );
+                  return _buildRoomTile(room);
                 },
               ),
       ),

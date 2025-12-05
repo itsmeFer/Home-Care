@@ -42,7 +42,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   final TextEditingController _tawarCatatanController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   int _currentUserId = 0;
-  bool _hasOrdered = false; // kalau true => tombol "Pesan Layanan Sekarang" disembunyikan
+  bool _hasOrdered =
+      false; // kalau true => tombol "Pesan Layanan Sekarang" disembunyikan
+  bool _canSend = true; // kalau false, koordinator tidak bisa kirim pesan
 
   // ====== ETALASE STATE ======
   List<Map<String, dynamic>> _etalaseLayanan = [];
@@ -497,6 +499,14 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
+    // kalau koordinator & sudah tidak boleh kirim, langsung stop
+    if (widget.role == 'koordinator' && !_canSend) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chat ini sudah ditutup oleh pasien.')),
+      );
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
@@ -528,16 +538,24 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     if (res.statusCode == 201) {
       _messageController.clear();
       _appendMessageFromResponse(res);
-    } else if (res.statusCode == 401 || res.statusCode == 403) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tidak punya akses, silakan login ulang / cek role.'),
-        ),
-      );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengirim pesan (${res.statusCode})')),
-      );
+      // coba baca message dari backend (termasuk pesan "chat ditutup pasien")
+      String msg = 'Gagal mengirim pesan (${res.statusCode})';
+      try {
+        final body = json.decode(res.body);
+        if (body is Map && body['message'] != null) {
+          msg = body['message'].toString();
+        }
+      } catch (_) {}
+
+      // kalau backend kirim 403 (chat ditutup), matikan input utk koordinator
+      if (res.statusCode == 403 && widget.role == 'koordinator') {
+        setState(() {
+          _canSend = false;
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
@@ -604,8 +622,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                   (item['durasi_menit'] != null)
                       ? "Durasi: ${item['durasi_menit']} menit"
                       : (item['kategori'] != null)
-                          ? "Kategori: ${item['kategori']}"
-                          : "",
+                      ? "Kategori: ${item['kategori']}"
+                      : "",
                 ),
                 onTap: () {
                   _sendEtalase(item['id'] as int);
@@ -855,192 +873,182 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? Center(child: Text(_error!))
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          final timeText = msg.createdAt == null
-                              ? ''
-                              : DateFormat('HH:mm').format(msg.createdAt!);
+                ? Center(child: Text(_error!))
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = _messages[index];
+                      final timeText = msg.createdAt == null
+                          ? ''
+                          : DateFormat('HH:mm').format(msg.createdAt!);
 
-                          // 🟩 kartu etalase
-                          if (msg.isEtalase && msg.etalaseData != null) {
-                            final e = msg.etalaseData!;
-                            final nama =
-                                (e['nama'] ?? e['nama_layanan'] ?? 'Layanan')
-                                    as String;
-                            final gambar = e['gambar'];
+                      // 🟩 kartu etalase
+                      if (msg.isEtalase && msg.etalaseData != null) {
+                        final e = msg.etalaseData!;
+                        final nama =
+                            (e['nama'] ?? e['nama_layanan'] ?? 'Layanan')
+                                as String;
+                        final gambar = e['gambar'];
 
-                            return Align(
-                              alignment: msg.isMine
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
-                              child: Container(
-                                width: 260,
-                                margin:
-                                    const EdgeInsets.symmetric(vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                        return Align(
+                          alignment: msg.isMine
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            width: 260,
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (gambar != null &&
-                                        (gambar as String).isNotEmpty)
-                                      ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                          top: Radius.circular(12),
-                                        ),
-                                        child: Image.network(
-                                          gambar as String,
-                                          height: 130,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              const SizedBox(height: 130),
-                                        ),
-                                      ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(10),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (gambar != null &&
+                                    (gambar as String).isNotEmpty)
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      gambar as String,
+                                      height: 130,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) =>
+                                          const SizedBox(height: 130),
+                                    ),
+                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment
-                                                    .spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  nama,
-                                                  style: const TextStyle(
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          if (e['durasi_menit'] != null)
-                                            Text(
-                                              "Durasi: ${e['durasi_menit']} menit",
-                                            ),
-                                          if (e['kategori'] != null)
-                                            Text(
-                                              "Kategori: ${e['kategori']}",
-                                            ),
-                                          if (e['syarat_perawat'] != null)
-                                            Text(
-                                              "Perawat: ${e['syarat_perawat']}",
-                                            ),
-                                          if (e['lokasi_tersedia'] != null)
-                                            Text(
-                                              "Lokasi: ${e['lokasi_tersedia']}",
-                                            ),
-                                          const SizedBox(height: 6),
-                                          if (timeText.isNotEmpty)
-                                            Text(
-                                              timeText,
+                                          Expanded(
+                                            child: Text(
+                                              nama,
                                               style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black54,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                             ),
+                                          ),
                                         ],
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 4),
+                                      if (e['durasi_menit'] != null)
+                                        Text(
+                                          "Durasi: ${e['durasi_menit']} menit",
+                                        ),
+                                      if (e['kategori'] != null)
+                                        Text("Kategori: ${e['kategori']}"),
+                                      if (e['syarat_perawat'] != null)
+                                        Text("Perawat: ${e['syarat_perawat']}"),
+                                      if (e['lokasi_tersedia'] != null)
+                                        Text("Lokasi: ${e['lokasi_tersedia']}"),
+                                      const SizedBox(height: 6),
+                                      if (timeText.isNotEmpty)
+                                        Text(
+                                          timeText,
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-
-                          // 🟦 bubble chat biasa
-                          final isTawar = _isTawarHargaText(msg.text);
-
-                          return Align(
-                            alignment: msg.isMine
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: msg.isMine
-                                    ? Colors.blue[200]
-                                    : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: msg.isMine
-                                    ? CrossAxisAlignment.end
-                                    : CrossAxisAlignment.start,
-                                children: [
-                                  Text(msg.text),
-
-                                  // Tombol setujui harga (koordinator) — hanya kalau belum deal
-                                  if (!hasDeal &&
-                                      widget.role == 'koordinator' &&
-                                      isTawar &&
-                                      !msg.isMine) ...[
-                                    const SizedBox(height: 4),
-                                    TextButton(
-                                      onPressed: () =>
-                                          _approveTawarFromMessage(msg),
-                                      style: TextButton.styleFrom(
-                                        padding: EdgeInsets.zero,
-                                        minimumSize: const Size(0, 0),
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      child: const Text(
-                                        'Setujui harga ini',
-                                        style: TextStyle(fontSize: 11),
-                                      ),
-                                    ),
-                                  ],
-
-                                  if (timeText.isNotEmpty) ...[
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      timeText,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
+                              ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      }
+
+                      // 🟦 bubble chat biasa
+                      final isTawar = _isTawarHargaText(msg.text);
+
+                      return Align(
+                        alignment: msg.isMine
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: msg.isMine
+                                ? Colors.blue[200]
+                                : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: msg.isMine
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              Text(msg.text),
+
+                              // Tombol setujui harga (koordinator) — hanya kalau belum deal
+                              if (!hasDeal &&
+                                  widget.role == 'koordinator' &&
+                                  isTawar &&
+                                  !msg.isMine) ...[
+                                const SizedBox(height: 4),
+                                TextButton(
+                                  onPressed: () =>
+                                      _approveTawarFromMessage(msg),
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(0, 0),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: const Text(
+                                    'Setujui harga ini',
+                                    style: TextStyle(fontSize: 11),
+                                  ),
+                                ),
+                              ],
+
+                              if (timeText.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  timeText,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
 
           // 🌟 TOMBOL "PESAN LAYANAN SEKARANG" (PAKAI canShowOrderButton)
           if (canShowOrderButton)
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               color: Colors.white,
               child: SizedBox(
                 width: double.infinity,
@@ -1056,10 +1064,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                   icon: const Icon(Icons.check_circle),
                   label: const Text(
                     'Pesan Layanan Sekarang',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   onPressed: _onPesanLayananSekarang,
                 ),
@@ -1087,16 +1092,22 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
+                    readOnly:
+                        widget.role == 'koordinator' && !_canSend, // ⬅️ kunci
                     decoration: InputDecoration(
-                      hintText: hasDeal
-                          ? 'Harga sudah final, silakan lanjut komunikasi...'
-                          : 'Tulis pesan...',
+                      hintText: widget.role == 'koordinator' && !_canSend
+                          ? 'Chat ini sudah ditutup oleh pasien.'
+                          : (hasDeal
+                                ? 'Harga sudah final, silakan lanjut komunikasi...'
+                                : 'Tulis pesan...'),
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
+                  onPressed: (widget.role == 'koordinator' && !_canSend)
+                      ? null // tombol disable
+                      : _sendMessage,
                 ),
               ],
             ),
