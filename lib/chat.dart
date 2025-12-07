@@ -36,6 +36,42 @@ class ChatRoomPage extends StatefulWidget {
 class _ChatRoomPageState extends State<ChatRoomPage> {
   bool _isLoading = true;
   String? _error;
+  // 🔥 status chat dari backend: tawar / deal / orderan_berjalan / selesai / dibatalkan
+  String? _chatStatus;
+
+  String get _statusLabel {
+    switch (_chatStatus) {
+      case 'tawar':
+        return 'Negosiasi Harga';
+      case 'deal':
+        return 'Deal Harga';
+      case 'orderan_berjalan':
+        return 'Order Berjalan';
+      case 'selesai':
+        return 'Selesai';
+      case 'dibatalkan':
+        return 'Dibatalkan';
+      default:
+        return 'Chat Aktif';
+    }
+  }
+
+  Color _statusColor() {
+    switch (_chatStatus) {
+      case 'tawar':
+        return Colors.orange;
+      case 'deal':
+        return Colors.green;
+      case 'orderan_berjalan':
+        return Colors.blue;
+      case 'selesai':
+        return Colors.grey;
+      case 'dibatalkan':
+        return Colors.red;
+      default:
+        return Colors.blueGrey;
+    }
+  }
 
   int? _dealHarga; // hasil parsing angka dari [DEAL HARGA]
   int? _currentLayananIdFromChat; // layanan dari ETALASE terakhir
@@ -521,43 +557,51 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         _isFetching = false;
         return;
       }
-     final body = json.decode(res.body);
+      final body = json.decode(res.body);
+      print('==== RAW BODY ====');
+      print(body);
+      print('==================');
 
-// untuk koordinator (sudah ada)
-if (widget.role == 'koordinator') {
-  final canSendFromApi = body['can_send'];
-  if (canSendFromApi is bool) {
-    _canSend = canSendFromApi;
-  }
-}
+      // untuk koordinator (sudah ada)
+      if (widget.role == 'koordinator') {
+        final canSendFromApi = body['can_send'];
+        if (canSendFromApi is bool) {
+          _canSend = canSendFromApi;
+        }
+      }
 
-// 🔥 untuk pasien: flag sudah ada order
-bool apiHasOrder = false;
-final hasOrderFromApi = body['has_order'];
-if (hasOrderFromApi is bool && hasOrderFromApi == true) {
-  apiHasOrder = true;
-}
+      // 🔥 untuk pasien: flag sudah ada order
+      bool apiHasOrder = false;
+      final hasOrderFromApi = body['has_order'];
+      if (hasOrderFromApi is bool && hasOrderFromApi == true) {
+        apiHasOrder = true;
+      }
 
-final List data = body['data'];
-final newMessages = data
-    .map((e) => ChatMessage.fromJson(e, currentUserId: _currentUserId))
-    .toList();
+      // 🔥 ambil status room dari API (pastikan di controller kirim 'status' => $room->status)
+      final statusFromApi = body['status'];
 
-if (mounted) {
-  setState(() {
-    _messages = newMessages;
+      final List data = body['data'];
+      final newMessages = data
+          .map((e) => ChatMessage.fromJson(e, currentUserId: _currentUserId))
+          .toList();
 
-    // ⬅️ kalau backend bilang sudah ada order,
-    // paksa _hasOrdered = true supaya tombol hilang
-    if (apiHasOrder) {
-      _hasOrdered = true;
-    }
+      if (mounted) {
+        setState(() {
+          _messages = newMessages;
 
-    if (!fromPolling) {
-      _isLoading = false;
-      _error = null;
-    }
-  });
+          if (apiHasOrder) {
+            _hasOrdered = true;
+          }
+
+          if (statusFromApi is String) {
+            _chatStatus = statusFromApi;
+          }
+
+          if (!fromPolling) {
+            _isLoading = false;
+            _error = null;
+          }
+        });
 
         if (newMessages.length > oldLen) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -868,16 +912,16 @@ if (mounted) {
     int? lastEtalaseIndex;
     int? lastDealIndex;
     // apakah ini chat pasien ↔ perawat?
-final bool isPasienPerawat =
-    widget.role == 'pasien' &&
-    widget.roomTitle.toLowerCase().contains('perawat');
+    final bool isPasienPerawat =
+        widget.role == 'pasien' &&
+        widget.roomTitle.toLowerCase().contains('perawat');
 
-// nego cuma aktif kalau:
-// - bukan simpleChat
-// - bukan chat pasien-perawat
-// - dan bukan role perawat
-final bool negoEnabled =
-    !widget.simpleChat && !isPasienPerawat && widget.role != 'perawat';
+    // nego cuma aktif kalau:
+    // - bukan simpleChat
+    // - bukan chat pasien-perawat
+    // - dan bukan role perawat
+    final bool negoEnabled =
+        !widget.simpleChat && !isPasienPerawat && widget.role != 'perawat';
     // reset konteks tiap build
     // reset konteks tiap build
     _currentLayananIdFromChat = null;
@@ -938,6 +982,29 @@ final bool negoEnabled =
       appBar: AppBar(title: Text(widget.roomTitle)),
       body: Column(
         children: [
+          // 🌈 BADGE STATUS CHAT DI PALING ATAS
+          if (_chatStatus != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              color: _statusColor().withOpacity(0.08),
+              child: Row(
+                children: [
+                  Icon(Icons.circle, size: 10, color: _statusColor()),
+                  const SizedBox(width: 8),
+                  Text(
+                    _statusLabel.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: 0.6,
+                      fontWeight: FontWeight.w700,
+                      color: _statusColor(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // 🔔 BANNER DEAL HARGA
           if (negoEnabled && hasDeal && dealHargaDisplay != null)
             Container(
