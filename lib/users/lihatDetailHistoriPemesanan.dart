@@ -67,6 +67,9 @@ class _LihatDetailHistoriPemesananPageState
           print('DEBUG kondisi_pasien: ${data['kondisi_pasien']}');
           print('DEBUG foto_hadir   : ${data['foto_hadir']}');
           print('DEBUG foto_selesai : ${data['foto_selesai']}');
+          print('DEBUG DETAIL ORDER: $data');
+          print('DEBUG KOORDINATOR: ${data['koordinator_nama']}');
+          print('DEBUG PERAWAT    : ${data['perawat_nama']}');
 
           setState(() {
             _order = data;
