@@ -121,18 +121,20 @@ class _BuatOrderDariChatPageState extends State<BuatOrderDariChatPage> {
 
     final uri = Uri.parse('$kBaseUrl/pasien/order-layanan');
 
-    final request = http.MultipartRequest('POST', uri)
-      ..headers['Accept'] = 'application/json'
-      ..headers['Authorization'] = 'Bearer $token'
-      ..fields['layanan_id'] = widget.layananId.toString()
-      ..fields['tanggal_mulai'] = tanggalMulai
-      ..fields['jam_mulai'] = jamMulai
-      ..fields['alamat_lengkap'] = _alamatController.text.trim()
-      ..fields['kecamatan'] = _kecamatanController.text.trim()
-      ..fields['kota'] = _kotaController.text.trim()
-      ..fields['catatan_pasien'] = _catatanController.text.trim()
-      ..fields['qty'] = '1'
-      ..fields['kesepakatan_harga'] = widget.kesepakatanHarga.toString();
+final request = http.MultipartRequest('POST', uri)
+  ..headers['Accept'] = 'application/json'
+  ..headers['Authorization'] = 'Bearer $token'
+  ..fields['layanan_id'] = widget.layananId.toString()
+  ..fields['tanggal_mulai'] = tanggalMulai
+  ..fields['jam_mulai'] = jamMulai
+  ..fields['alamat_lengkap'] = _alamatController.text.trim()
+  ..fields['kecamatan'] = _kecamatanController.text.trim()
+  ..fields['kota'] = _kotaController.text.trim()
+  ..fields['catatan_pasien'] = _catatanController.text.trim()
+  ..fields['qty'] = '1'
+  ..fields['kesepakatan_harga'] = widget.kesepakatanHarga.toString()
+  ..fields['chat_room_id'] = widget.roomId.toString(); // ⬅️ WAJIB
+
 
     // ⬇️ FIX: pakai bytes, bukan fromPath
     final bytes = await _kondisiFile!.readAsBytes();

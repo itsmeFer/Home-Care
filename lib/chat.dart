@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'; // kalau nggak dipakai, boleh kamu hapus
-
+import 'package:home_care/chat/chat_models.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/users/buat_order_dari_chat_page.dart';
 import 'package:http/http.dart' as http;
@@ -16,13 +16,17 @@ const String kBaseUrl = 'http://192.168.1.6:8000/api';
 class ChatRoomPage extends StatefulWidget {
   final int roomId;
   final String roomTitle;
-  final String role; // 'pasien' atau 'koordinator'
+  final String role; // 'pasien' / 'koordinator' / 'perawat'
+
+  // 🔹 kalau true => chat simple (tanpa etalase & nego)
+  final bool simpleChat;
 
   const ChatRoomPage({
     super.key,
     required this.roomId,
     required this.roomTitle,
     required this.role,
+    this.simpleChat = false, // default: fitur etalase+nego aktif
   });
 
   @override
@@ -44,7 +48,18 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   int _currentUserId = 0;
   bool _hasOrdered =
       false; // kalau true => tombol "Pesan Layanan Sekarang" disembunyikan
-  bool _canSend = true; // kalau false, koordinator tidak bisa kirim pesan
+  bool _canSend = true; // koordinator boleh kirim pesan atau tidak
+
+  String get _apiPrefixForRole {
+    switch (widget.role) {
+      case 'koordinator':
+        return '/koordinator/chat-rooms';
+      case 'perawat':
+        return '/perawat/chat-rooms';
+      default:
+        return '/pasien/chat-rooms';
+    }
+  }
 
   // ====== ETALASE STATE ======
   List<Map<String, dynamic>> _etalaseLayanan = [];
@@ -145,9 +160,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       return false;
     }
 
-    final prefix = widget.role == 'koordinator'
-        ? '/koordinator/chat-rooms'
-        : '/pasien/chat-rooms';
+    final prefix = _apiPrefixForRole;
 
     final url = '$kBaseUrl$prefix/${widget.roomId}/messages';
     print('POST DEAL HARGA $url');
@@ -180,17 +193,75 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   }
 
   Future<void> _approveTawarFromMessage(ChatMessage msg) async {
-    final nominal = _extractNominalFromText(msg.text);
-    if (nominal == null) {
+    // 1️⃣ Hanya koordinator yang boleh ACC
+    if (widget.role != 'koordinator') return;
+
+    // 2️⃣ Kalau chat sudah ditutup pasien, jangan boleh ACC
+    if (!_canSend) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tidak bisa membaca nominal dari penawaran.'),
+          content: Text(
+            'Chat ini sudah ditutup oleh pasien. Tidak bisa menyetujui harga.',
+          ),
         ),
       );
       return;
     }
 
-    await _sendDealHarga(nominal);
+    // 3️⃣ Ambil nominal dari teks penawaran
+    final nominalStr = _extractNominalFromText(msg.text);
+    if (nominalStr == null || nominalStr.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nominal penawaran tidak ditemukan di pesan.'),
+        ),
+      );
+      return;
+    }
+
+    // 4️⃣ Pastikan nominal angka valid dan > 0
+    final nominalInt = int.tryParse(nominalStr);
+    if (nominalInt == null || nominalInt <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nominal penawaran tidak valid.')),
+      );
+      return;
+    }
+
+    // 5️⃣ Format rupiah biar enak dibaca
+    final formatter = NumberFormat.decimalPattern('id_ID');
+    final formatted = formatter.format(nominalInt);
+
+    // 6️⃣ Tampilkan dialog konfirmasi sebelum kirim DEAL
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Deal Harga'),
+          content: Text(
+            'Setujui penawaran harga pasien sebesar:\n\n'
+            'Rp $formatted\n\n'
+            'Setelah disetujui, harga akan dianggap final dan tidak dapat diubah lagi.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Setujui'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // kalau user tekan Batal / back
+    if (confirm != true) return;
+
+    // 7️⃣ Kirim DEAL ke backend
+    await _sendDealHarga(nominalInt.toString());
   }
 
   @override
@@ -419,10 +490,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         return;
       }
 
-      final prefix = widget.role == 'koordinator'
-          ? '/koordinator/chat-rooms'
-          : '/pasien/chat-rooms';
-
+      final prefix = _apiPrefixForRole;
       final url = '$kBaseUrl$prefix/${widget.roomId}/messages';
       print('GET $url');
 
@@ -453,26 +521,43 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         _isFetching = false;
         return;
       }
+     final body = json.decode(res.body);
 
-      final body = json.decode(res.body);
-      final List data = body['data'];
+// untuk koordinator (sudah ada)
+if (widget.role == 'koordinator') {
+  final canSendFromApi = body['can_send'];
+  if (canSendFromApi is bool) {
+    _canSend = canSendFromApi;
+  }
+}
 
-      print('==== RAW MESSAGE DATA ====');
-      print(body['data']);
-      print('==========================');
+// 🔥 untuk pasien: flag sudah ada order
+bool apiHasOrder = false;
+final hasOrderFromApi = body['has_order'];
+if (hasOrderFromApi is bool && hasOrderFromApi == true) {
+  apiHasOrder = true;
+}
 
-      final newMessages = data
-          .map((e) => ChatMessage.fromJson(e, currentUserId: _currentUserId))
-          .toList();
+final List data = body['data'];
+final newMessages = data
+    .map((e) => ChatMessage.fromJson(e, currentUserId: _currentUserId))
+    .toList();
 
-      if (mounted) {
-        setState(() {
-          _messages = newMessages;
-          if (!fromPolling) {
-            _isLoading = false;
-            _error = null;
-          }
-        });
+if (mounted) {
+  setState(() {
+    _messages = newMessages;
+
+    // ⬅️ kalau backend bilang sudah ada order,
+    // paksa _hasOrdered = true supaya tombol hilang
+    if (apiHasOrder) {
+      _hasOrdered = true;
+    }
+
+    if (!fromPolling) {
+      _isLoading = false;
+      _error = null;
+    }
+  });
 
         if (newMessages.length > oldLen) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -519,9 +604,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       return;
     }
 
-    final prefix = widget.role == 'koordinator'
-        ? '/koordinator/chat-rooms'
-        : '/pasien/chat-rooms';
+    final prefix = _apiPrefixForRole;
 
     final url = '$kBaseUrl$prefix/${widget.roomId}/messages';
     print('POST $url');
@@ -657,9 +740,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       return false;
     }
 
-    final prefix = widget.role == 'koordinator'
-        ? '/koordinator/chat-rooms'
-        : '/pasien/chat-rooms';
+    final prefix = _apiPrefixForRole;
 
     final url = '$kBaseUrl$prefix/${widget.roomId}/messages';
     print('POST TAWAR HARGA $url');
@@ -786,57 +867,70 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     String? dealNominal;
     int? lastEtalaseIndex;
     int? lastDealIndex;
+    // apakah ini chat pasien ↔ perawat?
+final bool isPasienPerawat =
+    widget.role == 'pasien' &&
+    widget.roomTitle.toLowerCase().contains('perawat');
 
+// nego cuma aktif kalau:
+// - bukan simpleChat
+// - bukan chat pasien-perawat
+// - dan bukan role perawat
+final bool negoEnabled =
+    !widget.simpleChat && !isPasienPerawat && widget.role != 'perawat';
+    // reset konteks tiap build
     // reset konteks tiap build
     _currentLayananIdFromChat = null;
     _dealHarga = null;
 
-    for (int i = 0; i < _messages.length; i++) {
-      final m = _messages[i];
+    bool hasValidDealForLatestEtalase = false;
 
-      if (m.isEtalase && m.etalaseData != null) {
-        lastEtalaseIndex = i;
+    // 🔹 kalau nego dimatikan (simpleChat) => skip semua logika deal
+    if (negoEnabled) {
+      for (int i = 0; i < _messages.length; i++) {
+        final m = _messages[i];
+
+        if (m.isEtalase && m.etalaseData != null) {
+          lastEtalaseIndex = i;
+        }
+
+        if (_isDealHargaText(m.text)) {
+          final nominal = _extractNominalFromText(m.text);
+          if (nominal != null) {
+            dealNominal = nominal;
+            lastDealIndex = i;
+          }
+        }
       }
 
-      if (_isDealHargaText(m.text)) {
-        final nominal = _extractNominalFromText(m.text);
-        if (nominal != null) {
-          dealNominal = nominal;
-          lastDealIndex = i;
+      if (lastEtalaseIndex != null &&
+          lastDealIndex != null &&
+          lastDealIndex! > lastEtalaseIndex!) {
+        hasValidDealForLatestEtalase = true;
+
+        final etalaseMsg = _messages[lastEtalaseIndex!];
+        final e = etalaseMsg.etalaseData!;
+        final rawId = e['layanan_id'] ?? e['id'];
+
+        int? layananId;
+        if (rawId is int) {
+          layananId = rawId;
+        } else if (rawId is String) {
+          layananId = int.tryParse(rawId);
+        }
+
+        _currentLayananIdFromChat = layananId;
+
+        if (dealNominal != null) {
+          _dealHarga = int.tryParse(dealNominal!);
+          dealHargaDisplay = 'Rp $dealNominal';
+        } else {
+          dealHargaDisplay = 'Disepakati (lihat chat)';
         }
       }
     }
 
-    bool hasValidDealForLatestEtalase = false;
-
-    if (lastEtalaseIndex != null &&
-        lastDealIndex != null &&
-        lastDealIndex! > lastEtalaseIndex!) {
-      hasValidDealForLatestEtalase = true;
-
-      final etalaseMsg = _messages[lastEtalaseIndex!];
-      final e = etalaseMsg.etalaseData!;
-      final rawId = e['layanan_id'] ?? e['id'];
-
-      int? layananId;
-      if (rawId is int) {
-        layananId = rawId;
-      } else if (rawId is String) {
-        layananId = int.tryParse(rawId);
-      }
-
-      _currentLayananIdFromChat = layananId;
-
-      if (dealNominal != null) {
-        _dealHarga = int.tryParse(dealNominal!);
-        dealHargaDisplay = 'Rp $dealNominal';
-      } else {
-        dealHargaDisplay = 'Disepakati (lihat chat)';
-      }
-    }
-
     final bool hasDeal = hasValidDealForLatestEtalase;
-
     final bool canShowOrderButton =
         hasDeal && widget.role == 'pasien' && !_hasOrdered;
 
@@ -845,7 +939,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       body: Column(
         children: [
           // 🔔 BANNER DEAL HARGA
-          if (hasDeal && dealHargaDisplay != null)
+          if (negoEnabled && hasDeal && dealHargaDisplay != null)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -885,7 +979,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                           : DateFormat('HH:mm').format(msg.createdAt!);
 
                       // 🟩 kartu etalase
-                      if (msg.isEtalase && msg.etalaseData != null) {
+                      if (negoEnabled &&
+                          msg.isEtalase &&
+                          msg.etalaseData != null) {
                         final e = msg.etalaseData!;
                         final nama =
                             (e['nama'] ?? e['nama_layanan'] ?? 'Layanan')
@@ -1006,7 +1102,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                               Text(msg.text),
 
                               // Tombol setujui harga (koordinator) — hanya kalau belum deal
-                              if (!hasDeal &&
+                              if (negoEnabled &&
+                                  !hasDeal &&
                                   widget.role == 'koordinator' &&
                                   isTawar &&
                                   !msg.isMine) ...[
@@ -1046,7 +1143,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           ),
 
           // 🌟 TOMBOL "PESAN LAYANAN SEKARANG" (PAKAI canShowOrderButton)
-          if (canShowOrderButton)
+          if (negoEnabled && canShowOrderButton)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               color: Colors.white,
@@ -1072,11 +1169,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             ),
 
           // 🔻 BAR INPUT & ICON
+          // 🔻 BAR INPUT & ICON
           Container(
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
-                if (widget.role == 'pasien') ...[
+                if (widget.role == 'pasien' && negoEnabled) ...[
                   IconButton(
                     icon: const Icon(Icons.shopping_bag_outlined),
                     onPressed: _openEtalaseSheet,
@@ -1089,11 +1187,11 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                       tooltip: 'Tawar harga layanan',
                     ),
                 ],
+
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    readOnly:
-                        widget.role == 'koordinator' && !_canSend, // ⬅️ kunci
+                    readOnly: widget.role == 'koordinator' && !_canSend,
                     decoration: InputDecoration(
                       hintText: widget.role == 'koordinator' && !_canSend
                           ? 'Chat ini sudah ditutup oleh pasien.'
@@ -1106,7 +1204,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: (widget.role == 'koordinator' && !_canSend)
-                      ? null // tombol disable
+                      ? null // tombol nonaktif
                       : _sendMessage,
                 ),
               ],

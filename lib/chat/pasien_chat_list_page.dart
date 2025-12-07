@@ -168,52 +168,69 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
   // ===========================
   // BANGUN TILE ROOM
   // ===========================
-  Widget _buildRoomTile(ChatRoom room) {
-    final title = room.koordinatorName?.isNotEmpty == true
-        ? room.koordinatorName!
-        : (room.title.isEmpty ? 'Chat Layanan' : room.title);
+ Widget _buildRoomTile(ChatRoom room) {
+  final bool isPerawatChat = room.isPerawatChat;
 
-    return ListTile(
-      leading: const CircleAvatar(child: Icon(Icons.support_agent)),
-      title: Text(title),
-      subtitle: room.lastMessage.isNotEmpty
-          ? Text(room.lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis)
-          : const Text('Belum ada pesan', style: TextStyle(fontSize: 12)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (room.lastTime != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 4.0),
-              child: Text(
-                DateFormat('dd MMM\nHH:mm').format(room.lastTime!),
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
-              ),
+  // judul room
+  final title = isPerawatChat
+      ? (room.perawatName?.isNotEmpty == true
+          ? 'Chat dengan Perawat ${room.perawatName}'
+          : 'Chat dengan Perawat')
+      : (room.koordinatorName?.isNotEmpty == true
+          ? room.koordinatorName!
+          : (room.title.isEmpty ? 'Chat Layanan' : room.title));
+
+  return ListTile(
+    leading: CircleAvatar(
+      child: Icon(isPerawatChat ? Icons.local_hospital : Icons.support_agent),
+    ),
+    title: Text(title),
+    subtitle: room.lastMessage.isNotEmpty
+        ? Text(
+            room.lastMessage,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          )
+        : const Text('Belum ada pesan', style: TextStyle(fontSize: 12)),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (room.lastTime != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: Text(
+              DateFormat('dd MMM\nHH:mm').format(room.lastTime!),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            tooltip: 'Hapus chat',
-            onPressed: () => _deleteRoom(room),
           ),
-        ],
-      ),
+        IconButton(
+          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+          tooltip: 'Hapus chat',
+          onPressed: () => _deleteRoom(room),
+        ),
+      ],
+    ),
 
-      // ⬇⬇⬇ INI YANG PENTING: TAP MASUK CHAT
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                ChatRoomPage(roomId: room.id, roomTitle: title, role: 'pasien'),
+    // ⬇ ini yang penting: simpleChat = true kalau room perawat
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatRoomPage(
+            roomId: room.id,
+            roomTitle: title,
+            role: 'pasien',
+            simpleChat: isPerawatChat, // 👈 chat ke perawat = simple
           ),
-        );
-      },
+        ),
+      );
+    },
 
-      // TAHAN LAMA UNTUK HAPUS JUGA (OPTIONAL)
-      onLongPress: () => _deleteRoom(room),
-    );
-  }
+    onLongPress: () => _deleteRoom(room),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

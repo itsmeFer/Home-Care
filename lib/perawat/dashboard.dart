@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_care/chat/perawat_chat_list_page.dart';
 import 'package:home_care/perawat/lihatOrderanMasuk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/screen/login.dart';
@@ -116,7 +117,38 @@ class PerawatDashboard extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
 
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PerawatChatListPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.person_outline),
+                label: const Text(
+                  'Lihat Chat Masuk',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF0BA5A7),
+                  side: const BorderSide(color: Color(0xFF0BA5A7)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ),
           const Spacer(),
 
           /// ============================

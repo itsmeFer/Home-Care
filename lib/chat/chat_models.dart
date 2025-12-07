@@ -5,9 +5,16 @@ class ChatRoom {
   final int id;
   final String title;
   final String lastMessage;
-  final String? pasienName;       // utk koordinator: nama pasien
-  final String? koordinatorName;  // utk pasien: nama koordinator
-  final DateTime? lastTime;       // waktu pesan terakhir (local)
+
+  // utk koordinator/perawat
+  final String? pasienName;        // utk koordinator: nama pasien
+  final String? koordinatorName;   // utk pasien: nama koordinator
+  final String? perawatName;       // utk pasien: nama perawat (kalau ada)
+
+  final DateTime? lastTime;        // waktu pesan terakhir (local)
+
+  // 🔹 flag: ini chat dengan perawat atau bukan
+  final bool isPerawatChat;
 
   ChatRoom({
     required this.id,
@@ -15,23 +22,38 @@ class ChatRoom {
     required this.lastMessage,
     this.pasienName,
     this.koordinatorName,
+    this.perawatName,
     this.lastTime,
+    this.isPerawatChat = false,
   });
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
+    final perawatName = json['perawat_name'] as String?;
+
+    // kalau backend nanti kirim "is_perawat_chat" pakai itu,
+    // kalau belum ada, kita deteksi dari perawat_name.
+    final bool isPerawatChat =
+        (json['is_perawat_chat'] == true) ||
+        (perawatName != null && perawatName.isNotEmpty);
+
     return ChatRoom(
       id: json['id'] as int,
       title: (json['title'] ?? '') as String,
       lastMessage: (json['last_message'] ?? '') as String,
-      pasienName: json['pasien_name'] as String?,          // bisa null
-      koordinatorName: json['koordinator_name'] as String?,// bisa null
+      pasienName: json['pasien_name'] as String?,
+      koordinatorName: json['koordinator_name'] as String?,
+      perawatName: perawatName,
       lastTime: json['last_time'] != null
           ? DateTime.parse(json['last_time'] as String).toLocal()
           : null,
+      isPerawatChat: isPerawatChat,
     );
   }
 }
 
+// =============================================
+//  PESAN CHAT
+// =============================================
 class ChatMessage {
   final int id;
   final int userId;
@@ -40,7 +62,7 @@ class ChatMessage {
   final bool isMine;
   final DateTime? createdAt; // waktu pesan dibuat (local)
 
-  // 🆕 untuk etalase
+  // untuk etalase
   final bool isEtalase;
   final Map<String, dynamic>? etalaseData;
 
@@ -66,7 +88,7 @@ class ChatMessage {
 
     final rawMessage = json['message'] as String? ?? '';
 
-    // 🔍 coba decode JSON untuk cek etalase
+    // coba decode JSON untuk cek etalase
     try {
       final decoded = jsonDecode(rawMessage);
       if (decoded is Map && decoded['etalase'] == true) {
@@ -74,7 +96,7 @@ class ChatMessage {
         etalase = Map<String, dynamic>.from(decoded);
       }
     } catch (_) {
-      // kalau gagal decode -> bukan etalase, biarkan sebagai chat biasa
+      // gagal decode -> bukan etalase
     }
 
     return ChatMessage(
