@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0BA5A7</color>
+    <!-- ✅ NOTIFICATION COLOR (TEAL PRIMARY) -->
+    <color name="notification_color">#0BA5A7</color>
+	<color name="ic_launcher_background">#0BA5A7</color>
 </resources>

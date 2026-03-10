@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:home_care/admin/dashboard.dart';
 import 'package:home_care/kordinator/dashboard.dart';
 import 'package:home_care/users/HomePage.dart';
-import 'package:home_care/perawat/dashboard.dart'; // ⬅️ TAMBAHAN
+import 'package:home_care/perawat/dashboard.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isLoading = false;
   bool _obscure = true;
+  bool _rememberMe = false;
 
   static const String baseUrl = 'http://192.168.1.6:8000/api';
 
@@ -68,38 +69,32 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // ===================== SIMPAN TOKEN & PROFIL ========================
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', body['token']); // token dari API
+      await prefs.setString('auth_token', body['token']);
 
       String role = 'pasien';
 
       if (body['data'] != null) {
         final data = body['data'] as Map<String, dynamic>;
 
-        // user_id
         if (data['user_id'] != null) {
           await prefs.setInt('user_id', data['user_id'] as int);
         } else {
           await prefs.setInt('user_id', 0);
         }
 
-        // pasien_id
         if (data['pasien_id'] != null) {
           await prefs.setInt('pasien_id', data['pasien_id'] as int);
         } else {
           await prefs.setInt('pasien_id', 0);
         }
 
-        // ⬇️⬇️ TAMBAHAN: perawat_id dari API
-        // ⬇️⬇️ TAMBAHAN: perawat_id dari API
         if (data['perawat_id'] != null) {
           await prefs.setInt('perawat_id', data['perawat_id'] as int);
         } else {
           await prefs.setInt('perawat_id', 0);
         }
 
-        // ⬇️⬇️ TAMBAHAN: koordinator_id dari API
         if (data['koordinator_id'] != null) {
           await prefs.setInt('koordinator_id', data['koordinator_id'] as int);
         } else {
@@ -116,11 +111,16 @@ class _LoginPageState extends State<LoginPage> {
           (data['no_rekam_medis'] ?? '') as String,
         );
 
-        // Ambil ROLE langsung dari data
         if (data['role'] != null) {
           role = data['role'] as String;
           await prefs.setString('role', role);
         }
+      }
+
+      if (_rememberMe) {
+        await prefs.setString('saved_username', _usernameC.text.trim());
+      } else {
+        await prefs.remove('saved_username');
       }
 
       if (!mounted) return;
@@ -132,7 +132,6 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
 
-      // ===================== ROUTING SESUAI ROLE ==========================
       Widget nextPage;
 
       switch (role) {
@@ -142,11 +141,10 @@ class _LoginPageState extends State<LoginPage> {
         case 'koordinator':
           nextPage = const KoordinatorDashboard();
           break;
-        case 'perawat': // ⬅️ TAMBAHAN PERAWAT
+        case 'perawat':
           nextPage = const PerawatDashboard();
           break;
         default:
-          // pasien atau apapun yang tidak dikenal → ke HomePage (user)
           nextPage = const HomePage();
       }
 
@@ -163,154 +161,388 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // BCA BLUE COLOR SCHEME
+    const Color bcaBlue = Color(0xFF0066AE);
+    const Color bcaBlueDark = Color(0xFF003D82);
+    const Color bcaBlueLight = Color(0xFF4A9CD6);
+    const Color accentOrange = Color(0xFFFF8C42);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: SafeArea(
-        child: Center(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              bcaBlue,
+              bcaBlueDark,
+            ],
+          ),
+        ),
+        child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Column(
               children: [
+                const SizedBox(height: 50),
+                
+                // LOGO SECTION dengan white circle
                 Container(
-                  height: 80,
-                  width: 80,
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
+                    color: Colors.white,
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0BA5A7), Color(0xFF088088)],
-                    ),
                     boxShadow: [
                       BoxShadow(
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                        color: Colors.black.withOpacity(.15),
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.local_hospital,
-                    size: 40,
+                  child: Image.asset(
+                    'assets/images/home_nobg.png',
+                    height: 90,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+
+                // WELCOME TEXT
+                const Text(
+                  'Selamat Datang',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
                     color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
-
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Text(
-                  'Masuk ke Home Care',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
+                  'Silakan masuk untuk melanjutkan',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
+                
+                const SizedBox(height: 40),
 
-                const SizedBox(height: 24),
-
+                // WHITE CARD FORM
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 18,
-                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        blurRadius: 18,
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 20,
                         offset: const Offset(0, 10),
-                        color: Colors.black.withOpacity(.06),
                       ),
                     ],
                   ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _usernameC,
-                          decoration: const InputDecoration(
-                            labelText: 'Email / No. HP',
-                            prefixIcon: Icon(Icons.person_outline),
-                            border: OutlineInputBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(28),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // EMAIL
+                          Text(
+                            'Email',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
                           ),
-                          validator: (v) =>
-                              v!.isEmpty ? 'Mohon isi email / no HP' : null,
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        TextFormField(
-                          controller: _passwordC,
-                          obscureText: _obscure,
-                          decoration: InputDecoration(
-                            labelText: 'Kata Sandi',
-                            border: const OutlineInputBorder(),
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscure
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F7FA),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey[200]!,
+                                width: 1.5,
                               ),
-                              onPressed: () {
-                                setState(() => _obscure = !_obscure);
+                            ),
+                            child: TextFormField(
+                              controller: _usernameC,
+                              keyboardType: TextInputType.emailAddress,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                hintText: 'Masukkan email Anda',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 15,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.email_outlined,
+                                  color: bcaBlue,
+                                  size: 22,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return 'Email wajib diisi';
+                                }
+                                return null;
                               },
                             ),
                           ),
-                          validator: (v) =>
-                              v!.length < 4 ? 'Minimal 4 karakter' : null,
-                        ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        SizedBox(
-                          width: double.infinity,
-                          height: 46,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0BA5A7),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
+                          // PASSWORD
+                          Text(
+                            'Kata Sandi',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F7FA),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey[200]!,
+                                width: 1.5,
                               ),
                             ),
-                            onPressed: _isLoading ? null : _doLogin,
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : const Text(
-                                    'Masuk',
+                            child: TextFormField(
+                              controller: _passwordC,
+                              obscureText: _obscure,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                hintText: 'Masukkan kata sandi',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 15,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.lock_outline,
+                                  color: bcaBlue,
+                                  size: 22,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscure 
+                                        ? Icons.visibility_off_outlined 
+                                        : Icons.visibility_outlined,
+                                    color: Colors.grey[600],
+                                    size: 22,
+                                  ),
+                                  onPressed: () => setState(() => _obscure = !_obscure),
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return 'Kata sandi wajib diisi';
+                                }
+                                if (v.trim().length < 4) {
+                                  return 'Minimal 4 karakter';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // REMEMBER & FORGOT
+                          Row(
+                            children: [
+                              Transform.scale(
+                                scale: 0.9,
+                                child: Checkbox(
+                                  value: _rememberMe,
+                                  onChanged: (val) => setState(() => _rememberMe = val ?? false),
+                                  activeColor: bcaBlue,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Ingat saya',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Fitur lupa kata sandi belum tersedia'),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 0),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'Lupa Kata Sandi?',
+                                  style: TextStyle(
+                                    color: accentOrange,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          // LOGIN BUTTON GRADIENT BCA
+                          Container(
+                            width: double.infinity,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [bcaBlue, bcaBlueDark],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: bcaBlue.withOpacity(0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _doLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'MASUK',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // DIVIDER
+                          Row(
+                            children: [
+                              Expanded(child: Divider(color: Colors.grey[300])),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'atau',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(child: Divider(color: Colors.grey[300])),
+                            ],
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // REGISTER BUTTON
+                          Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Belum punya akun? ',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const RegisterPage(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Daftar Sekarang',
                                     style: TextStyle(
+                                      color: bcaBlue,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 15,
+                                      decoration: TextDecoration.underline,
                                     ),
                                   ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 30),
 
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const RegisterPage()),
-                    );
-                  },
-                  child: const Text('Belum punya akun? Daftar dulu'),
+                // FOOTER TEXT
+                Text(
+                  'Prima Home Care',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.7),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
+                const SizedBox(height: 40),
               ],
             ),
           ),

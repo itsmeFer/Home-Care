@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_care/admin/crud_banner.dart';
 import 'package:home_care/admin/kelolaKordinator.dart';
 import 'package:home_care/admin/kelolaLayanan.dart';
 import 'package:home_care/admin/lihatLayananMasuk.dart';
@@ -118,6 +119,16 @@ class AdminDashboard extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LihatLayananMasukPage()),
+                );
+              },
+            ),
+            _menuItem(
+              icon: Icons.branding_watermark_outlined,
+              label: 'Kelola Banner',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CrudBannerPage()),
                 );
               },
             ),

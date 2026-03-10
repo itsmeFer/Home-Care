@@ -106,42 +106,44 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
               itemBuilder: (context, index) {
                 final room = _rooms[index];
                 // di ListTile:
-               return ListTile(
-  leading: const CircleAvatar(child: Icon(Icons.person)),
-  // 🔥 judul = nama pasien
-  title: Text(room.pasienName ?? room.title),
-  subtitle: room.lastMessage.isNotEmpty
-      ? Text(
-          room.lastMessage,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        )
-      : const Text(
-          'Belum ada pesan',
-          style: TextStyle(fontSize: 12),
-        ),
-  // 🔥 waktu di trailing
-  trailing: room.lastTime == null
-      ? null
-      : Text(
-          DateFormat('dd MMM\nHH:mm').format(room.lastTime!),
-          textAlign: TextAlign.right,
-          style: const TextStyle(fontSize: 11, color: Colors.grey),
-        ),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatRoomPage(
-          roomId: room.id,
-          roomTitle: room.pasienName ?? room.title,
-          role: 'koordinator',
-        ),
-      ),
-    );
-  },
-);
-
+                return ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.person)),
+                  // 🔥 judul = nama pasien
+                  title: Text(room.pasienName ?? room.title),
+                  subtitle: room.lastMessage.isNotEmpty
+                      ? Text(
+                          room.lastMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : const Text(
+                          'Belum ada pesan',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                  // 🔥 waktu di trailing
+                  trailing: room.lastTime == null
+                      ? null
+                      : Text(
+                          DateFormat('dd MMM\nHH:mm').format(room.lastTime!),
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatRoomPage(
+                          roomId: room.id,
+                          roomTitle: room.pasienName ?? room.title,
+                          role: 'koordinator',
+                        ),
+                      ),
+                    );
+                  },
+                );
               },
             ),
     );

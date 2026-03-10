@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "102173797511",
+    "project_id": "royal-4366a",
+    "storage_bucket": "royal-4366a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102173797511:android:ced037ebd70ce70fd6dc22",
+        "android_client_info": {
+          "package_name": "com.example.home_care"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeBVI86ITlBe00H_w7iILIzNS0tK_cUFo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102173797511:android:ab11a5b568c376dcd6dc22",
+        "android_client_info": {
+          "package_name": "com.example.royalclinic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeBVI86ITlBe00H_w7iILIzNS0tK_cUFo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102173797511:android:ca3c0f3878e0494fd6dc22",
+        "android_client_info": {
+          "package_name": "com.example.royalclinic.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeBVI86ITlBe00H_w7iILIzNS0tK_cUFo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
