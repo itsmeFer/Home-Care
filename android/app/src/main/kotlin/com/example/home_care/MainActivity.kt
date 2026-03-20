@@ -1,4 +1,4 @@
-package com.example.home_care
+package com.primahomecare.app
 
 import io.flutter.embedding.android.FlutterActivity
 

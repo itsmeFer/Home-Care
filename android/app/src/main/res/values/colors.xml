@@ -2,5 +2,5 @@
 <resources>
     <!-- ✅ NOTIFICATION COLOR (TEAL PRIMARY) -->
     <color name="notification_color">#0BA5A7</color>
-	<color name="ic_launcher_background">#0BA5A7</color>
+	<color name="ic_launcher_background">#FFFFFF</color>
 </resources>

@@ -1,13 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:home_care/users/LihatDetailDraftPemesananPage.dart';
 import 'package:home_care/users/lihatDetailHistoriPemesanan.dart';
 import 'package:home_care/users/payment_method_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String kBaseUrl = 'http://192.168.1.6:8000/api';
+const String kBaseUrl = 'http://147.93.81.243/api';
 
 // ===== COLOR SCHEME =====
 class HCColors {
@@ -37,8 +38,10 @@ class OrderHistory {
   final String? metodePembayaran;
   final int? qty;
   final String? gambarLayanan;
-  final bool isDraft; // ✅ TAMBAH
-  final int? draftId; // ✅ TAMBAH
+  final bool isDraft;
+  final int? draftId;
+  final bool hasRating;
+  final String? expiredAt;
 
   OrderHistory({
     required this.id,
@@ -53,8 +56,10 @@ class OrderHistory {
     this.metodePembayaran,
     this.qty,
     this.gambarLayanan,
-    this.isDraft = false, // ✅ DEFAULT
-    this.draftId, // ✅ TAMBAH
+    this.isDraft = false,
+    this.draftId,
+    this.hasRating = false,
+    this.expiredAt,
   });
 
   factory OrderHistory.fromJson(Map<String, dynamic> json) {
@@ -69,11 +74,15 @@ class OrderHistory {
       gambar = json['layanan']['gambar_url']?.toString();
     }
 
-    // ✅ CEK APAKAH INI DRAFT
     final isDraft = json['is_draft'] == true;
     final draftId = json['draft_id'] != null
         ? int.tryParse(json['draft_id'].toString())
         : null;
+
+    bool hasRating = false;
+    if (json.containsKey('has_rating') && json['has_rating'] != null) {
+      hasRating = json['has_rating'] == true || json['has_rating'] == 1;
+    }
 
     return OrderHistory(
       id: json['id'] as int,
@@ -88,8 +97,10 @@ class OrderHistory {
       metodePembayaran: json['metode_pembayaran']?.toString(),
       qty: json['qty'] != null ? int.tryParse(json['qty'].toString()) : 1,
       gambarLayanan: gambar,
-      isDraft: isDraft, // ✅ TAMBAH FIELD
-      draftId: draftId, // ✅ TAMBAH FIELD
+      isDraft: isDraft,
+      draftId: draftId,
+      hasRating: hasRating,
+      expiredAt: json['expired_at']?.toString(),
     );
   }
 }
@@ -109,31 +120,87 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
   bool _isLoading = true;
   String? _error;
   List<OrderHistory> _allOrders = [];
-  List<OrderHistory> _unpaidOrders = [];
 
-  // ✅ Filter orders by category
-  List<OrderHistory> get _activeOrders => _allOrders
-      .where(
-        (o) =>
-            o.statusPembayaran != 'belum_bayar' &&
-            !['selesai', 'dibatalkan'].contains(o.statusOrder),
-      )
-      .toList();
+  bool _isUnpaidPaymentStatus(String status) {
+    final s = status.toLowerCase().trim();
+    return s == 'belum_bayar' || s == 'expired' || s == 'gagal';
+  }
 
-  List<OrderHistory> get _historyOrders => _allOrders
-      .where(
-        (o) =>
-            o.statusPembayaran != 'belum_bayar' &&
-            ['selesai', 'dibatalkan'].contains(o.statusOrder),
-      )
-      .toList();
+  bool _isCodOrder(OrderHistory o) {
+    final method = (o.metodePembayaran ?? '').toLowerCase().trim();
+    return method == 'cash' || method == 'cod';
+  }
+
+  bool _isDraftExpired(OrderHistory o) {
+    if (!o.isDraft) return false;
+
+    final paymentStatus = o.statusPembayaran.toLowerCase().trim();
+    final orderStatus = o.statusOrder.toLowerCase().trim();
+
+    if (paymentStatus == 'expired' || orderStatus == 'expired') {
+      return true;
+    }
+
+    if (o.expiredAt == null || o.expiredAt!.isEmpty) return false;
+
+    try {
+      final exp = DateTime.parse(o.expiredAt!).toLocal();
+      return DateTime.now().isAfter(exp);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  List<OrderHistory> get _unpaidOrders => _allOrders.where((o) {
+    final statusOrder = o.statusOrder.toLowerCase().trim();
+    final isDone = ['selesai', 'dibatalkan', 'expired'].contains(statusOrder);
+
+    if (isDone) return false;
+
+    if (o.isDraft) {
+      return !_isDraftExpired(o) &&
+          ['belum_bayar', 'pending', 'menunggu_pembayaran'].contains(
+            o.statusPembayaran.toLowerCase().trim(),
+          );
+    }
+
+    if (_isCodOrder(o)) return false;
+
+    return _isUnpaidPaymentStatus(o.statusPembayaran);
+  }).toList();
+
+  List<OrderHistory> get _activeOrders => _allOrders.where((o) {
+    final statusOrder = o.statusOrder.toLowerCase().trim();
+    final isDone = ['selesai', 'dibatalkan', 'expired'].contains(statusOrder);
+
+    if (isDone) return false;
+
+    if (o.isDraft) return false;
+
+    if (_isCodOrder(o)) return true;
+
+    return !_isUnpaidPaymentStatus(o.statusPembayaran);
+  }).toList();
+
+  List<OrderHistory> get _historyOrders => _allOrders.where((o) {
+    final statusOrder = o.statusOrder.toLowerCase().trim();
+
+    if (['selesai', 'dibatalkan', 'expired'].contains(statusOrder)) {
+      return true;
+    }
+
+    if (o.isDraft && _isDraftExpired(o)) {
+      return true;
+    }
+
+    return false;
+  }).toList();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _fetchHistory();
-    _fetchUnpaidOrders();
   }
 
   @override
@@ -145,44 +212,6 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
-  }
-
-  // ✅ FETCH UNPAID ORDERS
-  Future<void> _fetchUnpaidOrders() async {
-    final token = await _getToken();
-    if (token == null) return;
-
-    try {
-      final uri = Uri.parse('$kBaseUrl/pasien/order-layanan/belum-bayar');
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        final success = decoded['success'] == true;
-
-        if (success) {
-          final List<dynamic> data = decoded['data'] ?? [];
-          final list = data
-              .map((e) => OrderHistory.fromJson(e as Map<String, dynamic>))
-              .toList();
-
-          setState(() {
-            _unpaidOrders = list;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error fetching unpaid orders: $e');
-    }
   }
 
   Future<void> _fetchHistory() async {
@@ -201,54 +230,133 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     }
 
     try {
-      final uri = Uri.parse('$kBaseUrl/pasien/order-layanan');
+      final orderUri = Uri.parse('$kBaseUrl/pasien/order-layanan');
+      final draftUri = Uri.parse('$kBaseUrl/pasien/order-drafts');
 
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final responses = await Future.wait([
+        http.get(
+          orderUri,
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        http.get(
+          draftUri,
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      ]);
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        final success = decoded['success'] == true;
+      final orderResponse = responses[0];
+      final draftResponse = responses[1];
 
-        if (!success) {
-          setState(() {
-            _isLoading = false;
-            _error =
-                decoded['message']?.toString() ??
-                'Gagal memuat histori pemesanan.';
-          });
-          return;
+      if (orderResponse.statusCode != 200) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Gagal memuat order. Kode: ${orderResponse.statusCode}';
+        });
+        return;
+      }
+
+      if (draftResponse.statusCode != 200) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Gagal memuat draft. Kode: ${draftResponse.statusCode}';
+        });
+        return;
+      }
+
+      final orderDecoded =
+          json.decode(orderResponse.body) as Map<String, dynamic>;
+      final draftDecoded =
+          json.decode(draftResponse.body) as Map<String, dynamic>;
+
+      if (orderDecoded['success'] != true) {
+        setState(() {
+          _isLoading = false;
+          _error =
+              orderDecoded['message']?.toString() ?? 'Gagal memuat data order.';
+        });
+        return;
+      }
+
+      if (draftDecoded['success'] != true) {
+        setState(() {
+          _isLoading = false;
+          _error =
+              draftDecoded['message']?.toString() ?? 'Gagal memuat data draft.';
+        });
+        return;
+      }
+
+      final List<dynamic> orderData = orderDecoded['data'] ?? [];
+      final List<dynamic> draftData = draftDecoded['data'] ?? [];
+
+      if (orderData.isNotEmpty) {
+        debugPrint('🔍 [DEBUG] Sample order data: ${orderData[0]}');
+        debugPrint('🔍 [DEBUG] has_rating value: ${orderData[0]['has_rating']}');
+      }
+
+      final finalOrders = orderData
+          .map((e) => OrderHistory.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      if (finalOrders.isNotEmpty) {
+        debugPrint('🔍 [DEBUG] Parsed hasRating: ${finalOrders[0].hasRating}');
+      }
+
+      final draftOrders = draftData.map((e) {
+        final draft = Map<String, dynamic>.from(e as Map<String, dynamic>);
+        final draftStatus =
+            draft['status']?.toString().toLowerCase().trim() ?? 'draft';
+
+        String paymentStatus;
+        switch (draftStatus) {
+          case 'expired':
+            paymentStatus = 'expired';
+            break;
+          case 'dibayar':
+            paymentStatus = 'dibayar';
+            break;
+          case 'dibatalkan':
+            paymentStatus = 'gagal';
+            break;
+          case 'menunggu_pembayaran':
+          case 'draft':
+          default:
+            paymentStatus = 'belum_bayar';
+            break;
         }
 
-        final List<dynamic> data = decoded['data'] ?? [];
-        final list = data
-            .map((e) => OrderHistory.fromJson(e as Map<String, dynamic>))
-            .toList();
+        return OrderHistory(
+          id: draft['id'] as int,
+          kodeOrder: draft['draft_code']?.toString() ?? '-',
+          statusOrder: draftStatus,
+          statusPembayaran: paymentStatus,
+          namaLayanan: draft['nama_layanan']?.toString() ?? '-',
+          totalBayar: double.tryParse(draft['total_bayar'].toString()) ?? 0,
+          tanggalMulai: draft['tanggal_mulai']?.toString(),
+          jamMulai: draft['jam_mulai']?.toString(),
+          tipeLayanan: draft['tipe_layanan']?.toString(),
+          metodePembayaran: null,
+          qty: draft['qty'] != null ? int.tryParse(draft['qty'].toString()) : 1,
+          gambarLayanan: null,
+          isDraft: true,
+          draftId: draft['id'] as int,
+          hasRating: false,
+          expiredAt: draft['expired_at']?.toString(),
+        );
+      }).toList();
 
-        setState(() {
-          _isLoading = false;
-          _allOrders = list;
-        });
-
-        await _fetchUnpaidOrders();
-      } else if (response.statusCode == 401) {
-        setState(() {
-          _isLoading = false;
-          _error = 'Sesi login berakhir. Silakan login ulang.';
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-          _error = 'Gagal memuat data. Kode: ${response.statusCode}';
-        });
-      }
+      setState(() {
+        _isLoading = false;
+        _allOrders = [...draftOrders, ...finalOrders];
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -286,6 +394,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
+      case 'menunggu_pembayaran':
         return HCColors.pending;
       case 'menunggu_penugasan':
         return HCColors.warning;
@@ -299,6 +408,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
         return HCColors.success;
       case 'dibatalkan':
         return HCColors.danger;
+      case 'expired':
+        return HCColors.textMuted;
       default:
         return HCColors.textMuted;
     }
@@ -308,6 +419,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     switch (status.toLowerCase()) {
       case 'pending':
         return 'Menunggu';
+      case 'menunggu_pembayaran':
+        return 'Belum Bayar';
       case 'menunggu_penugasan':
         return 'Penugasan';
       case 'mendapatkan_perawat':
@@ -320,12 +433,96 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
         return 'Selesai';
       case 'dibatalkan':
         return 'Dibatalkan';
+      case 'expired':
+        return 'Kadaluarsa';
       default:
         return status;
     }
   }
 
-  // ✅ PAYMENT COD CONFIRMATION
+  Color _paymentStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'belum_bayar':
+      case 'gagal':
+      case 'expired':
+        return HCColors.danger;
+      case 'pending':
+      case 'menunggu_pembayaran':
+        return HCColors.warning;
+      case 'dibayar':
+      case 'lunas':
+        return HCColors.success;
+      default:
+        return HCColors.textMuted;
+    }
+  }
+
+  String _paymentStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'belum_bayar':
+        return 'Belum Bayar';
+      case 'pending':
+      case 'menunggu_pembayaran':
+        return 'Menunggu Verifikasi';
+      case 'dibayar':
+        return 'Sudah Dibayar';
+      case 'lunas':
+        return 'Lunas';
+      case 'gagal':
+        return 'Gagal';
+      case 'expired':
+        return 'Expired';
+      default:
+        return status;
+    }
+  }
+
+  Widget _buildExpiredInfo(OrderHistory order) {
+    if (!order.isDraft || order.expiredAt == null || order.expiredAt!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    try {
+      final exp = DateTime.parse(order.expiredAt!).toLocal();
+      final text = DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(exp);
+
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: (_isDraftExpired(order) ? HCColors.danger : HCColors.warning)
+              .withOpacity(0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _isDraftExpired(order) ? Icons.timer_off_outlined : Icons.timer_outlined,
+              size: 14,
+              color: _isDraftExpired(order) ? HCColors.danger : HCColors.warning,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                _isDraftExpired(order)
+                    ? 'Draft kadaluarsa pada $text'
+                    : 'Selesaikan pembayaran sebelum $text',
+                style: TextStyle(
+                  fontSize: 11,
+                  color:
+                      _isDraftExpired(order) ? HCColors.danger : HCColors.warning,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+  }
+
   Future<void> _confirmPaymentCod(OrderHistory order) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -486,7 +683,6 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
           );
 
           _fetchHistory();
-          _fetchUnpaidOrders();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -523,10 +719,6 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Responsive check for small screens
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 400;
-
     return Scaffold(
       backgroundColor: HCColors.bg,
       appBar: AppBar(
@@ -545,7 +737,6 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
             icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: () {
               _fetchHistory();
-              _fetchUnpaidOrders();
             },
             tooltip: 'Refresh',
           ),
@@ -566,10 +757,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
               fontWeight: FontWeight.w500,
               fontSize: 14,
             ),
-            // ✅ PENTING: HAPUS isScrollable, LANGSUNG CENTER
             tabAlignment: TabAlignment.center,
             tabs: [
-              // ✅ TAB BELUM BAYAR
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -599,7 +788,6 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                   ],
                 ),
               ),
-              // TAB AKTIF
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -666,7 +854,6 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
               ElevatedButton.icon(
                 onPressed: () {
                   _fetchHistory();
-                  _fetchUnpaidOrders();
                 },
                 icon: const Icon(Icons.refresh_rounded),
                 label: const Text('Coba Lagi'),
@@ -696,7 +883,11 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
           isUnpaid: true,
         ),
         _buildOrderList(_activeOrders, isEmpty: 'Belum ada pesanan aktif'),
-        _buildOrderList(_historyOrders, isEmpty: 'Belum ada riwayat pesanan'),
+        _buildOrderList(
+          _historyOrders,
+          isEmpty: 'Belum ada riwayat pesanan',
+          isHistory: true,
+        ),
       ],
     );
   }
@@ -705,6 +896,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     List<OrderHistory> orders, {
     required String isEmpty,
     bool isUnpaid = false,
+    bool isHistory = false,
   }) {
     if (orders.isEmpty) {
       return Center(
@@ -732,7 +924,6 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     return RefreshIndicator(
       onRefresh: () async {
         await _fetchHistory();
-        await _fetchUnpaidOrders();
       },
       color: HCColors.primary,
       child: ListView.builder(
@@ -740,177 +931,223 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
         itemCount: orders.length,
         itemBuilder: (context, index) {
           final order = orders[index];
-          return _buildOrderCard(order, isUnpaid: isUnpaid);
+          return _buildOrderCard(
+            order,
+            isUnpaid: isUnpaid,
+            isHistory: isHistory,
+          );
         },
       ),
     );
   }
 
-  Widget _buildOrderCard(OrderHistory order, {bool isUnpaid = false}) {
+  Widget _buildOrderCard(
+    OrderHistory order, {
+    bool isUnpaid = false,
+    bool isHistory = false,
+  }) {
     final tgl = _formatTanggal(order.tanggalMulai);
     final jam = _formatJam(order.jamMulai);
-    final isCod = order.metodePembayaran?.toLowerCase() == 'cod';
+    final isCod =
+        order.metodePembayaran?.toLowerCase() == 'cod' ||
+        order.metodePembayaran?.toLowerCase() == 'cash';
+    final isSelesai = order.statusOrder.toLowerCase() == 'selesai';
+    final needsRating = isHistory && isSelesai && !order.hasRating;
+    final isDraftExpired = _isDraftExpired(order);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: HCColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: isUnpaid ? Border.all(color: HCColors.danger, width: 2) : null,
+        borderRadius: BorderRadius.circular(12),
+        border: isUnpaid
+            ? Border.all(color: HCColors.danger.withOpacity(0.3), width: 1.5)
+            : needsRating
+                ? Border.all(color: HCColors.accent.withOpacity(0.3), width: 1.5)
+                : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    LihatDetailHistoriPemesananPage(orderId: order.id),
-              ),
-            ).then((_) {
-              _fetchHistory();
-              _fetchUnpaidOrders();
-            });
+          borderRadius: BorderRadius.circular(12),
+          onTap: () async {
+            if (order.isDraft && isDraftExpired) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Draft transaksi sudah expired. Silakan buat pesanan baru.',
+                  ),
+                  backgroundColor: HCColors.danger,
+                ),
+              );
+              return;
+            }
+
+            if (order.isDraft && order.draftId != null) {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      LihatDetailDraftPemesananPage(draftId: order.draftId!),
+                ),
+              );
+              if (result == true && mounted) {
+                await _fetchHistory();
+              }
+            } else {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      LihatDetailHistoriPemesananPage(orderId: order.id),
+                ),
+              );
+              if (mounted) {
+                await _fetchHistory();
+              }
+            }
           },
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ===== HEADER =====
                 Row(
                   children: [
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         color: isUnpaid
-                            ? HCColors.danger.withOpacity(0.1)
-                            : HCColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                            ? HCColors.danger.withOpacity(0.08)
+                            : needsRating
+                                ? HCColors.accent.withOpacity(0.08)
+                                : HCColors.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child:
                           order.gambarLayanan != null &&
-                              order.gambarLayanan!.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                order.gambarLayanan!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(
+                                  order.gambarLayanan!.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    order.gambarLayanan!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Icon(
+                                      Icons.medical_services_rounded,
+                                      color: isUnpaid
+                                          ? HCColors.danger
+                                          : needsRating
+                                              ? HCColors.accent
+                                              : HCColors.primary,
+                                      size: 24,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
                                   Icons.medical_services_rounded,
                                   color: isUnpaid
                                       ? HCColors.danger
-                                      : HCColors.primary,
-                                  size: 20,
+                                      : needsRating
+                                          ? HCColors.accent
+                                          : HCColors.primary,
+                                  size: 24,
                                 ),
-                              ),
-                            )
-                          : Icon(
-                              Icons.medical_services_rounded,
-                              color: isUnpaid
-                                  ? HCColors.danger
-                                  : HCColors.primary,
-                              size: 20,
-                            ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        order.kodeOrder,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: HCColors.textDark,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // ✅ RESPONSIVE BADGE
-                    Flexible(
-                      child: isUnpaid
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: HCColors.danger.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: HCColors.danger.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: const Text(
-                                'Belum Bayar',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: HCColors.danger,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )
-                          : Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _statusColor(
-                                  order.statusOrder,
-                                ).withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: _statusColor(
-                                    order.statusOrder,
-                                  ).withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                _statusLabel(order.statusOrder),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: _statusColor(order.statusOrder),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.kodeOrder,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: HCColors.textDark,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _paymentStatusColor(
+                                    order.statusPembayaran,
+                                  ).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  _paymentStatusLabel(order.statusPembayaran),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: _paymentStatusColor(
+                                      order.statusPembayaran,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _statusColor(order.statusOrder)
+                                      .withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  _statusLabel(order.statusOrder),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: _statusColor(order.statusOrder),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
+                const Divider(height: 1, thickness: 1),
+                const SizedBox(height: 12),
 
-                // ===== LAYANAN =====
                 Text(
                   order.namaLayanan,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: HCColors.textDark,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
 
-                // ===== INFO ROW - RESPONSIVE =====
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                Row(
                   children: [
                     if (order.tipeLayanan != null)
                       Container(
@@ -924,219 +1161,306 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                         ),
                         child: Text(
                           order.tipeLayanan!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: HCColors.primary.withOpacity(0.8),
+                            color: HCColors.primary,
                           ),
                         ),
                       ),
+                    const SizedBox(width: 8),
                     Text(
                       'Qty: ${order.qty ?? 1}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: HCColors.textMuted,
+                        color: HCColors.textMuted.withOpacity(0.8),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
-                // ===== JADWAL - RESPONSIVE =====
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 8,
+                Row(
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.today_outlined,
-                          size: 14,
-                          color: HCColors.textMuted.withOpacity(0.7),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          tgl,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: HCColors.textMuted,
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      Icons.today_outlined,
+                      size: 14,
+                      color: HCColors.textMuted.withOpacity(0.6),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.access_time_rounded,
-                          size: 14,
-                          color: HCColors.textMuted.withOpacity(0.7),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          jam,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: HCColors.textMuted,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 6),
+                    Text(
+                      tgl,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: HCColors.textMuted.withOpacity(0.8),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: HCColors.textMuted.withOpacity(0.6),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      jam,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: HCColors.textMuted.withOpacity(0.8),
+                      ),
                     ),
                   ],
                 ),
 
+                _buildExpiredInfo(order),
+
                 const SizedBox(height: 12),
-                const Divider(height: 1),
+                const Divider(height: 1, thickness: 1),
                 const SizedBox(height: 12),
 
-                // ===== FOOTER - RESPONSIVE =====
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Total Bayar',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: HCColors.textMuted,
-                              fontWeight: FontWeight.w500,
-                            ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Bayar',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: HCColors.textMuted.withOpacity(0.7),
+                            fontWeight: FontWeight.w500,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _formatRupiah(order.totalBayar),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                              color: isUnpaid
-                                  ? HCColors.danger
-                                  : HCColors.primary,
-                            ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _formatRupiah(order.totalBayar),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 17,
+                            color: isUnpaid
+                                ? HCColors.danger
+                                : HCColors.primary,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    // ✅ BUTTON - RESPONSIVE
-                    if (isUnpaid && isCod)
-                      Flexible(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            if (order.isDraft && order.draftId != null) {
-                              // ✅ DRAFT: Navigate ke PaymentMethodPage
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => PaymentMethodPage(
-                                    draftId: order.draftId!,
-                                    totalBayar: order.totalBayar.toInt(),
-                                  ),
+                    if (order.isDraft && !isDraftExpired)
+                      ElevatedButton(
+                        onPressed: () {
+                          if (order.draftId != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PaymentMethodPage(
+                                  draftId: order.draftId!,
+                                  totalBayar: order.totalBayar.toInt(),
                                 ),
-                              ).then((_) {
-                                _fetchHistory();
-                                _fetchUnpaidOrders();
-                              });
-                            } else {
-                              // ✅ ORDER FINAL: Konfirmasi COD
-                              _confirmPaymentCod(order);
-                            }
-                          },
-                          icon: const Icon(Icons.payment, size: 16),
-                          label: Text(
-                            order.isDraft ? 'Bayar Sekarang' : 'Konfirmasi COD',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
+                              ),
+                            ).then((_) {
+                              _fetchHistory();
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HCColors.warning,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: HCColors.warning,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Bayar',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      )
+                    else if (order.isDraft && isDraftExpired)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: HCColors.textMuted.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Draft Expired',
+                          style: TextStyle(
+                            color: HCColors.textMuted,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      )
+                    else if (isUnpaid && isCod)
+                      ElevatedButton(
+                        onPressed: () {
+                          _confirmPaymentCod(order);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HCColors.warning,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Konfirmasi',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       )
                     else if (isUnpaid)
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HCColors.danger.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Bayar Manual',
-                            style: TextStyle(
-                              color: HCColors.danger,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                            textAlign: TextAlign.center,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: HCColors.danger.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Bayar Manual',
+                          style: TextStyle(
+                            color: HCColors.danger,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
                           ),
                         ),
                       )
                     else
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [HCColors.primary, HCColors.primaryDark],
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: HCColors.primary.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Detail',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              SizedBox(width: 4),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                        ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: HCColors.textMuted.withOpacity(0.5),
                       ),
                   ],
                 ),
+
+                if (needsRating) ...[
+                  const SizedBox(height: 12),
+                  const Divider(height: 1, thickness: 1),
+                  const SizedBox(height: 12),
+                  _buildRatingPrompt(order),
+                ],
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRatingPrompt(OrderHistory order) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            HCColors.accent.withOpacity(0.08),
+            HCColors.primary.withOpacity(0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: HCColors.accent.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.star_rounded,
+              color: Color.fromARGB(255, 248, 179, 76),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Bagaimana pengalaman Anda?',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: HCColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Bantu kami meningkatkan layanan',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: HCColors.textMuted.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      LihatDetailHistoriPemesananPage(orderId: order.id),
+                ),
+              );
+              if (mounted) {
+                await _fetchHistory();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 252, 177, 17),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Beri Rating',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -5,7 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String kBaseUrl = 'http://192.168.1.6:8000/api';
+// Import halaman rating - sesuaikan dengan path project Anda
+// import 'lihat_rating_page.dart';
+
+const String kBaseUrl = 'http://147.93.81.243/api';
 
 // ===== COLOR SCHEME =====
 class HCColors {
@@ -39,10 +42,25 @@ class _LihatDetailHistoriPemesananPageState
   String? _error;
   Map<String, dynamic>? _order;
 
+  // Rating state
+  bool _isLoadingRating = false;
+  bool _isSubmittingRating = false;
+  Map<String, dynamic>? _ratingData;
+  bool _hasRating = false;
+  int _ratingLayanan = 0;
+  int _ratingPerawat = 0;
+  final _komentarController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _fetchDetail();
+  }
+
+  @override
+  void dispose() {
+    _komentarController.dispose();
+    super.dispose();
   }
 
   IconData _getFotoIcon(String title) {
@@ -65,6 +83,11 @@ class _LihatDetailHistoriPemesananPageState
       'menunggu_penugasan',
       'mendapatkan_perawat',
     ].contains(status);
+  }
+
+  bool _canRate() {
+    final status = _order?['status_order']?.toString().toLowerCase() ?? '';
+    return status == 'selesai';
   }
 
   Future<void> _cancelOrder(String alasan) async {
@@ -441,6 +464,11 @@ class _LihatDetailHistoriPemesananPageState
             _order = data;
             _isLoading = false;
           });
+
+          // Fetch rating jika status selesai
+          if (_canRate()) {
+            _fetchRating();
+          }
         } else {
           setState(() {
             _error =
@@ -466,6 +494,210 @@ class _LihatDetailHistoriPemesananPageState
         _error = 'Terjadi kesalahan: $e';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _fetchRating() async {
+    setState(() => _isLoadingRating = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      if (token == null || token.isEmpty) return;
+
+      final uri = Uri.parse(
+        '$kBaseUrl/pasien/order-layanan/${widget.orderId}/rating',
+      );
+
+      debugPrint('🔵 [RATING] Fetching dari: $uri');
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      debugPrint('🔵 [RATING] Status Code: ${response.statusCode}');
+      debugPrint('🔵 [RATING] Response Body: ${response.body}');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final jsonBody = json.decode(response.body);
+        if (jsonBody is Map && jsonBody['success'] == true) {
+          final data = (jsonBody['data'] ?? {}) as Map<String, dynamic>;
+          final rating = data['rating'];
+
+          setState(() {
+            _ratingData = data;
+            _hasRating = rating != null;
+
+            if (_hasRating && rating is Map) {
+              _ratingLayanan =
+                  int.tryParse(rating['rating_layanan']?.toString() ?? '0') ??
+                      0;
+              _ratingPerawat =
+                  int.tryParse(rating['rating_perawat']?.toString() ?? '0') ??
+                      0;
+              _komentarController.text = rating['komentar']?.toString() ?? '';
+            }
+
+            _isLoadingRating = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [RATING] Error: $e');
+      if (mounted) {
+        setState(() => _isLoadingRating = false);
+      }
+    }
+  }
+
+  Future<void> _submitRating() async {
+    // Validasi
+    if (_ratingLayanan == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mohon berikan rating untuk layanan'),
+          backgroundColor: HCColors.danger,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmittingRating = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      if (token == null || token.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesi login tidak ditemukan. Silakan login ulang.'),
+            backgroundColor: HCColors.danger,
+          ),
+        );
+        setState(() => _isSubmittingRating = false);
+        return;
+      }
+
+      final uri = Uri.parse(
+        '$kBaseUrl/pasien/order-layanan/${widget.orderId}/rating',
+      );
+
+      debugPrint('🔵 [RATING] Submitting ke: $uri');
+
+      final payload = {
+        'rating_layanan': _ratingLayanan,
+        'rating_perawat': _ratingPerawat > 0 ? _ratingPerawat : null,
+        'komentar': _komentarController.text.trim(),
+      };
+
+      debugPrint('🔵 [RATING] Payload: $payload');
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(payload),
+      );
+
+      debugPrint('🔵 [RATING] Status Code: ${response.statusCode}');
+      debugPrint('🔵 [RATING] Response Body: ${response.body}');
+
+      if (!mounted) return;
+
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              body['message']?.toString() ?? 'Rating berhasil disimpan',
+            ),
+            backgroundColor: HCColors.success,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Refresh data rating
+        await _fetchRating();
+      } else if (response.statusCode == 422) {
+        String errorMsg = 'Validasi gagal';
+
+        if (body['errors'] != null && body['errors'] is Map) {
+          final errors = body['errors'] as Map;
+          final errorList = <String>[];
+
+          errors.forEach((key, value) {
+            if (value is List) {
+              errorList.addAll(value.map((e) => e.toString()));
+            } else {
+              errorList.add(value.toString());
+            }
+          });
+
+          errorMsg = errorList.join('\n');
+        } else if (body['message'] != null) {
+          errorMsg = body['message'].toString();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: HCColors.danger,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else if (response.statusCode == 409) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              body['message']?.toString() ??
+                  'Rating untuk order ini sudah pernah dikirim',
+            ),
+            backgroundColor: HCColors.danger,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              body['message']?.toString() ??
+                  'Gagal menyimpan rating. Kode: ${response.statusCode}',
+            ),
+            backgroundColor: HCColors.danger,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ [RATING] Error: $e');
+      debugPrint('❌ [RATING] Stack Trace: $stackTrace');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan: ${e.toString()}'),
+          backgroundColor: HCColors.danger,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmittingRating = false);
+      }
     }
   }
 
@@ -790,6 +1022,11 @@ class _LihatDetailHistoriPemesananPageState
                   const SizedBox(height: 12),
                   _buildCancelButton(),
                 ],
+                // ✅ RATING CARD (hanya untuk status selesai)
+                if (_canRate()) ...[
+                  const SizedBox(height: 12),
+                  _buildRatingCard(),
+                ],
                 if ((_order?['status_order']?.toString().toLowerCase() ?? '') ==
                         'dibatalkan' &&
                     (_order?['alasan_batal']?.toString().trim() ?? '')
@@ -840,6 +1077,472 @@ class _LihatDetailHistoriPemesananPageState
           ),
         ),
       ),
+    );
+  }
+
+  // ✅ RATING CARD - INLINE TANPA NAVIGASI
+  Widget _buildRatingCard() {
+    if (_isLoadingRating) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: HCColors.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: HCColors.primary),
+        ),
+      );
+    }
+
+    final avgData = _ratingData?['avg'] ?? {};
+    final avgLayanan = avgData['layanan'];
+    final avgPerawat = avgData['perawat'];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: HCColors.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _hasRating ? Icons.check_circle_rounded : Icons.star_rounded,
+                color: _hasRating ? HCColors.success : HCColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _hasRating ? 'Rating Anda' : 'Beri Rating & Ulasan',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: HCColors.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          if (_hasRating) ...[
+            // TAMPILAN RATING YANG SUDAH DIBERIKAN
+            _buildSubmittedRatingDisplay(),
+            
+            // Rating Rata-rata
+            if (avgLayanan != null || avgPerawat != null) ...[
+              const Divider(height: 24),
+              const Text(
+                'Rating Rata-rata',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: HCColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (avgLayanan != null)
+                _buildAverageRatingRow(
+                  icon: Icons.medical_services_rounded,
+                  label: 'Layanan',
+                  average: avgLayanan,
+                ),
+              if (avgLayanan != null && avgPerawat != null)
+                const SizedBox(height: 8),
+              if (avgPerawat != null)
+                _buildAverageRatingRow(
+                  icon: Icons.person_rounded,
+                  label: 'Perawat',
+                  average: avgPerawat,
+                ),
+            ],
+          ] else ...[
+            // FORM RATING
+            const Text(
+              'Bagaimana pengalaman Anda dengan layanan kami?',
+              style: TextStyle(
+                fontSize: 14,
+                color: HCColors.textMuted,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Rating Layanan
+            _buildRatingSection(
+              icon: Icons.medical_services_rounded,
+              label: 'Rating Layanan',
+              required: true,
+              rating: _ratingLayanan,
+              onRatingChanged: (rating) {
+                setState(() => _ratingLayanan = rating);
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Rating Perawat
+            _buildRatingSection(
+              icon: Icons.person_rounded,
+              label: 'Rating Perawat',
+              required: false,
+              rating: _ratingPerawat,
+              onRatingChanged: (rating) {
+                setState(() => _ratingPerawat = rating);
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Komentar
+            const Row(
+              children: [
+                Icon(Icons.comment_rounded,
+                    size: 16, color: HCColors.textMuted),
+                SizedBox(width: 6),
+                Text(
+                  'Komentar (Opsional)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: HCColors.textDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: HCColors.bg,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: HCColors.primary.withOpacity(0.2),
+                ),
+              ),
+              child: TextField(
+                controller: _komentarController,
+                maxLines: 3,
+                maxLength: 500,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: HCColors.textDark,
+                  height: 1.4,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Ceritakan pengalaman Anda...',
+                  hintStyle: TextStyle(
+                    fontSize: 13,
+                    color: HCColors.textMuted,
+                  ),
+                  contentPadding: EdgeInsets.all(12),
+                  border: InputBorder.none,
+                  counterText: '',
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Submit Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isSubmittingRating ? null : _submitRating,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HCColors.primary,
+                  disabledBackgroundColor: HCColors.textMuted,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isSubmittingRating
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Kirim Rating',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmittedRatingDisplay() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: HCColors.success.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: HCColors.success.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.medical_services_rounded,
+                  size: 16, color: HCColors.textMuted),
+              const SizedBox(width: 6),
+              const Text(
+                'Rating Layanan',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: HCColors.textMuted,
+                ),
+              ),
+              const Spacer(),
+              _buildStarDisplay(_ratingLayanan),
+            ],
+          ),
+          if (_ratingPerawat > 0) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.person_rounded,
+                    size: 16, color: HCColors.textMuted),
+                const SizedBox(width: 6),
+                const Text(
+                  'Rating Perawat',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: HCColors.textMuted,
+                  ),
+                ),
+                const Spacer(),
+                _buildStarDisplay(_ratingPerawat),
+              ],
+            ),
+          ],
+          if (_komentarController.text.trim().isNotEmpty) ...[
+            const Divider(height: 20),
+            const Text(
+              'Komentar',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: HCColors.textMuted,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _komentarController.text.trim(),
+              style: const TextStyle(
+                fontSize: 13,
+                color: HCColors.textDark,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStarDisplay(int rating) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        return Icon(
+          index < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+          color: Colors.amber,
+          size: 16,
+        );
+      }),
+    );
+  }
+
+  Widget _buildRatingSection({
+    required IconData icon,
+    required String label,
+    required bool required,
+    required int rating,
+    required ValueChanged<int> onRatingChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16, color: HCColors.textMuted),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: HCColors.textDark,
+              ),
+            ),
+            if (required) ...[
+              const SizedBox(width: 2),
+              const Text(
+                '*',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: HCColors.danger,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(5, (index) {
+            final starValue = index + 1;
+            return GestureDetector(
+              onTap: () => onRatingChanged(starValue),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: Icon(
+                  rating >= starValue
+                      ? Icons.star_rounded
+                      : Icons.star_outline_rounded,
+                  color: rating >= starValue ? Colors.amber : HCColors.textMuted,
+                  size: 32,
+                ),
+              ),
+            );
+          }),
+        ),
+        if (rating > 0) ...[
+          const SizedBox(height: 6),
+          Center(
+            child: Text(
+              _getRatingLabel(rating),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _getRatingColor(rating),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _getRatingLabel(int rating) {
+    switch (rating) {
+      case 1:
+        return 'Sangat Buruk';
+      case 2:
+        return 'Buruk';
+      case 3:
+        return 'Cukup';
+      case 4:
+        return 'Baik';
+      case 5:
+        return 'Sangat Baik';
+      default:
+        return '';
+    }
+  }
+
+  Color _getRatingColor(int rating) {
+    if (rating <= 2) return HCColors.danger;
+    if (rating == 3) return HCColors.warning;
+    return HCColors.success;
+  }
+
+  Widget _buildAverageRatingRow({
+    required IconData icon,
+    required String label,
+    required dynamic average,
+  }) {
+    final avgDouble = double.tryParse(average.toString()) ?? 0.0;
+    final fullStars = avgDouble.floor();
+    final hasHalfStar = (avgDouble - fullStars) >= 0.5;
+
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: HCColors.textMuted),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: HCColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  ...List.generate(5, (index) {
+                    if (index < fullStars) {
+                      return const Icon(
+                        Icons.star_rounded,
+                        color: Colors.amber,
+                        size: 14,
+                      );
+                    } else if (index == fullStars && hasHalfStar) {
+                      return const Icon(
+                        Icons.star_half_rounded,
+                        color: Colors.amber,
+                        size: 14,
+                      );
+                    } else {
+                      return const Icon(
+                        Icons.star_outline_rounded,
+                        color: Colors.amber,
+                        size: 14,
+                      );
+                    }
+                  }),
+                  const SizedBox(width: 6),
+                  Text(
+                    avgDouble.toStringAsFixed(1),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: HCColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

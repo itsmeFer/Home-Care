@@ -130,7 +130,7 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
 
     try {
       final res = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/me'),
+        Uri.parse('http://147.93.81.243/api/me'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
@@ -186,7 +186,7 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
                 selectedIndex: _tabIndex,
                 userName: _userName,
                 onSelect: _setTab,
-                onLogout: _logout, // ✅
+                onLogout: _logout,
               ),
             Expanded(
               child: Column(
@@ -204,9 +204,14 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
                             backgroundColor: Colors.transparent,
                             builder: (_) => _MobileMenu(
                               selectedIndex: _tabIndex,
+                              userName: _userName,
                               onSelect: (i) {
                                 _setTab(i);
                                 Navigator.pop(context);
+                              },
+                              onLogout: () {
+                                Navigator.pop(context);
+                                _logout();
                               },
                             ),
                           ),
@@ -327,7 +332,7 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
 }
 
 /* ============================================================
-  TOP BAR
+  TOP BAR - FULLY RESPONSIVE
 ============================================================ */
 class _TopBar extends StatelessWidget {
   final String title;
@@ -335,7 +340,6 @@ class _TopBar extends StatelessWidget {
   final List<String> ranges;
   final ValueChanged<String> onRangeChanged;
   final VoidCallback? onOpenMenu;
-
   final String userName;
 
   const _TopBar({
@@ -354,53 +358,139 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final isMobile = w < 600;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 8 : 14,
+        isMobile ? 8 : 12,
+        isMobile ? 8 : 14,
+        isMobile ? 8 : 12,
+      ),
       decoration: BoxDecoration(
         color: kCard.withOpacity(.92),
         border: const Border(bottom: BorderSide(color: kBorder)),
       ),
-      child: Row(
-        children: [
-          if (onOpenMenu != null)
-            IconButton(
-              onPressed: onOpenMenu,
-              icon: const Icon(Icons.menu_rounded),
-              tooltip: 'Menu',
-            ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(
+      child: isMobile
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: kText,
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: .2,
-                  ),
+                // Row 1: Menu + Title
+                Row(
+                  children: [
+                    if (onOpenMenu != null)
+                      IconButton(
+                        onPressed: onOpenMenu,
+                        icon: const Icon(Icons.menu_rounded, size: 22),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    if (onOpenMenu != null) const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: kText,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: .2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'HomeCare • Dashboard',
+                            style: TextStyle(
+                              color: kMuted,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                const Text(
-                  'HomeCare • Executive Dashboard',
-                  style: TextStyle(
-                    color: kMuted,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 8),
+                // Row 2: Select + Avatar (scrollable jika perlu)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _Select(
+                        value: rangeValue,
+                        items: ranges,
+                        onChanged: onRangeChanged,
+                      ),
+                      const SizedBox(width: 8),
+                      _AvatarChip(
+                        name: userName,
+                        subtitle: 'Direktur',
+                        onTap: () {},
+                      ),
+                    ],
                   ),
                 ),
               ],
+            )
+          : Row(
+              children: [
+                if (onOpenMenu != null)
+                  IconButton(
+                    onPressed: onOpenMenu,
+                    icon: const Icon(Icons.menu_rounded),
+                    tooltip: 'Menu',
+                  ),
+                if (onOpenMenu != null) const SizedBox(width: 6),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: kText,
+                          fontSize: 16.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: .2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'HomeCare • Executive Dashboard',
+                        style: TextStyle(
+                          color: kMuted,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _GhostButton(
+                  icon: Icons.search_rounded,
+                  label: 'Cari',
+                  onTap: () {},
+                ),
+                const SizedBox(width: 8),
+                _Select(
+                  value: rangeValue,
+                  items: ranges,
+                  onChanged: onRangeChanged,
+                ),
+                const SizedBox(width: 8),
+                _AvatarChip(
+                  name: userName,
+                  subtitle: 'All Access',
+                  onTap: () {},
+                ),
+              ],
             ),
-          ),
-          _GhostButton(icon: Icons.search_rounded, label: 'Cari', onTap: () {}),
-          const SizedBox(width: 8),
-          _Select(value: rangeValue, items: ranges, onChanged: onRangeChanged),
-          const SizedBox(width: 8),
-          _AvatarChip(name: userName, subtitle: 'All Access', onTap: () {}),
-        ],
-      ),
     );
   }
 }
@@ -412,8 +502,7 @@ class _Sidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
   final String userName;
-
-  final VoidCallback onLogout; // ✅
+  final VoidCallback onLogout;
 
   const _Sidebar({
     required this.selectedIndex,
@@ -480,7 +569,7 @@ class _Sidebar extends StatelessWidget {
           _NavItem(
             icon: Icons.support_agent_outlined,
             label: 'Hubungi IT',
-            selected: false, // route terpisah
+            selected: false,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const LaporITPage()),
@@ -489,7 +578,7 @@ class _Sidebar extends StatelessWidget {
 
           const Spacer(),
 
-          // ✅ GANTI: Tip -> Logout Button
+          // ✅ Logout Button
           Padding(
             padding: const EdgeInsets.all(14),
             child: InkWell(
@@ -498,9 +587,9 @@ class _Sidebar extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFFECACA)), // red-200
+                  border: Border.all(color: const Color(0xFFFECACA)),
                   borderRadius: BorderRadius.circular(18),
-                  color: const Color(0xFFFEF2F2), // red-50
+                  color: const Color(0xFFFEF2F2),
                 ),
                 child: Row(
                   children: const [
@@ -510,7 +599,7 @@ class _Sidebar extends StatelessWidget {
                       child: Text(
                         'Logout',
                         style: TextStyle(
-                          color: Color(0xFF991B1B), // red-800
+                          color: Color(0xFF991B1B),
                           fontSize: 12.8,
                           fontWeight: FontWeight.w900,
                         ),
@@ -563,6 +652,8 @@ class _BrandHeader extends StatelessWidget {
                   fontSize: 15.5,
                   fontWeight: FontWeight.w900,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
               const Text(
@@ -673,27 +764,29 @@ class _BottomNav extends StatelessWidget {
         backgroundColor: kCard,
         selectedItemColor: kPrimary,
         unselectedItemColor: kMuted,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 10),
+        selectedFontSize: 11,
+        unselectedFontSize: 10,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
+            icon: Icon(Icons.dashboard_outlined, size: 22),
             label: 'Overview',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_outlined),
+            icon: Icon(Icons.account_balance_outlined, size: 22),
             label: 'Keuangan',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.groups_outlined),
+            icon: Icon(Icons.groups_outlined, size: 22),
             label: 'Tim',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_outlined),
+            icon: Icon(Icons.people_alt_outlined, size: 22),
             label: 'Pasien',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.security_outlined),
+            icon: Icon(Icons.security_outlined, size: 22),
             label: 'Audit',
           ),
         ],
@@ -702,15 +795,26 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
+/* ============================================================
+  MOBILE MENU - WITH LOGOUT
+============================================================ */
 class _MobileMenu extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
+  final String userName;
+  final VoidCallback onLogout;
 
-  const _MobileMenu({required this.selectedIndex, required this.onSelect});
+  const _MobileMenu({
+    required this.selectedIndex,
+    required this.onSelect,
+    required this.userName,
+    required this.onLogout,
+  });
 
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
   static const Color kText = Color(0xFF0F172A);
+  static const Color kDanger = Color(0xFFEF4444);
 
   @override
   Widget build(BuildContext context) {
@@ -721,41 +825,92 @@ class _MobileMenu extends StatelessWidget {
         child: Container(
           color: kCard.withOpacity(.95),
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 5,
-                width: 46,
-                decoration: BoxDecoration(
-                  color: kBorder,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Menu Direktur',
-                  style: TextStyle(
-                    color: kText,
-                    fontSize: 14.8,
-                    fontWeight: FontWeight.w900,
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 5,
+                  width: 46,
+                  decoration: BoxDecoration(
+                    color: kBorder,
+                    borderRadius: BorderRadius.circular(99),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              _menuItem(context, 0, Icons.dashboard_outlined, 'Overview'),
-              _menuItem(context, 1, Icons.account_balance_outlined, 'Keuangan'),
-              _menuItem(context, 2, Icons.groups_outlined, 'Kinerja Tim'),
-              _menuItem(
-                context,
-                3,
-                Icons.people_alt_outlined,
-                'Pasien & Insight',
-              ),
-              _menuItem(context, 4, Icons.security_outlined, 'Audit & Control'),
-            ],
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Menu Direktur - $userName',
+                    style: const TextStyle(
+                      color: kText,
+                      fontSize: 14.8,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _menuItem(context, 0, Icons.dashboard_outlined, 'Overview'),
+                _menuItem(
+                  context,
+                  1,
+                  Icons.account_balance_outlined,
+                  'Keuangan',
+                ),
+                _menuItem(context, 2, Icons.groups_outlined, 'Kinerja Tim'),
+                _menuItem(
+                  context,
+                  3,
+                  Icons.people_alt_outlined,
+                  'Pasien & Insight',
+                ),
+                _menuItem(
+                  context,
+                  4,
+                  Icons.security_outlined,
+                  'Audit & Control',
+                ),
+                const SizedBox(height: 8),
+                const Divider(height: 1, color: kBorder),
+                const SizedBox(height: 8),
+                // ✅ Logout Button
+                InkWell(
+                  onTap: onLogout,
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFFECACA)),
+                      color: const Color(0xFFFEF2F2),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.logout_rounded, color: kDanger),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Logout',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF991B1B),
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: Color(0xFFEF4444),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -806,7 +961,7 @@ class _MobileMenu extends StatelessWidget {
 }
 
 /* ============================================================
-  SMALL UI: SELECT, AVATAR CHIP, BUTTONS
+  SMALL UI: SELECT, AVATAR CHIP, BUTTONS - RESPONSIVE
 ============================================================ */
 class _Select extends StatelessWidget {
   final String value;
@@ -832,7 +987,7 @@ class _Select extends StatelessWidget {
         child: DropdownButton<String>(
           value: value,
           isDense: true,
-          icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF64748B)),
+          icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF64748B), size: 20),
           style: const TextStyle(
             color: Color(0xFF0F172A),
             fontWeight: FontWeight.w900,
@@ -865,49 +1020,67 @@ class _AvatarChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final isMobile = w < 600;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 8 : 10,
+          vertical: isMobile ? 6 : 8,
+        ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: kBorder),
           color: Colors.white,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 34,
-              width: 34,
+              height: isMobile ? 28 : 34,
+              width: isMobile ? 28 : 34,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 color: const Color(0xFFE0F2FE),
                 border: Border.all(color: const Color(0xFFBAE6FD)),
               ),
-              child: const Icon(Icons.person_outline, color: Color(0xFF0284C7)),
+              child: Icon(
+                Icons.person_outline,
+                color: const Color(0xFF0284C7),
+                size: isMobile ? 16 : 18,
+              ),
             ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12.8,
+            const SizedBox(width: 8),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      color: const Color(0xFF0F172A),
+                      fontWeight: FontWeight.w900,
+                      fontSize: isMobile ? 11.5 : 12.8,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11.6,
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w700,
+                      fontSize: isMobile ? 10.5 : 11.6,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -940,6 +1113,7 @@ class _GhostButton extends StatelessWidget {
           color: const Color(0xFFF8FAFC),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 18, color: const Color(0xFF64748B)),
             const SizedBox(width: 8),

@@ -1,15 +1,21 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // ROUTING SESUAI ROLE
 import 'package:home_care/admin/dashboard.dart';
 import 'package:home_care/kordinator/dashboard.dart';
-import 'package:home_care/users/HomePage.dart';
+import 'package:home_care/manager/manager_dashboard.dart';
 import 'package:home_care/perawat/dashboard.dart';
+import 'package:home_care/direktur/direktur_dashboard.dart';
+import 'package:home_care/ITDev/dashboard_it_page.dart';
+import 'package:home_care/screen/forgot_password_screen.dart';
+import 'package:home_care/users/HomePage.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/screen/register.dart';
+import 'package:home_care/services/firebase_notification_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,13 +33,31 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscure = true;
   bool _rememberMe = false;
 
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
     _usernameC.dispose();
     _passwordC.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUsername = prefs.getString('saved_username');
+
+    if (savedUsername != null && savedUsername.isNotEmpty) {
+      setState(() {
+        _usernameC.text = savedUsername;
+        _rememberMe = true;
+      });
+    }
   }
 
   Future<void> _doLogin() async {
@@ -64,55 +88,48 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       final body = json.decode(res.body);
+
       if (body['success'] != true) {
         _showError(body['message'] ?? 'Login gagal');
         return;
       }
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', body['token']);
+
+      final token = body['token']?.toString() ?? '';
+      if (token.isEmpty) {
+        _showError('Token tidak ditemukan');
+        return;
+      }
+
+      // SIMPAN TOKEN KE SHARED PREFERENCES
+      await prefs.setString('auth_token', token);
 
       String role = 'pasien';
 
       if (body['data'] != null) {
         final data = body['data'] as Map<String, dynamic>;
 
-        if (data['user_id'] != null) {
-          await prefs.setInt('user_id', data['user_id'] as int);
-        } else {
-          await prefs.setInt('user_id', 0);
-        }
-
-        if (data['pasien_id'] != null) {
-          await prefs.setInt('pasien_id', data['pasien_id'] as int);
-        } else {
-          await prefs.setInt('pasien_id', 0);
-        }
-
-        if (data['perawat_id'] != null) {
-          await prefs.setInt('perawat_id', data['perawat_id'] as int);
-        } else {
-          await prefs.setInt('perawat_id', 0);
-        }
-
-        if (data['koordinator_id'] != null) {
-          await prefs.setInt('koordinator_id', data['koordinator_id'] as int);
-        } else {
-          await prefs.setInt('koordinator_id', 0);
-        }
+        await prefs.setInt('user_id', (data['user_id'] ?? 0) as int);
+        await prefs.setInt('pasien_id', (data['pasien_id'] ?? 0) as int);
+        await prefs.setInt('perawat_id', (data['perawat_id'] ?? 0) as int);
+        await prefs.setInt('koordinator_id', (data['koordinator_id'] ?? 0) as int);
 
         await prefs.setString(
           'nama_lengkap',
-          (data['nama_lengkap'] ?? '') as String,
+          (data['nama_lengkap'] ?? '').toString(),
         );
-        await prefs.setString('email', (data['email'] ?? '') as String);
+        await prefs.setString(
+          'email',
+          (data['email'] ?? '').toString(),
+        );
         await prefs.setString(
           'no_rekam_medis',
-          (data['no_rekam_medis'] ?? '') as String,
+          (data['no_rekam_medis'] ?? '').toString(),
         );
 
         if (data['role'] != null) {
-          role = data['role'] as String;
+          role = data['role'].toString();
           await prefs.setString('role', role);
         }
       }
@@ -121,6 +138,17 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString('saved_username', _usernameC.text.trim());
       } else {
         await prefs.remove('saved_username');
+      }
+
+      if (!kIsWeb) {
+        try {
+          final notifService = FirebaseNotificationService();
+          await notifService.initialize();
+          await notifService.syncTokenToBackend();
+          debugPrint('✅ Firebase Notification initialized after login');
+        } catch (e) {
+          debugPrint('❌ Notification init after login error: $e');
+        }
       }
 
       if (!mounted) return;
@@ -134,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Widget nextPage;
 
-      switch (role) {
+      switch (role.toLowerCase()) {
         case 'admin':
           nextPage = const AdminDashboard();
           break;
@@ -144,7 +172,20 @@ class _LoginPageState extends State<LoginPage> {
         case 'perawat':
           nextPage = const PerawatDashboard();
           break;
+        case 'direktur':
+          nextPage = const DirekturDashboard();
+          break;
+        case 'manager':
+          nextPage = const ManagerDashboard();
+          break;
+        case 'it':
+          nextPage = const ITDevDashboard();
+          break;
+        case 'pasien':
+          nextPage = const HomePage();
+          break;
         default:
+          debugPrint('⚠️ Role tidak dikenali: $role, menggunakan HomePage');
           nextPage = const HomePage();
       }
 
@@ -168,22 +209,16 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // BCA BLUE COLOR SCHEME
     const Color bcaBlue = Color(0xFF0066AE);
     const Color bcaBlueDark = Color(0xFF003D82);
-    const Color bcaBlueLight = Color(0xFF4A9CD6);
-    const Color accentOrange = Color(0xFFFF8C42);
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              bcaBlue,
-              bcaBlueDark,
-            ],
+            colors: [bcaBlue, bcaBlueDark],
           ),
         ),
         child: SafeArea(
@@ -191,8 +226,6 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               children: [
                 const SizedBox(height: 50),
-                
-                // LOGO SECTION dengan white circle
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -212,10 +245,7 @@ class _LoginPageState extends State<LoginPage> {
                     fit: BoxFit.contain,
                   ),
                 ),
-                
                 const SizedBox(height: 30),
-
-                // WELCOME TEXT
                 const Text(
                   'Selamat Datang',
                   style: TextStyle(
@@ -230,14 +260,11 @@ class _LoginPageState extends State<LoginPage> {
                   'Silakan masuk untuk melanjutkan',
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white70,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                
                 const SizedBox(height: 40),
-
-                // WHITE CARD FORM
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
@@ -258,7 +285,6 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // EMAIL
                           Text(
                             'Email',
                             style: TextStyle(
@@ -287,7 +313,7 @@ class _LoginPageState extends State<LoginPage> {
                                   color: Colors.grey[400],
                                   fontSize: 15,
                                 ),
-                                prefixIcon: Icon(
+                                prefixIcon: const Icon(
                                   Icons.email_outlined,
                                   color: bcaBlue,
                                   size: 22,
@@ -306,10 +332,7 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                           ),
-
                           const SizedBox(height: 20),
-
-                          // PASSWORD
                           Text(
                             'Kata Sandi',
                             style: TextStyle(
@@ -338,20 +361,21 @@ class _LoginPageState extends State<LoginPage> {
                                   color: Colors.grey[400],
                                   fontSize: 15,
                                 ),
-                                prefixIcon: Icon(
+                                prefixIcon: const Icon(
                                   Icons.lock_outline,
                                   color: bcaBlue,
                                   size: 22,
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscure 
-                                        ? Icons.visibility_off_outlined 
+                                    _obscure
+                                        ? Icons.visibility_off_outlined
                                         : Icons.visibility_outlined,
                                     color: Colors.grey[600],
                                     size: 22,
                                   ),
-                                  onPressed: () => setState(() => _obscure = !_obscure),
+                                  onPressed: () =>
+                                      setState(() => _obscure = !_obscure),
                                 ),
                                 border: InputBorder.none,
                                 contentPadding: const EdgeInsets.symmetric(
@@ -370,17 +394,16 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          // REMEMBER & FORGOT
                           Row(
                             children: [
                               Transform.scale(
                                 scale: 0.9,
                                 child: Checkbox(
                                   value: _rememberMe,
-                                  onChanged: (val) => setState(() => _rememberMe = val ?? false),
+                                  onChanged: (val) => setState(
+                                    () => _rememberMe = val ?? false,
+                                  ),
                                   activeColor: bcaBlue,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4),
@@ -397,32 +420,19 @@ class _LoginPageState extends State<LoginPage> {
                               const Spacer(),
                               TextButton(
                                 onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Fitur lupa kata sandi belum tersedia'),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const ForgotPasswordScreen(),
                                     ),
                                   );
                                 },
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  'Lupa Kata Sandi?',
-                                  style: TextStyle(
-                                    color: accentOrange,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
+                                child: const Text('Lupa Password?'),
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 28),
-
-                          // LOGIN BUTTON GRADIENT BCA
                           Container(
                             width: double.infinity,
                             height: 54,
@@ -454,7 +464,9 @@ class _LoginPageState extends State<LoginPage> {
                                       height: 22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
-                                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                                        valueColor: AlwaysStoppedAnimation(
+                                          Colors.white,
+                                        ),
                                       ),
                                     )
                                   : const Text(
@@ -468,10 +480,7 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                             ),
                           ),
-
                           const SizedBox(height: 24),
-
-                          // DIVIDER
                           Row(
                             children: [
                               Expanded(child: Divider(color: Colors.grey[300])),
@@ -488,10 +497,7 @@ class _LoginPageState extends State<LoginPage> {
                               Expanded(child: Divider(color: Colors.grey[300])),
                             ],
                           ),
-
                           const SizedBox(height: 24),
-
-                          // REGISTER BUTTON
                           Center(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -530,10 +536,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 30),
-
-                // FOOTER TEXT
                 Text(
                   'Prima Home Care',
                   style: TextStyle(

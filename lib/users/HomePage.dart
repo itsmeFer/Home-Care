@@ -5,12 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:home_care/chat/pasien_chat_list_page.dart';
 import 'package:home_care/users/Menu.dart';
 import 'package:home_care/users/layananPage.dart';
+import 'package:home_care/users/notifikasi_page.dart';
 import 'package:home_care/users/profile.dart';
+import 'package:home_care/users/search_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/users/lihatHistoriPemesanan.dart';
 
-/// Palet warna home care (teal/medical)
+/// ========================================
+/// COLOR SCHEME
+/// ========================================
 class HCColor {
   static const primary = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
@@ -18,6 +22,10 @@ class HCColor {
   static const card = Colors.white;
   static const textMuted = Colors.black54;
 }
+
+/// ========================================
+/// MODELS
+/// ========================================
 
 class BannerItem {
   final int id;
@@ -88,6 +96,46 @@ class LayananCategory {
   LayananCategory({required this.nama, required this.icon});
 }
 
+// ✅ MODEL TESTIMONI BARU
+class Testimonial {
+  final int id;
+  final String nama;
+  final int rating;
+  final String komentar;
+  final String? layanan;
+  final String tanggal;
+  final String avatarUrl;
+
+  Testimonial({
+    required this.id,
+    required this.nama,
+    required this.rating,
+    required this.komentar,
+    this.layanan,
+    required this.tanggal,
+    required this.avatarUrl,
+  });
+
+  factory Testimonial.fromJson(Map<String, dynamic> json) {
+    return Testimonial(
+      id: json['id'] ?? 0,
+      nama: json['nama']?.toString() ?? 'Pengguna',
+      rating: json['rating'] is int
+          ? json['rating']
+          : int.tryParse(json['rating'].toString()) ?? 5,
+      komentar: json['komentar']?.toString() ?? '',
+      layanan: json['layanan']?.toString(),
+      tanggal: json['tanggal']?.toString() ?? '',
+      avatarUrl: json['avatar_url']?.toString() ??
+          'https://ui-avatars.com/api/?name=U&background=0BA5A7&color=fff',
+    );
+  }
+}
+
+/// ========================================
+/// HELPER FUNCTIONS
+/// ========================================
+
 String formatRupiah(dynamic value) {
   final number = value is num
       ? value.toDouble()
@@ -106,8 +154,12 @@ String formatRupiah(dynamic value) {
   return 'Rp ${chunks.join('.').split('').reversed.join('')}';
 }
 
+/// ========================================
+/// SERVICES
+/// ========================================
+
 class BannerService {
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   static Future<List<BannerItem>> _fetchBannersByType(String tipeCard) async {
     final res = await http.get(
@@ -146,8 +198,41 @@ class BannerService {
   }
 }
 
+// ✅ SERVICE TESTIMONI BARU
+class TestimonialService {
+  static const String baseUrl = 'http://147.93.81.243/api';
+
+  static Future<List<Testimonial>> fetchTestimonials() async {
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/testimonials'),
+        headers: {'Accept': 'application/json'},
+      );
+
+      if (res.statusCode != 200) {
+        throw Exception('Gagal mengambil testimoni');
+      }
+
+      final body = json.decode(res.body);
+
+      if (body is! Map || body['success'] != true) {
+        throw Exception('Response testimoni tidak valid');
+      }
+
+      final List data = body['data'] ?? [];
+
+      return data
+          .map((e) => Testimonial.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching testimonials: $e');
+      return [];
+    }
+  }
+}
+
 class KategoriLayananService {
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   static Future<List<LayananCategory>> fetchKategori() async {
     final res = await http.get(
@@ -193,6 +278,10 @@ class KategoriLayananService {
   }
 }
 
+/// ========================================
+/// MAIN HOMEPAGE
+/// ========================================
+
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -205,20 +294,54 @@ class HomePage extends StatelessWidget {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: _TopLocationBar()),
+            
+            // ✅ SPACING: 8px setelah top bar
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            
             const SliverToBoxAdapter(child: _HeroImageBanner()),
+            
+            // ✅ SPACING: 20px setelah hero banner
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            
             const SliverToBoxAdapter(child: _CategoryIcons()),
+            
+            // ✅ SPACING: 28px sebelum square banner
+            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            
             const SliverToBoxAdapter(child: _SquareBannerSection()),
+            
+            // ✅ SPACING: 32px sebelum health tips
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            
             const SliverToBoxAdapter(child: _HealthTipsCarousel()),
+            
+            // ✅ SPACING: 32px sebelum landscape banner
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            
             const SliverToBoxAdapter(child: _LandscapeBannerSection()),
+            
+            // ✅ SPACING: 32px sebelum promo
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            
             const SliverToBoxAdapter(child: _PromoFullWidthSection()),
+            
+            // ✅ SPACING: 32px sebelum testimoni
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            
             const SliverToBoxAdapter(child: _TestimonialsSection()),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+            
+            // ✅ SPACING: 40px di akhir
+            const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
           ],
         ),
       ),
     );
   }
 }
+
+/// ========================================
+/// WIDGETS
+/// ========================================
 
 class _TopLocationBar extends StatefulWidget {
   const _TopLocationBar();
@@ -233,12 +356,66 @@ class _TopLocationBarState extends State<_TopLocationBar> {
   String? _lokasi;
   bool _isLoadingFoto = false;
 
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  int _notifUnreadCount = 0;
+  Timer? _notifTimer;
+
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   @override
   void initState() {
     super.initState();
     _loadProfileFoto();
+    _loadNotifUnread();
+    _startNotifPolling();
+  }
+
+  @override
+  void dispose() {
+    _notifTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startNotifPolling() {
+    _notifTimer?.cancel();
+    _notifTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+      _loadNotifUnread();
+    });
+  }
+
+  Future<void> _loadNotifUnread() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      if (token == null || token.isEmpty) return;
+
+      final res = await http.get(
+        Uri.parse('$baseUrl/notifications'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (res.statusCode != 200) return;
+
+      final body = json.decode(res.body);
+      if (body is! Map || body['success'] != true) return;
+
+      int unreadCount = 0;
+
+      if (body['meta'] is Map && body['meta']['unread_count'] != null) {
+        final raw = body['meta']['unread_count'];
+        unreadCount = raw is int ? raw : int.tryParse(raw.toString()) ?? 0;
+      } else {
+        final List data = (body['data'] ?? []) as List;
+        unreadCount = data.where((e) => e is Map && e['is_read'] != true).length;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _notifUnreadCount = unreadCount;
+      });
+    } catch (_) {}
   }
 
   Future<void> _loadProfileFoto() async {
@@ -311,24 +488,68 @@ class _TopLocationBarState extends State<_TopLocationBar> {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                  color: Colors.black.withOpacity(0.06),
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotifikasiPage(),
                 ),
+              );
+              _loadNotifUnread();
+            },
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                        color: Colors.black.withValues(alpha: 0.06),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.black87,
+                    size: 20,
+                  ),
+                ),
+                if (_notifUnreadCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Colors.white, width: 1.2),
+                      ),
+                      child: Text(
+                        _notifUnreadCount > 99 ? '99+' : '$_notifUnreadCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          height: 1.1,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
-            ),
-            child: const Icon(
-              Icons.notifications_outlined,
-              color: Colors.black87,
-              size: 20,
             ),
           ),
         ],
@@ -489,38 +710,51 @@ class _HeroImageBannerState extends State<_HeroImageBanner> {
                   ),
                 ),
               ),
+              
+              // ✅ SEARCH BAR YANG BISA DIKLIK
               Transform.translate(
                 offset: const Offset(0, -25),
-                child: Container(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: screenWidth > 600 ? 40 : 20,
-                  ),
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                        color: Colors.black.withOpacity(0.1),
+                child: GestureDetector(
+                  onTap: () {
+                    // Navigate ke SearchPage
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SearchPage(),
                       ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _displayedText,
-                          style: TextStyle(
-                            color: Colors.black38,
-                            fontSize: screenWidth > 600 ? 18 : 16,
+                    );
+                  },
+                  child: Container(
+                    margin: EdgeInsets.symmetric(
+                      horizontal: screenWidth > 600 ? 40 : 20,
+                    ),
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                          color: Colors.black.withOpacity(0.1),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _displayedText,
+                            style: TextStyle(
+                              color: Colors.black38,
+                              fontSize: screenWidth > 600 ? 18 : 16,
+                            ),
                           ),
                         ),
-                      ),
-                      const Icon(Icons.search, color: Colors.black38, size: 24),
-                    ],
+                        const Icon(Icons.search, color: Colors.black38, size: 24),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -570,7 +804,7 @@ class _CategoryIconsState extends State<_CategoryIcons> {
         final displayedCategories = categories.take(4).toList();
 
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -624,7 +858,7 @@ class _CategoryIconsState extends State<_CategoryIcons> {
 
   Widget _buildLoading() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -777,7 +1011,6 @@ class _SquareBannerSectionState extends State<_SquareBannerSection> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
@@ -1060,7 +1293,6 @@ class _SquareBannerLoading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -1100,6 +1332,231 @@ class _SquareBannerLoading extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HealthTipsCarousel extends StatefulWidget {
+  const _HealthTipsCarousel();
+
+  @override
+  State<_HealthTipsCarousel> createState() => _HealthTipsCarouselState();
+}
+
+class _HealthTipsCarouselState extends State<_HealthTipsCarousel> {
+  late ScrollController _scrollController;
+  Timer? _autoScrollTimer;
+
+  final tips = [
+    _HealthTip(
+      '💧 Minum Air Putih',
+      'Konsumsi minimal 8 gelas air putih per hari untuk menjaga kesehatan',
+      Colors.blue.shade50,
+      Colors.blue.shade700,
+    ),
+    _HealthTip(
+      '🏃 Olahraga Rutin',
+      'Lakukan aktivitas fisik minimal 30 menit setiap hari',
+      Colors.green.shade50,
+      Colors.green.shade700,
+    ),
+    _HealthTip(
+      '🥗 Pola Makan Sehat',
+      'Konsumsi sayur dan buah untuk nutrisi seimbang',
+      Colors.orange.shade50,
+      Colors.orange.shade700,
+    ),
+    _HealthTip(
+      '😴 Tidur Cukup',
+      'Tidur 7-8 jam setiap malam untuk pemulihan tubuh optimal',
+      Colors.purple.shade50,
+      Colors.purple.shade700,
+    ),
+    _HealthTip(
+      '🧘 Kelola Stress',
+      'Luangkan waktu untuk relaksasi dan meditasi setiap hari',
+      Colors.teal.shade50,
+      Colors.teal.shade700,
+    ),
+    _HealthTip(
+      '🚭 Hindari Rokok',
+      'Merokok dapat meningkatkan risiko berbagai penyakit serius',
+      Colors.red.shade50,
+      Colors.red.shade700,
+    ),
+    _HealthTip(
+      '🦷 Jaga Kebersihan',
+      'Sikat gigi 2x sehari dan cuci tangan secara teratur',
+      Colors.cyan.shade50,
+      Colors.cyan.shade700,
+    ),
+    _HealthTip(
+      '☀️ Berjemur Pagi',
+      'Dapatkan vitamin D alami dari sinar matahari pagi',
+      Colors.amber.shade50,
+      Colors.amber.shade700,
+    ),
+    _HealthTip(
+      '📱 Batasi Screen Time',
+      'Kurangi penggunaan gadget, istirahatkan mata setiap 20 menit',
+      Colors.indigo.shade50,
+      Colors.indigo.shade700,
+    ),
+    _HealthTip(
+      '🩺 Cek Kesehatan Rutin',
+      'Lakukan medical check-up minimal 1 tahun sekali',
+      Colors.pink.shade50,
+      Colors.pink.shade700,
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _startAutoScroll();
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (
+      timer,
+    ) {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.offset;
+      const scrollSpeed = 1.0;
+
+      if (currentScroll >= maxScroll) {
+        _scrollController.jumpTo(0);
+      } else {
+        _scrollController.jumpTo(currentScroll + scrollSpeed);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF0BA5A7).withOpacity(0.05),
+            const Color(0xFF088088).withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.tips_and_updates,
+                  color: Color(0xFF0BA5A7),
+                  size: 24,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Tips Kesehatan',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Panduan praktis untuk hidup lebih sehat',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.black.withOpacity(0.6),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 100,
+            child: ListView.separated(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: tips.length * 100,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (_, i) => _HealthTipCard(tip: tips[i % tips.length]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HealthTip {
+  final String title;
+  final String description;
+  final Color bgColor;
+  final Color textColor;
+
+  _HealthTip(this.title, this.description, this.bgColor, this.textColor);
+}
+
+class _HealthTipCard extends StatelessWidget {
+  final _HealthTip tip;
+  const _HealthTipCard({required this.tip});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 280,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: tip.bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: tip.textColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            tip.title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: tip.textColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            tip.description,
+            style: TextStyle(
+              fontSize: 13,
+              color: tip.textColor.withOpacity(0.8),
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1148,7 +1605,6 @@ class _LandscapeBannerSectionState extends State<_LandscapeBannerSection> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
@@ -1280,7 +1736,6 @@ class _LandscapeBannerLoading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -1322,26 +1777,6 @@ class _LandscapeBannerLoading extends StatelessWidget {
       ],
     );
   }
-}
-
-class _PromoItem {
-  final String title;
-  final String subtitle;
-  final String price;
-  final String originalPrice;
-  final String distance;
-  final int discount;
-  final String imageUrl;
-
-  _PromoItem(
-    this.title,
-    this.subtitle,
-    this.price,
-    this.originalPrice,
-    this.distance,
-    this.discount,
-    this.imageUrl,
-  );
 }
 
 class _PromoFullWidthSection extends StatefulWidget {
@@ -1386,7 +1821,6 @@ class _PromoFullWidthSectionState extends State<_PromoFullWidthSection> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -1630,7 +2064,6 @@ class _PromoFullWidthLoading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -1664,296 +2097,93 @@ class _PromoFullWidthLoading extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-
-  const _StatItem({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
+// ✅ TESTIMONI SECTION BARU DARI API
+class _TestimonialsSection extends StatefulWidget {
+  const _TestimonialsSection();
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white, size: 28),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
-        ),
-      ],
-    );
-  }
+  State<_TestimonialsSection> createState() => _TestimonialsSectionState();
 }
 
-class _HealthTipsCarousel extends StatefulWidget {
-  const _HealthTipsCarousel();
-
-  @override
-  State<_HealthTipsCarousel> createState() => _HealthTipsCarouselState();
-}
-
-class _HealthTipsCarouselState extends State<_HealthTipsCarousel> {
-  late ScrollController _scrollController;
-  Timer? _autoScrollTimer;
-
-  final tips = [
-    _HealthTip(
-      '💧 Minum Air Putih',
-      'Konsumsi minimal 8 gelas air putih per hari untuk menjaga kesehatan',
-      Colors.blue.shade50,
-      Colors.blue.shade700,
-    ),
-    _HealthTip(
-      '🏃 Olahraga Rutin',
-      'Lakukan aktivitas fisik minimal 30 menit setiap hari',
-      Colors.green.shade50,
-      Colors.green.shade700,
-    ),
-    _HealthTip(
-      '🥗 Pola Makan Sehat',
-      'Konsumsi sayur dan buah untuk nutrisi seimbang',
-      Colors.orange.shade50,
-      Colors.orange.shade700,
-    ),
-    _HealthTip(
-      '😴 Tidur Cukup',
-      'Tidur 7-8 jam setiap malam untuk pemulihan tubuh optimal',
-      Colors.purple.shade50,
-      Colors.purple.shade700,
-    ),
-    _HealthTip(
-      '🧘 Kelola Stress',
-      'Luangkan waktu untuk relaksasi dan meditasi setiap hari',
-      Colors.teal.shade50,
-      Colors.teal.shade700,
-    ),
-    _HealthTip(
-      '🚭 Hindari Rokok',
-      'Merokok dapat meningkatkan risiko berbagai penyakit serius',
-      Colors.red.shade50,
-      Colors.red.shade700,
-    ),
-    _HealthTip(
-      '🦷 Jaga Kebersihan',
-      'Sikat gigi 2x sehari dan cuci tangan secara teratur',
-      Colors.cyan.shade50,
-      Colors.cyan.shade700,
-    ),
-    _HealthTip(
-      '☀️ Berjemur Pagi',
-      'Dapatkan vitamin D alami dari sinar matahari pagi',
-      Colors.amber.shade50,
-      Colors.amber.shade700,
-    ),
-    _HealthTip(
-      '📱 Batasi Screen Time',
-      'Kurangi penggunaan gadget, istirahatkan mata setiap 20 menit',
-      Colors.indigo.shade50,
-      Colors.indigo.shade700,
-    ),
-    _HealthTip(
-      '🩺 Cek Kesehatan Rutin',
-      'Lakukan medical check-up minimal 1 tahun sekali',
-      Colors.pink.shade50,
-      Colors.pink.shade700,
-    ),
-  ];
+class _TestimonialsSectionState extends State<_TestimonialsSection> {
+  late Future<List<Testimonial>> _futureTestimonials;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    _startAutoScroll();
-  }
-
-  @override
-  void dispose() {
-    _autoScrollTimer?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (
-      timer,
-    ) {
-      if (!mounted || !_scrollController.hasClients) return;
-
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      final currentScroll = _scrollController.offset;
-      const scrollSpeed = 1.0;
-
-      if (currentScroll >= maxScroll) {
-        _scrollController.jumpTo(0);
-      } else {
-        _scrollController.jumpTo(currentScroll + scrollSpeed);
-      }
-    });
+    _futureTestimonials = TestimonialService.fetchTestimonials();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF0BA5A7).withOpacity(0.05),
-            const Color(0xFF088088).withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.tips_and_updates,
-                  color: Color(0xFF0BA5A7),
-                  size: 24,
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Tips Kesehatan',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+    return FutureBuilder<List<Testimonial>>(
+      future: _futureTestimonials,
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildLoading();
+        }
+
+        // Error atau data kosong - tidak tampilkan section
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final testimonials = snapshot.data!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(Icons.format_quote, color: Color(0xFF0BA5A7), size: 24),
+                  SizedBox(width: 8),
+                  Text(
+                    'Testimoni',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Panduan praktis untuk hidup lebih sehat',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.black.withOpacity(0.6),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 100,
-            child: ListView.separated(
-              controller: _scrollController,
+            const SizedBox(height: 4),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: tips.length * 100,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (_, i) => _HealthTipCard(tip: tips[i % tips.length]),
+              child: Text(
+                'Kata Mereka Tentang Kami',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.black.withOpacity(0.6),
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 180,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: testimonials.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, i) =>
+                    _TestimonialCard(testimonial: testimonials[i]),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
-}
 
-class _HealthTip {
-  final String title;
-  final String description;
-  final Color bgColor;
-  final Color textColor;
-
-  _HealthTip(this.title, this.description, this.bgColor, this.textColor);
-}
-
-class _HealthTipCard extends StatelessWidget {
-  final _HealthTip tip;
-  const _HealthTipCard({required this.tip});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 280,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: tip.bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: tip.textColor.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            tip.title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: tip.textColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            tip.description,
-            style: TextStyle(
-              fontSize: 13,
-              color: tip.textColor.withOpacity(0.8),
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TestimonialsSection extends StatelessWidget {
-  const _TestimonialsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final testimonials = [
-      _Testimonial(
-        'Ibu Siti',
-        'Pelayanan sangat baik dan perawat sangat profesional. Sangat membantu merawat ibu saya di rumah.',
-        5,
-        'https://ui-avatars.com/api/?name=Ibu+Siti&background=0BA5A7&color=fff',
-      ),
-      _Testimonial(
-        'Bapak Andi',
-        'Layanan fisioterapi di rumah sangat membantu proses pemulihan. Terima kasih!',
-        5,
-        'https://ui-avatars.com/api/?name=Bapak+Andi&background=088088&color=fff',
-      ),
-      _Testimonial(
-        'Ibu Maya',
-        'Medical check-up nya lengkap dan hasilnya cepat. Sangat merekomendasikan!',
-        5,
-        'https://ui-avatars.com/api/?name=Ibu+Maya&background=0BA5A7&color=fff',
-      ),
-    ];
-
+  Widget _buildLoading() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -1961,7 +2191,7 @@ class _TestimonialsSection extends StatelessWidget {
               Icon(Icons.format_quote, color: Color(0xFF0BA5A7), size: 24),
               SizedBox(width: 8),
               Text(
-                'Testimoni Pasien',
+                'Testimoni',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -1973,14 +2203,19 @@ class _TestimonialsSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 160,
+          height: 180,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
-            itemCount: testimonials.length,
+            itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, i) =>
-                _TestimonialCard(testimonial: testimonials[i]),
+            itemBuilder: (_, __) => Container(
+              width: 300,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
           ),
         ),
       ],
@@ -1988,23 +2223,14 @@ class _TestimonialsSection extends StatelessWidget {
   }
 }
 
-class _Testimonial {
-  final String name;
-  final String message;
-  final int rating;
-  final String avatarUrl;
-
-  _Testimonial(this.name, this.message, this.rating, this.avatarUrl);
-}
-
 class _TestimonialCard extends StatelessWidget {
-  final _Testimonial testimonial;
+  final Testimonial testimonial;
   const _TestimonialCard({required this.testimonial});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 280,
+      width: 300,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -2023,8 +2249,9 @@ class _TestimonialCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 20,
+                radius: 22,
                 backgroundImage: NetworkImage(testimonial.avatarUrl),
+                backgroundColor: const Color(0xFF0BA5A7),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -2032,13 +2259,16 @@ class _TestimonialCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      testimonial.name,
+                      testimonial.nama,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
                     Row(
                       children: List.generate(
                         5,
@@ -2046,7 +2276,7 @@ class _TestimonialCard extends StatelessWidget {
                           index < testimonial.rating
                               ? Icons.star
                               : Icons.star_border,
-                          size: 14,
+                          size: 16,
                           color: Colors.amber,
                         ),
                       ),
@@ -2057,50 +2287,179 @@ class _TestimonialCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            testimonial.message,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.black.withOpacity(0.7),
-              height: 1.4,
+          Expanded(
+            child: Text(
+              testimonial.komentar,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.black.withOpacity(0.7),
+                height: 1.5,
+              ),
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
+          if (testimonial.layanan != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0BA5A7).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                testimonial.layanan!,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0BA5A7),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
-class HCBottomNav extends StatelessWidget {
+
+// ✅ BOTTOM NAV
+class HCBottomNav extends StatefulWidget {
   final int currentIndex;
   const HCBottomNav({super.key, this.currentIndex = 0});
 
+  @override
+  State<HCBottomNav> createState() => _HCBottomNavState();
+}
+
+class _HCBottomNavState extends State<HCBottomNav> {
   static const Color activeColor = Color(0xFF0BA5A7);
   static const Color inactiveColor = Colors.black54;
+  static const String baseUrl = 'http://147.93.81.243/api';
 
-Widget _navIcon(String path, bool active) {
-  return AnimatedContainer(
-    duration: const Duration(milliseconds: 250),
-    padding: EdgeInsets.all(active ? 8 : 0),
-    decoration: active
-        ? const BoxDecoration(
-            color: Color(0x220BA5A7),
-            shape: BoxShape.circle,
-          )
-        : null,
-    child: Transform.translate(
-      offset: Offset(0, active ? -4 : 0),
-      child: Image.asset(
-        path,
-        width: 24,
-        height: 24,
+  int _chatUnreadCount = 0;
+  Timer? _badgeTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChatUnread();
+    _startBadgePolling();
+  }
+
+  @override
+  void dispose() {
+    _badgeTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startBadgePolling() {
+    _badgeTimer?.cancel();
+    _badgeTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _loadChatUnread();
+    });
+  }
+
+  Future<void> _loadChatUnread() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      if (token == null || token.isEmpty) return;
+
+      final res = await http.get(
+        Uri.parse('$baseUrl/chat/unread-summary'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (res.statusCode != 200) return;
+
+      final body = json.decode(res.body);
+      if (body is! Map || body['success'] != true) return;
+
+      final data = body['data'] ?? {};
+      final totalUnread = data['total_unread'];
+
+      int parsedUnread = 0;
+      if (totalUnread is int) {
+        parsedUnread = totalUnread;
+      } else {
+        parsedUnread = int.tryParse(totalUnread.toString()) ?? 0;
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _chatUnreadCount = parsedUnread;
+      });
+    } catch (_) {}
+  }
+
+  Widget _navIcon(String path, bool active, {int badgeCount = 0}) {
+    final icon = AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      padding: EdgeInsets.all(active ? 8 : 0),
+      decoration: active
+          ? const BoxDecoration(
+              color: Color(0x220BA5A7),
+              shape: BoxShape.circle,
+            )
+          : null,
+      child: Transform.translate(
+        offset: Offset(0, active ? -4 : 0),
+        child: Image.asset(
+          path,
+          width: 24,
+          height: 24,
+        ),
       ),
-    ),
-  );
-}
+    );
+
+    if (badgeCount <= 0) return icon;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        Positioned(
+          right: -2,
+          top: -2,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            constraints: const BoxConstraints(
+              minWidth: 18,
+              minHeight: 18,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.white, width: 1.5),
+            ),
+            child: Text(
+              badgeCount > 99 ? '99+' : '$badgeCount',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                height: 1.1,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentIndex = widget.currentIndex;
+
     return BottomNavigationBar(
       currentIndex: currentIndex,
       type: BottomNavigationBarType.fixed,
@@ -2108,7 +2467,6 @@ Widget _navIcon(String path, bool active) {
       unselectedItemColor: inactiveColor,
       selectedFontSize: 12,
       unselectedFontSize: 11,
-
       onTap: (i) {
         if (i == currentIndex) return;
 
@@ -2134,7 +2492,9 @@ Widget _navIcon(String path, bool active) {
             MaterialPageRoute(
               builder: (_) => const PasienChatListPage(),
             ),
-          );
+          ).then((_) {
+            _loadChatUnread();
+          });
         }
 
         if (i == 3) {
@@ -2155,30 +2515,41 @@ Widget _navIcon(String path, bool active) {
           );
         }
       },
-
       items: [
         BottomNavigationBarItem(
-          icon: _navIcon('assets/Icons/Navbar/Homepage.png', currentIndex == 0),
+          icon: _navIcon(
+            'assets/Icons/Navbar/Homepage.png',
+            currentIndex == 0,
+          ),
           label: 'Beranda',
         ),
-
         BottomNavigationBarItem(
-          icon: _navIcon('assets/Icons/Navbar/Layanan.png', currentIndex == 1),
+          icon: _navIcon(
+            'assets/Icons/Navbar/Layanan.png',
+            currentIndex == 1,
+          ),
           label: 'Layanan',
         ),
-
         BottomNavigationBarItem(
-          icon: _navIcon('assets/Icons/Navbar/Chat.png', currentIndex == 2),
+          icon: _navIcon(
+            'assets/Icons/Navbar/Chat.png',
+            currentIndex == 2,
+            badgeCount: _chatUnreadCount,
+          ),
           label: 'Chat',
         ),
-
         BottomNavigationBarItem(
-          icon: _navIcon('assets/Icons/Navbar/Riwayat.png', currentIndex == 3),
+          icon: _navIcon(
+            'assets/Icons/Navbar/Riwayat.png',
+            currentIndex == 3,
+          ),
           label: 'Riwayat',
         ),
-
         BottomNavigationBarItem(
-          icon: _navIcon('assets/Icons/Navbar/Profil.png', currentIndex == 4),
+          icon: _navIcon(
+            'assets/Icons/Navbar/Profil.png',
+            currentIndex == 4,
+          ),
           label: 'Profil',
         ),
       ],

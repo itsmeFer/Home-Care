@@ -5,6 +5,7 @@
 // ✅ 3 pilihan chart (Line/Bar/Pie) + animasi 0 -> nilai tiap buka tab / ganti tab / ganti range
 // ✅ Legend pie responsif + donut modern
 // ✅ Export CSV (Web & Mobile) - kolom konsisten (tidak geser) + fee "Rp ..."
+// ✅ TOKEN FIX: cek 'auth_token' dulu (sesuai login.dart), fallback 'token'
 // Dependencies:
 // - fl_chart, http, shared_preferences, universal_html, universal_io, path_provider
 //
@@ -55,7 +56,7 @@ class TimPage extends StatefulWidget {
 }
 
 class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
-  static const String kBaseUrl = 'http://192.168.1.6:8000';
+  static const String kBaseUrl = 'http://147.93.81.243';
   String get kApiBase => '$kBaseUrl/api';
   String get _url =>
       '$kApiBase/direktur/dashboard/tim?range=${Uri.encodeComponent(widget.range)}';
@@ -135,7 +136,8 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
   // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token') ?? '';
+    // ✅ Cek auth_token dulu (sesuai login.dart), fallback ke token
+    return prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
   }
 
   Future<Map<String, dynamic>> _fetch() async {

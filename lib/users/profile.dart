@@ -28,7 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _user;
   Map<String, dynamic>? _pasien;
 
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   bool _isEditing = false;
   bool _isSaving = false;
@@ -237,7 +237,7 @@ class _ProfilePageState extends State<ProfilePage> {
       path = path.substring(1);
     }
 
-    const String baseApi = 'http://192.168.1.6:8000/api';
+    const String baseApi = 'http://147.93.81.243/api';
     return '$baseApi/media/$path';
   }
 

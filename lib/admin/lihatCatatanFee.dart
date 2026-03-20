@@ -22,7 +22,7 @@ const Color kSuccess = Color(0xFF16A34A);
 =========================================================== */
 
 /// Base URL tanpa /api
-const String kBaseUrl = 'http://192.168.1.6:8000';
+const String kBaseUrl = 'http://147.93.81.243';
 
 String get apiBaseUrl => '$kBaseUrl/api';
 

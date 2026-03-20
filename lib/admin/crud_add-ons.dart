@@ -20,7 +20,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   // =====================
   // CONFIG
   // =====================
-  final String baseUrl = "http://192.168.1.6:8000/api";
+  final String baseUrl = "http://147.93.81.243/api";
 
   // =====================
   // TAB
@@ -93,12 +93,23 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   // =====================
   Future<Map<String, String>> _authHeaders({bool jsonContent = true}) async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token"); // sesuaikan key token kamu
+    final token = prefs.getString("auth_token");
+
+    debugPrint("TOKEN DARI PREFS: $token");
+
+    if (token == null || token.trim().isEmpty) {
+      throw Exception("Token login tidak ditemukan. Silakan login ulang.");
+    }
+
     final headers = <String, String>{
       "Accept": "application/json",
       "Authorization": "Bearer $token",
     };
-    if (jsonContent) headers["Content-Type"] = "application/json";
+
+    if (jsonContent) {
+      headers["Content-Type"] = "application/json";
+    }
+
     return headers;
   }
 
@@ -138,14 +149,22 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         "page": currentPage.toString(),
       };
       if (q.trim().isNotEmpty) params["q"] = q.trim();
-      if (selectedCategoryId != null)
+      if (selectedCategoryId != null) {
         params["category_id"] = selectedCategoryId.toString();
+      }
       if (filterActive != null) params["is_active"] = filterActive.toString();
 
       final uri = Uri.parse(
         "$baseUrl/admin/addons",
       ).replace(queryParameters: params);
-      final res = await http.get(uri, headers: await _authHeaders());
+
+      final headers = await _authHeaders();
+      debugPrint("HEADERS ADDONS: $headers");
+
+      final res = await http.get(uri, headers: headers);
+
+      debugPrint("ADDONS STATUS: ${res.statusCode}");
+      debugPrint("ADDONS BODY: ${res.body}");
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
@@ -974,57 +993,154 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
             },
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<int?>(
-                  value: selectedCategoryId,
-                  decoration: InputDecoration(
-                    labelText: "Kategori",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  items: [
-                    const DropdownMenuItem<int?>(
-                      value: null,
-                      child: Text("Semua kategori"),
-                    ),
-                    ...categoriesDropdown.map(
-                      (c) => DropdownMenuItem<int?>(
-                        value: c["id"],
-                        child: Text("${c["name"]}"),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 420;
+
+              if (isNarrow) {
+                return Column(
+                  children: [
+                    DropdownButtonFormField<int?>(
+                      isExpanded: true,
+                      value: selectedCategoryId,
+                      decoration: InputDecoration(
+                        labelText: "Kategori",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      items: [
+                        const DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text(
+                            "Semua kategori",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        ...categoriesDropdown.map(
+                          (c) => DropdownMenuItem<int?>(
+                            value: c["id"],
+                            child: Text(
+                              "${c["name"]}",
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() => selectedCategoryId = v);
+                        _fetchAddons(resetPage: true);
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<int?>(
+                      isExpanded: true,
+                      value: filterActive,
+                      decoration: InputDecoration(
+                        labelText: "Status",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text("Semua", overflow: TextOverflow.ellipsis),
+                        ),
+                        DropdownMenuItem<int?>(
+                          value: 1,
+                          child: Text("Aktif", overflow: TextOverflow.ellipsis),
+                        ),
+                        DropdownMenuItem<int?>(
+                          value: 0,
+                          child: Text(
+                            "Nonaktif",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() => filterActive = v);
+                        _fetchAddons(resetPage: true);
+                      },
                     ),
                   ],
-                  onChanged: (v) {
-                    setState(() => selectedCategoryId = v);
-                    _fetchAddons(resetPage: true);
-                  },
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: DropdownButtonFormField<int?>(
-                  value: filterActive,
-                  decoration: InputDecoration(
-                    labelText: "Status",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<int?>(
+                      isExpanded: true,
+                      value: selectedCategoryId,
+                      decoration: InputDecoration(
+                        labelText: "Kategori",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: [
+                        const DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text(
+                            "Semua kategori",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        ...categoriesDropdown.map(
+                          (c) => DropdownMenuItem<int?>(
+                            value: c["id"],
+                            child: Text(
+                              "${c["name"]}",
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() => selectedCategoryId = v);
+                        _fetchAddons(resetPage: true);
+                      },
                     ),
                   ),
-                  items: const [
-                    DropdownMenuItem<int?>(value: null, child: Text("Semua")),
-                    DropdownMenuItem<int?>(value: 1, child: Text("Aktif")),
-                    DropdownMenuItem<int?>(value: 0, child: Text("Nonaktif")),
-                  ],
-                  onChanged: (v) {
-                    setState(() => filterActive = v);
-                    _fetchAddons(resetPage: true);
-                  },
-                ),
-              ),
-            ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<int?>(
+                      isExpanded: true,
+                      value: filterActive,
+                      decoration: InputDecoration(
+                        labelText: "Status",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text("Semua", overflow: TextOverflow.ellipsis),
+                        ),
+                        DropdownMenuItem<int?>(
+                          value: 1,
+                          child: Text("Aktif", overflow: TextOverflow.ellipsis),
+                        ),
+                        DropdownMenuItem<int?>(
+                          value: 0,
+                          child: Text(
+                            "Nonaktif",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() => filterActive = v);
+                        _fetchAddons(resetPage: true);
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           if (loadingCategoriesDropdown)
             Padding(

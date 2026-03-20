@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String kBaseUrl = 'http://192.168.1.6:8000/api';
+const String kBaseUrl = 'http://147.93.81.243/api';
 
 class DetailOrderKoordinatorPage extends StatefulWidget {
   final int orderId;

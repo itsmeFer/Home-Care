@@ -17,7 +17,7 @@ class CrudKordinatorPage extends StatefulWidget {
 }
 
 class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   bool _isLoading = true;
   bool _isError = false;
@@ -491,7 +491,7 @@ class Koordinator {
       if (path.startsWith('http')) {
         fullFoto = path;
       } else {
-        const base = 'http://192.168.1.6:8000'; // host Laravel
+        const base = 'http://147.93.81.243'; // host Laravel
 
         // path dari DB: "/storage/koordinator/koor_xxx.jpg"
         // kita ubah jadi: "/api/media/koordinator/koor_xxx.jpg"

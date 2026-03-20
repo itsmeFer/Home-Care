@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/users/layananPage.dart';
@@ -9,9 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String kBaseUrl = 'http://192.168.1.6:8000/api';
+const String kBaseUrl = 'http://147.93.81.243/api';
 
-/// Palet warna home care (teal/medical)
 class HCColor {
   static const primary = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
@@ -56,7 +56,10 @@ class Addon {
 class PesanLayananPage extends StatefulWidget {
   final Layanan layanan;
 
-  const PesanLayananPage({Key? key, required this.layanan}) : super(key: key);
+  const PesanLayananPage({
+    Key? key,
+    required this.layanan,
+  }) : super(key: key);
 
   @override
   State<PesanLayananPage> createState() => _PesanLayananPageState();
@@ -65,7 +68,6 @@ class PesanLayananPage extends StatefulWidget {
 class _PesanLayananPageState extends State<PesanLayananPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Form Controllers
   final _tanggalController = TextEditingController();
   final _jamController = TextEditingController();
   final _alamatController = TextEditingController();
@@ -73,30 +75,26 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
   final _kotaController = TextEditingController();
   final _catatanController = TextEditingController();
 
-  // Form Data
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   XFile? _kondisiPasienImage;
   Uint8List? _kondisiPasienBytes;
   int _qty = 1;
 
-  // Addons
   bool _isLoadingAddons = false;
   List<Addon> _availableAddons = [];
   List<Addon> _selectedAddons = [];
 
-  // UI State
   bool _isSubmitting = false;
   int _currentStep = 0;
 
-  // ✅ Profile Data
   bool _isLoadingProfile = false;
   Map<String, dynamic>? _profileData;
 
   @override
   void initState() {
     super.initState();
-    _fetchProfileData(); // ✅ Fetch profil dulu
+    _fetchProfileData();
     _fetchAddons();
   }
 
@@ -111,7 +109,25 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     super.dispose();
   }
 
-  // ===== FETCH PROFILE DATA =====
+  bool _isSmallScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 360;
+
+  bool _isMediumScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 430;
+
+  double _horizontalPagePadding(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 360) return 12;
+    if (width < 430) return 14;
+    return 16;
+  }
+
+  double _sectionPadding(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 360) return 16;
+    return 20;
+  }
+
   Future<void> _fetchProfileData() async {
     setState(() => _isLoadingProfile = true);
 
@@ -142,19 +158,15 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
           if (pasien != null) {
             setState(() {
               _profileData = pasien;
-
-              // ✅ Auto-fill alamat dari profil
               _alamatController.text = pasien['alamat']?.toString() ?? '';
               _kecamatanController.text = pasien['kecamatan']?.toString() ?? '';
               _kotaController.text = pasien['kota']?.toString() ?? '';
-
-              _isLoadingProfile = false;
             });
           }
         }
       }
     } catch (e) {
-      print('Error fetching profile: $e');
+      debugPrint('Error fetching profile: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoadingProfile = false);
@@ -162,7 +174,6 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     }
   }
 
-  // ===== FETCH ADDONS =====
   Future<void> _fetchAddons() async {
     setState(() => _isLoadingAddons = true);
 
@@ -192,12 +203,11 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
           final List<dynamic> data = body['data'] ?? [];
           setState(() {
             _availableAddons = data.map((e) => Addon.fromJson(e)).toList();
-            _isLoadingAddons = false;
           });
         }
       }
     } catch (e) {
-      print('Error fetching addons: $e');
+      debugPrint('Error fetching addons: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoadingAddons = false);
@@ -205,27 +215,44 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     }
   }
 
-  // ===== PICK IMAGE =====
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1920,
-      maxHeight: 1080,
-      imageQuality: 85,
-    );
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Foto kondisi pasien hanya bisa diambil dari kamera di aplikasi Android/iPhone.',
+          ),
+        ),
+      );
+      return;
+    }
 
-    if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
+    try {
+      final picker = ImagePicker();
 
-      setState(() {
-        _kondisiPasienImage = pickedFile;
-        _kondisiPasienBytes = bytes;
-      });
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+
+        setState(() {
+          _kondisiPasienImage = pickedFile;
+          _kondisiPasienBytes = bytes;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal membuka kamera: $e')),
+      );
     }
   }
 
-  // ===== PICK DATE =====
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -257,7 +284,6 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     }
   }
 
-  // ===== PICK TIME =====
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
       context: context,
@@ -284,10 +310,9 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     }
   }
 
-  // ===== CALCULATE TOTAL =====
   double _calculateTotal() {
-    double subtotal = widget.layanan.hargaFix * _qty;
-    double addonsTotal = _selectedAddons.fold(
+    final subtotal = widget.layanan.hargaFix * _qty;
+    final addonsTotal = _selectedAddons.fold<double>(
       0,
       (sum, addon) => sum + (addon.hargaFix * addon.qty),
     );
@@ -304,7 +329,10 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
 
     if (_kondisiPasienImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon upload foto kondisi pasien')),
+        const SnackBar(
+          content: Text('Mohon upload foto kondisi pasien'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -341,11 +369,9 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       request.headers['Accept'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $token';
 
-      // ✅ Form fields
       request.fields['layanan_id'] = widget.layanan.id.toString();
-      request.fields['tanggal_mulai'] = DateFormat(
-        'yyyy-MM-dd',
-      ).format(_selectedDate!);
+      request.fields['tanggal_mulai'] =
+          DateFormat('yyyy-MM-dd').format(_selectedDate!);
       request.fields['jam_mulai'] =
           '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
       request.fields['alamat_lengkap'] = _alamatController.text.trim();
@@ -353,12 +379,10 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       request.fields['kota'] = _kotaController.text.trim();
       request.fields['qty'] = _qty.toString();
 
-      // Catatan (opsional)
       if (_catatanController.text.trim().isNotEmpty) {
         request.fields['catatan_pasien'] = _catatanController.text.trim();
       }
 
-      // ✅ Foto kondisi pasien
       if (_kondisiPasienImage != null && _kondisiPasienBytes != null) {
         request.files.add(
           http.MultipartFile.fromBytes(
@@ -369,7 +393,6 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         );
       }
 
-      // ✅ Addons
       if (_selectedAddons.isNotEmpty) {
         final addonsData = _selectedAddons
             .map((addon) => {'addon_id': addon.id, 'qty': addon.qty})
@@ -380,8 +403,8 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      debugPrint('🔵 RESPONSE STATUS: ${response.statusCode}');
-      debugPrint('🔵 RESPONSE BODY: ${response.body}');
+      debugPrint('RESPONSE STATUS: ${response.statusCode}');
+      debugPrint('RESPONSE BODY: ${response.body}');
 
       if (!mounted) return;
 
@@ -389,13 +412,10 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         final responseData = json.decode(response.body);
 
         if (responseData['success'] == true) {
-          // ✅ Backend mengembalikan { success: true, data: { draft: {...}, payment: {...} } }
           final data = responseData['data'];
           final draft = data['draft'];
           final draftId = draft['id'];
           final totalBayar = draft['total_bayar'];
-
-          debugPrint('✅ Draft created: ID=$draftId, Total=$totalBayar');
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -415,8 +435,8 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                 totalBayar: (totalBayar is int)
                     ? totalBayar
                     : (totalBayar is double)
-                    ? totalBayar.toInt()
-                    : int.tryParse(totalBayar.toString()) ?? 0,
+                        ? totalBayar.toInt()
+                        : int.tryParse(totalBayar.toString()) ?? 0,
               ),
             ),
           );
@@ -446,7 +466,7 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         throw Exception('Server error (${response.statusCode})');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ ERROR SUBMIT ORDER: $e');
+      debugPrint('ERROR SUBMIT ORDER: $e');
       debugPrint('STACK TRACE: $stackTrace');
 
       if (!mounted) return;
@@ -474,13 +494,37 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     return formatter.format(amount);
   }
 
+  InputDecoration _inputDecoration({
+    required String labelText,
+    String? hintText,
+    Widget? prefixIcon,
+    bool alignLabelWithHint = false,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      alignLabelWithHint: alignLabelWithHint,
+      prefixIcon: prefixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: HCColor.primary, width: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColor.bg,
       body: CustomScrollView(
         slivers: [
-          // ===== APP BAR =====
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
@@ -541,8 +585,6 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                     ),
             ),
           ),
-
-          // ===== CONTENT =====
           SliverToBoxAdapter(
             child: Form(
               key: _formKey,
@@ -552,13 +594,11 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                   _buildHeaderCard(),
                   _buildAboutSection(),
                   _buildStepIndicator(),
-
                   if (_currentStep == 0) _buildScheduleForm(),
                   if (_currentStep == 1) _buildLocationForm(),
                   if (_currentStep == 2) _buildDetailsForm(),
                   if (_currentStep == 3) _buildAddonsSection(),
                   if (_currentStep == 4) _buildSummary(),
-
                   const SizedBox(height: 100),
                 ],
               ),
@@ -570,71 +610,122 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     );
   }
 
-  // ===== HEADER CARD =====
-  Widget _buildHeaderCard() {
+  Widget _buildCardSection({required Widget child}) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.fromLTRB(
+        _horizontalPagePadding(context),
+        16,
+        _horizontalPagePadding(context),
+        0,
+      ),
+      padding: EdgeInsets.all(_sectionPadding(context)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
+      child: child,
+    );
+  }
+
+  Widget _buildHeaderCard() {
+    final small = _isSmallScreen(context);
+
+    return _buildCardSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _formatRupiah(widget.layanan.hargaFix),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: HCColor.primary,
-                ),
-              ),
-              if (widget.layanan.kategori != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: HCColor.lightTeal,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    widget.layanan.kategori!,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: HCColor.primary,
+          small
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _formatRupiah(widget.layanan.hargaFix),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: HCColor.primary,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    if (widget.layanan.kategori != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: HCColor.lightTeal,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.layanan.kategori!,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: HCColor.primary,
+                          ),
+                        ),
+                      ),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _formatRupiah(widget.layanan.hargaFix),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: HCColor.primary,
+                        ),
+                      ),
+                    ),
+                    if (widget.layanan.kategori != null)
+                      Container(
+                        margin: const EdgeInsets.only(left: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: HCColor.lightTeal,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.layanan.kategori!,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: HCColor.primary,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
           const SizedBox(height: 12),
           Text(
             widget.layanan.namaLayanan,
-            style: const TextStyle(
-              fontSize: 20,
+            style: TextStyle(
+              fontSize: small ? 18 : 20,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
+              height: 1.3,
             ),
           ),
-          if (widget.layanan.deskripsi != null) ...[
+          if (widget.layanan.deskripsi != null &&
+              widget.layanan.deskripsi!.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               widget.layanan.deskripsi!,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: HCColor.textMuted,
                 height: 1.4,
@@ -648,15 +739,8 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     );
   }
 
-  // ===== ABOUT SECTION =====
   Widget _buildAboutSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return _buildCardSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -708,12 +792,14 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         children: [
           Icon(icon, size: 16, color: HCColor.primary),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: HCColor.primary,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: HCColor.primary,
+              ),
             ),
           ),
         ],
@@ -721,76 +807,79 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     );
   }
 
-  // ===== STEP INDICATOR =====
   Widget _buildStepIndicator() {
     final steps = ['Jadwal', 'Lokasi', 'Detail', 'Add-ons', 'Ringkasan'];
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      margin: EdgeInsets.fromLTRB(
+        _horizontalPagePadding(context),
+        16,
+        _horizontalPagePadding(context),
+        0,
+      ),
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: List.generate(steps.length, (index) {
-          final isActive = index == _currentStep;
-          final isDone = index < _currentStep;
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          children: List.generate(steps.length, (index) {
+            final isActive = index == _currentStep;
+            final isDone = index < _currentStep;
 
-          return Column(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDone
-                      ? HCColor.primary
-                      : (isActive ? HCColor.lightTeal : Colors.grey[200]),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isActive ? HCColor.primary : Colors.transparent,
-                    width: 2,
+            return Padding(
+              padding: EdgeInsets.only(right: index == steps.length - 1 ? 0 : 14),
+              child: Column(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: isDone
+                          ? HCColor.primary
+                          : (isActive ? HCColor.lightTeal : Colors.grey[200]),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isActive ? HCColor.primary : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: isDone
+                          ? const Icon(Icons.check, color: Colors.white, size: 18)
+                          : Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: isActive ? HCColor.primary : Colors.grey,
+                              ),
+                            ),
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: isDone
-                      ? const Icon(Icons.check, color: Colors.white, size: 18)
-                      : Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: isActive ? HCColor.primary : Colors.grey,
-                          ),
-                        ),
-                ),
+                  const SizedBox(height: 6),
+                  Text(
+                    steps[index],
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                      color: isActive ? HCColor.primary : Colors.grey,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                steps[index],
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                  color: isActive ? HCColor.primary : Colors.grey,
-                ),
-              ),
-            ],
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }
 
-  // ===== SCHEDULE FORM =====
   Widget _buildScheduleForm() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return _buildCardSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -799,27 +888,15 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
-
           TextFormField(
             controller: _tanggalController,
             readOnly: true,
             onTap: _pickDate,
-            decoration: InputDecoration(
+            decoration: _inputDecoration(
               labelText: 'Tanggal',
               prefixIcon: const Icon(
                 Icons.calendar_today,
                 color: HCColor.primary,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: HCColor.primary, width: 2),
               ),
             ),
             validator: (value) {
@@ -829,27 +906,14 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
               return null;
             },
           ),
-
           const SizedBox(height: 16),
-
           TextFormField(
             controller: _jamController,
             readOnly: true,
             onTap: _pickTime,
-            decoration: InputDecoration(
+            decoration: _inputDecoration(
               labelText: 'Jam',
               prefixIcon: const Icon(Icons.access_time, color: HCColor.primary),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: HCColor.primary, width: 2),
-              ),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -863,81 +927,40 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     );
   }
 
-  // ===== LOCATION FORM (AUTO-FILL + EDITABLE) =====
   Widget _buildLocationForm() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    final small = _isMediumScreen(context);
+
+    return _buildCardSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Lokasi Kunjungan',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              // ✅ Button "Gunakan Alamat Profil"
-              TextButton.icon(
-                onPressed: _isLoadingProfile
-                    ? null
-                    : () {
-                        if (_profileData != null) {
-                          setState(() {
-                            _alamatController.text =
-                                _profileData!['alamat']?.toString() ?? '';
-                            _kecamatanController.text =
-                                _profileData!['kecamatan']?.toString() ?? '';
-                            _kotaController.text =
-                                _profileData!['kota']?.toString() ?? '';
-                          });
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Alamat profil berhasil dimuat'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: HCColor.primary,
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Profil tidak ditemukan'),
-                              backgroundColor: Colors.orange,
-                            ),
-                          );
-                        }
-                      },
-                icon: _isLoadingProfile
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.my_location, size: 16),
-                label: Text(
-                  _isLoadingProfile ? 'Loading...' : 'Gunakan Profil',
-                  style: const TextStyle(fontSize: 12),
+          small
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Lokasi Kunjungan',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildUseProfileButton(),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Lokasi Kunjungan',
+                        style:
+                            TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildUseProfileButton(),
+                  ],
                 ),
-                style: TextButton.styleFrom(
-                  foregroundColor: HCColor.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
           const SizedBox(height: 16),
-
-          // ✅ Info helper text
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -945,44 +968,37 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.info_outline,
-                  size: 18,
-                  color: HCColor.primary,
+                const Padding(
+                  padding: EdgeInsets.only(top: 1),
+                  child: Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: HCColor.primary,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Alamat dari profil Anda sudah dimuat otomatis. Anda bisa mengeditnya jika berbeda.',
-                    style: TextStyle(fontSize: 11, color: HCColor.textMuted),
+                    style: TextStyle(
+                      fontSize: _isSmallScreen(context) ? 10.5 : 11,
+                      color: HCColor.textMuted,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Alamat
           TextFormField(
             controller: _alamatController,
             maxLines: 3,
-            decoration: InputDecoration(
+            decoration: _inputDecoration(
               labelText: 'Alamat Lengkap',
-              alignLabelWithHint: true,
               hintText: 'Masukkan alamat lengkap...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: HCColor.primary, width: 2),
-              ),
+              alignLabelWithHint: true,
               prefixIcon: const Padding(
                 padding: EdgeInsets.only(top: 12, left: 12),
                 child: Icon(Icons.home_outlined, color: HCColor.primary),
@@ -995,29 +1011,15 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
               return null;
             },
           ),
-
           const SizedBox(height: 16),
-
-          // Kecamatan
           TextFormField(
             controller: _kecamatanController,
-            decoration: InputDecoration(
+            decoration: _inputDecoration(
               labelText: 'Kecamatan',
               hintText: 'Contoh: Medan Kota',
               prefixIcon: const Icon(
                 Icons.location_city,
                 color: HCColor.primary,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: HCColor.primary, width: 2),
               ),
             ),
             validator: (value) {
@@ -1027,27 +1029,13 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
               return null;
             },
           ),
-
           const SizedBox(height: 16),
-
-          // Kota
           TextFormField(
             controller: _kotaController,
-            decoration: InputDecoration(
+            decoration: _inputDecoration(
               labelText: 'Kota',
               hintText: 'Contoh: Medan',
               prefixIcon: const Icon(Icons.location_on, color: HCColor.primary),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: HCColor.primary, width: 2),
-              ),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -1056,10 +1044,7 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
               return null;
             },
           ),
-
           const SizedBox(height: 16),
-
-          // ✅ Current location dari profil (readonly, info only)
           if (_profileData != null &&
               (_profileData!['alamat']?.toString().isNotEmpty ?? false))
             Container(
@@ -1076,12 +1061,14 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                     children: [
                       Icon(Icons.bookmark, size: 16, color: HCColor.textMuted),
                       const SizedBox(width: 6),
-                      Text(
-                        'Alamat di Profil:',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: HCColor.textMuted,
+                      Expanded(
+                        child: Text(
+                          'Alamat di Profil:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: HCColor.textMuted,
+                          ),
                         ),
                       ),
                     ],
@@ -1104,15 +1091,59 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     );
   }
 
-  // ===== DETAILS FORM =====
-  Widget _buildDetailsForm() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildUseProfileButton() {
+    return TextButton.icon(
+      onPressed: _isLoadingProfile
+          ? null
+          : () {
+              if (_profileData != null) {
+                setState(() {
+                  _alamatController.text =
+                      _profileData!['alamat']?.toString() ?? '';
+                  _kecamatanController.text =
+                      _profileData!['kecamatan']?.toString() ?? '';
+                  _kotaController.text =
+                      _profileData!['kota']?.toString() ?? '';
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Alamat profil berhasil dimuat'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: HCColor.primary,
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Profil tidak ditemukan'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            },
+      icon: _isLoadingProfile
+          ? const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.my_location, size: 16),
+      label: Text(
+        _isLoadingProfile ? 'Loading...' : 'Gunakan Profil',
+        style: const TextStyle(fontSize: 12),
       ),
+      style: TextButton.styleFrom(
+        foregroundColor: HCColor.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      ),
+    );
+  }
+
+  Widget _buildDetailsForm() {
+    final small = _isSmallScreen(context);
+
+    return _buildCardSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1121,89 +1152,79 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
-
-          // Quantity
-          Row(
-            children: [
-              const Text(
-                'Quantity',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: _qty > 1 ? () => setState(() => _qty--) : null,
-                icon: const Icon(Icons.remove_circle_outline),
-                color: HCColor.primary,
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: HCColor.lightTeal,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '$_qty',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: HCColor.primary,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => setState(() => _qty++),
-                icon: const Icon(Icons.add_circle_outline),
-                color: HCColor.primary,
-              ),
-            ],
-          ),
-
+          small ? _buildQuantityCompact() : _buildQuantityNormal(),
           const SizedBox(height: 16),
-
-          // Catatan
           TextFormField(
             controller: _catatanController,
             maxLines: 3,
-            decoration: InputDecoration(
+            decoration: _inputDecoration(
               labelText: 'Catatan (opsional)',
-              alignLabelWithHint: true,
               hintText: 'Tambahkan catatan khusus...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: HCColor.primary, width: 2),
-              ),
+              alignLabelWithHint: true,
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Foto Kondisi Pasien
-          const Text(
-            'Foto Kondisi Pasien *',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          Row(
+            children: const [
+              Text(
+                'Foto Kondisi Pasien',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(width: 4),
+              Text(
+                '*',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.withOpacity(0.2)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, size: 16, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Ambil foto terkini kondisi pasien untuk membantu tenaga medis.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.blue[900],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           GestureDetector(
             onTap: _pickImage,
             child: Container(
-              height: 150,
+              width: double.infinity,
+              constraints: BoxConstraints(
+                minHeight: 180,
+                maxHeight: _kondisiPasienBytes != null ? 420 : 180,
+              ),
               decoration: BoxDecoration(
-                color: HCColor.lightTeal,
+                color: _kondisiPasienBytes == null
+                    ? HCColor.lightTeal
+                    : Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: HCColor.primary.withOpacity(0.3),
+                  color: _kondisiPasienBytes == null
+                      ? HCColor.primary.withOpacity(0.3)
+                      : HCColor.primary,
                   width: 2,
-                  style: BorderStyle.solid,
                 ),
               ),
               child: _kondisiPasienBytes == null
@@ -1211,45 +1232,229 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.add_photo_alternate,
-                          size: 48,
-                          color: HCColor.primary.withOpacity(0.6),
+                          Icons.add_a_photo,
+                          size: 50,
+                          color: HCColor.primary.withOpacity(0.7),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
-                          'Tap untuk upload foto',
+                          'Tap untuk ambil foto',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: HCColor.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Ukuran maks: 5MB',
+                          style: TextStyle(
+                            fontSize: 11,
                             color: HCColor.textMuted,
                           ),
                         ),
                       ],
                     )
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.memory(
-                        _kondisiPasienBytes!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: 150,
-                      ),
+                  : Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.memory(
+                            _kondisiPasienBytes!,
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                          ),
+                        ),
+                        Positioned(
+                          top: 12,
+                          right: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Foto Terupload',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 12,
+                          right: 12,
+                          child: Material(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            elevation: 3,
+                            child: InkWell(
+                              onTap: _pickImage,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(
+                                      Icons.edit,
+                                      size: 16,
+                                      color: HCColor.primary,
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'Ganti Foto',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: HCColor.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
             ),
           ),
+          if (_kondisiPasienBytes == null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_rounded, size: 14, color: Colors.red[700]),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Foto kondisi pasien wajib diupload',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.red[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 
-  // ===== ADDONS SECTION =====
+  Widget _buildQuantityNormal() {
+    return Row(
+      children: [
+        const Text(
+          'Quantity',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        const Spacer(),
+        IconButton(
+          onPressed: _qty > 1 ? () => setState(() => _qty--) : null,
+          icon: const Icon(Icons.remove_circle_outline),
+          color: HCColor.primary,
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: HCColor.lightTeal,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$_qty',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: HCColor.primary,
+            ),
+          ),
+        ),
+        IconButton(
+          onPressed: () => setState(() => _qty++),
+          icon: const Icon(Icons.add_circle_outline),
+          color: HCColor.primary,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuantityCompact() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Quantity',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            IconButton(
+              onPressed: _qty > 1 ? () => setState(() => _qty--) : null,
+              icon: const Icon(Icons.remove_circle_outline),
+              color: HCColor.primary,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: HCColor.lightTeal,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$_qty',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: HCColor.primary,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () => setState(() => _qty++),
+              icon: const Icon(Icons.add_circle_outline),
+              color: HCColor.primary,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildAddonsSection() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return _buildCardSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1258,7 +1463,6 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
-
           if (_isLoadingAddons)
             const Center(child: CircularProgressIndicator())
           else if (_availableAddons.isEmpty)
@@ -1300,13 +1504,12 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               );
-            }).toList(),
+            }),
         ],
       ),
     );
   }
 
-  // ===== SUMMARY =====
   Widget _buildSummary() {
     final subtotal = widget.layanan.hargaFix * _qty;
     final addonsTotal = _selectedAddons.fold<double>(
@@ -1314,14 +1517,9 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       (sum, addon) => sum + (addon.hargaFix * addon.qty),
     );
     final total = subtotal + addonsTotal;
+    final small = _isSmallScreen(context);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return _buildCardSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1330,20 +1528,16 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
-
           _buildSummaryRow('Layanan', widget.layanan.namaLayanan),
           _buildSummaryRow('Tanggal', _tanggalController.text),
           _buildSummaryRow('Jam', _jamController.text),
           _buildSummaryRow('Lokasi', _kotaController.text),
-
           const Divider(height: 24),
-
           _buildSummaryRow(
             'Harga layanan',
             _formatRupiah(widget.layanan.hargaFix),
           ),
           _buildSummaryRow('Qty', '${_qty}x'),
-
           if (_selectedAddons.isNotEmpty) ...[
             const SizedBox(height: 8),
             ..._selectedAddons.map(
@@ -1353,26 +1547,50 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
               ),
             ),
           ],
-
           const Divider(height: 24),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total Bayar',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              Text(
-                _formatRupiah(total),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: HCColor.primary,
+          small
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Total Bayar',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _formatRupiah(total),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: HCColor.primary,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Total Bayar',
+                        style:
+                            TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        _formatRupiah(total),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: HCColor.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -1380,24 +1598,44 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
 
   Widget _buildSummaryRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          Expanded(
+            flex: 3,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 5,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              softWrap: true,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                height: 1.35,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ===== BOTTOM BAR =====
   Widget _buildBottomBar() {
+    final small = _isMediumScreen(context);
+    final padding = _horizontalPagePadding(context);
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(padding, 12, padding, 12),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -1408,75 +1646,153 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          if (_currentStep > 0)
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => setState(() => _currentStep--),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: const BorderSide(color: HCColor.primary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Kembali',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: HCColor.primary,
-                  ),
-                ),
-              ),
-            ),
+      child: SafeArea(
+        top: false,
+        child: small ? _buildBottomBarCompact() : _buildBottomBarNormal(),
+      ),
+    );
+  }
 
-          if (_currentStep > 0) const SizedBox(width: 12),
-
+  Widget _buildBottomBarNormal() {
+    return Row(
+      children: [
+        if (_currentStep > 0)
           Expanded(
-            flex: _currentStep > 0 ? 1 : 2,
-            child: ElevatedButton(
-              onPressed: _isSubmitting
-                  ? null
-                  : () {
-                      if (_currentStep < 4) {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() => _currentStep++);
-                        }
-                      } else {
-                        _submitOrder();
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: HCColor.primary,
-                foregroundColor: Colors.white,
+            child: OutlinedButton(
+              onPressed: () => setState(() => _currentStep--),
+              style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                elevation: 0,
+                side: const BorderSide(color: HCColor.primary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: _isSubmitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      _currentStep < 4 ? 'Lanjut' : 'Pesan Sekarang',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+              child: const Text(
+                'Kembali',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: HCColor.primary,
+                ),
+              ),
             ),
           ),
-        ],
-      ),
+        if (_currentStep > 0) const SizedBox(width: 12),
+        Expanded(
+          flex: _currentStep > 0 ? 1 : 2,
+          child: ElevatedButton(
+            onPressed: _isSubmitting ? null : _handleNextOrSubmit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: HCColor.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: _isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    _currentStep < 4 ? 'Lanjut' : 'Pesan Sekarang',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+          ),
+        ),
+      ],
     );
+  }
+
+  Widget _buildBottomBarCompact() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_currentStep > 0)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => setState(() => _currentStep--),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: HCColor.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Kembali',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: HCColor.primary,
+                ),
+              ),
+            ),
+          ),
+        if (_currentStep > 0) const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _isSubmitting ? null : _handleNextOrSubmit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: HCColor.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: _isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    _currentStep < 4 ? 'Lanjut' : 'Pesan Sekarang',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleNextOrSubmit() {
+    if (_currentStep == 2 && _kondisiPasienBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mohon upload foto kondisi pasien terlebih dahulu'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    if (_currentStep < 4) {
+      if (_formKey.currentState!.validate()) {
+        setState(() => _currentStep++);
+      }
+    } else {
+      _submitOrder();
+    }
   }
 }

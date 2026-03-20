@@ -31,7 +31,7 @@ class AuditPageManager extends StatefulWidget {
 }
 
 class _AuditPageManagerState extends State<AuditPageManager> {
-  static const String kBaseUrl = 'http://192.168.1.6:8000';
+  static const String kBaseUrl = 'http://147.93.81.243';
   String get kApiBase => '$kBaseUrl/api';
 
   // ✅ endpoints

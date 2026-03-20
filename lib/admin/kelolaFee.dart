@@ -22,7 +22,7 @@ const Color kAddon = Color(0xFF7C3AED); // warna untuk addon
    CONFIG
 =========================================================== */
 
-const String kBaseUrl = 'http://192.168.1.6:8000';
+const String kBaseUrl = 'http://147.93.81.243';
 String get kApiBase => '$kBaseUrl/api';
 
 // Endpoints LAYANAN
@@ -181,7 +181,10 @@ class ApiClient {
     };
   }
 
-  Future<Map<String, dynamic>> getJson(String url, {Map<String, String>? query}) async {
+  Future<Map<String, dynamic>> getJson(
+    String url, {
+    Map<String, String>? query,
+  }) async {
     final uri = Uri.parse(url).replace(queryParameters: query);
     final res = await http.get(uri, headers: await _headers());
     final body = res.body.isNotEmpty ? jsonDecode(res.body) : null;
@@ -193,7 +196,10 @@ class ApiClient {
     throw err;
   }
 
-  Future<Map<String, dynamic>> postJson(String url, Map<String, dynamic> payload) async {
+  Future<Map<String, dynamic>> postJson(
+    String url,
+    Map<String, dynamic> payload,
+  ) async {
     final res = await http.post(
       Uri.parse(url),
       headers: await _headers(),
@@ -208,7 +214,10 @@ class ApiClient {
     throw err;
   }
 
-  Future<Map<String, dynamic>> putJson(String url, Map<String, dynamic> payload) async {
+  Future<Map<String, dynamic>> putJson(
+    String url,
+    Map<String, dynamic> payload,
+  ) async {
     final res = await http.put(
       Uri.parse(url),
       headers: await _headers(),
@@ -265,14 +274,19 @@ class Layanan {
   final num hargaFix;
   final String? gambarUrl;
 
-  Layanan({required this.id, required this.nama, required this.hargaFix, required this.gambarUrl});
+  Layanan({
+    required this.id,
+    required this.nama,
+    required this.hargaFix,
+    required this.gambarUrl,
+  });
 
   factory Layanan.fromJson(Map<String, dynamic> j) => Layanan(
-        id: (j['id'] as num).toInt(),
-        nama: (j['nama_layanan'] ?? j['nama'] ?? '').toString(),
-        hargaFix: parseNum(j['harga_fix']),
-        gambarUrl: resolveMediaUrl(j['gambar_url'] ?? j['gambar']),
-      );
+    id: (j['id'] as num).toInt(),
+    nama: (j['nama_layanan'] ?? j['nama'] ?? '').toString(),
+    hargaFix: parseNum(j['harga_fix']),
+    gambarUrl: resolveMediaUrl(j['gambar_url'] ?? j['gambar']),
+  );
 }
 
 class Addon {
@@ -281,14 +295,19 @@ class Addon {
   final num hargaFix;
   final String? gambarUrl;
 
-  Addon({required this.id, required this.nama, required this.hargaFix, required this.gambarUrl});
+  Addon({
+    required this.id,
+    required this.nama,
+    required this.hargaFix,
+    required this.gambarUrl,
+  });
 
   factory Addon.fromJson(Map<String, dynamic> j) => Addon(
-        id: (j['id'] as num).toInt(),
-        nama: (j['nama_addon'] ?? j['nama'] ?? '').toString(),
-        hargaFix: parseNum(j['harga_fix']),
-        gambarUrl: resolveMediaUrl(j['gambar_url'] ?? j['gambar']),
-      );
+    id: (j['id'] as num).toInt(),
+    nama: (j['nama_addon'] ?? j['nama'] ?? '').toString(),
+    hargaFix: parseNum(j['harga_fix']),
+    gambarUrl: resolveMediaUrl(j['gambar_url'] ?? j['gambar']),
+  );
 }
 
 class RoleOption {
@@ -299,10 +318,10 @@ class RoleOption {
   RoleOption({required this.id, required this.name, required this.slug});
 
   factory RoleOption.fromJson(Map<String, dynamic> j) => RoleOption(
-        id: (j['id'] as num).toInt(),
-        name: (j['name'] ?? '').toString(),
-        slug: (j['slug'] ?? '').toString(),
-      );
+    id: (j['id'] as num).toInt(),
+    name: (j['name'] ?? '').toString(),
+    slug: (j['slug'] ?? '').toString(),
+  );
 }
 
 class SelectableUser {
@@ -323,13 +342,13 @@ class SelectableUser {
   });
 
   factory SelectableUser.fromJson(Map<String, dynamic> j) => SelectableUser(
-        id: (j['id'] as num).toInt(),
-        role: (j['role'] ?? '').toString(),
-        email: (j['email'] ?? '').toString(),
-        displayName: (j['display_name'] ?? j['name'] ?? '').toString(),
-        noHp: j['no_hp']?.toString(),
-        fotoUrl: resolveMediaUrl(j['foto_url'] ?? j['avatar_url'] ?? j['foto']),
-      );
+    id: (j['id'] as num).toInt(),
+    role: (j['role'] ?? '').toString(),
+    email: (j['email'] ?? '').toString(),
+    displayName: (j['display_name'] ?? j['name'] ?? '').toString(),
+    noHp: j['no_hp']?.toString(),
+    fotoUrl: resolveMediaUrl(j['foto_url'] ?? j['avatar_url'] ?? j['foto']),
+  );
 }
 
 class FeeRule {
@@ -366,8 +385,11 @@ class FeeRule {
   });
 
   factory FeeRule.fromJson(Map<String, dynamic> j) {
-    final user = (j['user'] is Map) ? (j['user'] as Map<String, dynamic>) : null;
-    final rawFoto = j['foto_url'] ??
+    final user = (j['user'] is Map)
+        ? (j['user'] as Map<String, dynamic>)
+        : null;
+    final rawFoto =
+        j['foto_url'] ??
         j['avatar_url'] ??
         j['foto'] ??
         user?['foto_url'] ??
@@ -378,7 +400,9 @@ class FeeRule {
 
     return FeeRule(
       id: (j['id'] as num).toInt(),
-      layananId: j['layanan_id'] == null ? null : (j['layanan_id'] as num).toInt(),
+      layananId: j['layanan_id'] == null
+          ? null
+          : (j['layanan_id'] as num).toInt(),
       addonId: j['addon_id'] == null ? null : (j['addon_id'] as num).toInt(),
       userId: j['user_id'] == null ? null : (j['user_id'] as num).toInt(),
       namaPenerima: (j['nama_penerima'] ?? '').toString(),
@@ -419,19 +443,20 @@ class FeeSimItem {
   });
 
   factory FeeSimItem.fromJson(Map<String, dynamic> j) => FeeSimItem(
-        id: (j['id'] as num).toInt(),
-        userId: j['user_id'] == null ? null : (j['user_id'] as num).toInt(),
-        nama: (j['nama_penerima'] ?? '').toString(),
-        fotoUrl: resolveMediaUrl(j['foto_url'] ?? j['avatar_url'] ?? j['foto']),
-        percent: parseNum(j['percent']),
-        nominal: parseNum(j['nominal']),
-        bankNama: j['bank_nama']?.toString(),
-        noRekening: j['no_rekening']?.toString(),
-        atasNama: j['atas_nama_rekening']?.toString(),
-      );
+    id: (j['id'] as num).toInt(),
+    userId: j['user_id'] == null ? null : (j['user_id'] as num).toInt(),
+    nama: (j['nama_penerima'] ?? '').toString(),
+    fotoUrl: resolveMediaUrl(j['foto_url'] ?? j['avatar_url'] ?? j['foto']),
+    percent: parseNum(j['percent']),
+    nominal: parseNum(j['nominal']),
+    bankNama: j['bank_nama']?.toString(),
+    noRekening: j['no_rekening']?.toString(),
+    atasNama: j['atas_nama_rekening']?.toString(),
+  );
 }
 
 enum _SimMode { perItem, semuaItem }
+
 enum _ChartType { bar, pie, area }
 
 /* ===========================================================
@@ -521,7 +546,14 @@ class _MiniChip extends StatelessWidget {
             Icon(icon, size: 14, color: c),
             const SizedBox(width: 6),
           ],
-          Text(text, style: const TextStyle(color: kText, fontSize: 12, fontWeight: FontWeight.w700)),
+          Text(
+            text,
+            style: const TextStyle(
+              color: kText,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -536,7 +568,10 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Text(text, style: const TextStyle(color: kTextSub, fontWeight: FontWeight.w800)),
+      child: Text(
+        text,
+        style: const TextStyle(color: kTextSub, fontWeight: FontWeight.w800),
+      ),
     );
   }
 }
@@ -555,7 +590,10 @@ class _ErrorBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: kDanger.withOpacity(0.28)),
       ),
-      child: Text(message, style: const TextStyle(color: kText, fontWeight: FontWeight.w700)),
+      child: Text(
+        message,
+        style: const TextStyle(color: kText, fontWeight: FontWeight.w700),
+      ),
     );
   }
 }
@@ -573,7 +611,10 @@ class _HintBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: kBorder),
       ),
-      child: Text(text, style: const TextStyle(color: kTextSub, fontWeight: FontWeight.w600)),
+      child: Text(
+        text,
+        style: const TextStyle(color: kTextSub, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }
@@ -583,7 +624,11 @@ class _MiniCard extends StatelessWidget {
   final EdgeInsets padding;
   final double radius;
 
-  const _MiniCard({required this.child, this.padding = const EdgeInsets.all(14), this.radius = 16});
+  const _MiniCard({
+    required this.child,
+    this.padding = const EdgeInsets.all(14),
+    this.radius = 16,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +638,11 @@ class _MiniCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: kBorder),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 14, offset: const Offset(0, 6)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
         ],
       ),
       padding: padding,
@@ -608,7 +657,12 @@ class _RoundedDialog extends StatelessWidget {
   final double? height;
   final double radius;
 
-  const _RoundedDialog({required this.child, this.width, this.height, this.radius = 18});
+  const _RoundedDialog({
+    required this.child,
+    this.width,
+    this.height,
+    this.radius = 18,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -630,7 +684,11 @@ class _RoundedDialog extends StatelessWidget {
   }
 }
 
-Widget _avatarCircle({required String? url, required IconData fallback, double radius = 22}) {
+Widget _avatarCircle({
+  required String? url,
+  required IconData fallback,
+  double radius = 22,
+}) {
   if (url == null || url.trim().isEmpty) {
     return CircleAvatar(
       radius: radius,
@@ -665,7 +723,8 @@ class KelolaFeePage extends StatefulWidget {
   State<KelolaFeePage> createState() => _KelolaFeePageState();
 }
 
-class _KelolaFeePageState extends State<KelolaFeePage> with SingleTickerProviderStateMixin {
+class _KelolaFeePageState extends State<KelolaFeePage>
+    with SingleTickerProviderStateMixin {
   late final TabController _tab;
   final _api = ApiClient();
 
@@ -685,7 +744,9 @@ class _KelolaFeePageState extends State<KelolaFeePage> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Theme(
       data: Theme.of(context).copyWith(
-        colorScheme: ColorScheme.fromSeed(seedColor: kPrimary).copyWith(primary: kPrimary),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: kPrimary,
+        ).copyWith(primary: kPrimary),
         scaffoldBackgroundColor: kBg,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
@@ -698,7 +759,10 @@ class _KelolaFeePageState extends State<KelolaFeePage> with SingleTickerProvider
       child: Scaffold(
         backgroundColor: kBg,
         appBar: AppBar(
-          title: const Text('Kelola Fee / Komisi', style: TextStyle(fontWeight: FontWeight.w800)),
+          title: const Text(
+            'Kelola Fee / Komisi',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
           bottom: TabBar(
             controller: _tab,
             indicatorColor: kPrimary,
@@ -775,7 +839,10 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
 
     try {
       final url = widget.isAddon ? kFeeAddonsUrl : kFeeLayananUrl;
-      final res = await widget.api.getJson(url, query: {'per_page': '200', 'aktif': '1'});
+      final res = await widget.api.getJson(
+        url,
+        query: {'per_page': '200', 'aktif': '1'},
+      );
       final list = extractList(res);
 
       if (widget.isAddon) {
@@ -809,22 +876,30 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
       final url = widget.isAddon ? kFeeAddonRulesUrl : kFeeRulesUrl;
       final idKey = widget.isAddon ? 'addon_id' : 'layanan_id';
 
-      final res = await widget.api.getJson(url, query: {
-        idKey: _selectedId.toString(),
-        'per_page': '200',
-        'aktif': '1',
-      });
+      final res = await widget.api.getJson(
+        url,
+        query: {idKey: _selectedId.toString(), 'per_page': '200', 'aktif': '1'},
+      );
 
-      final pageObj = (res['data'] is Map) ? Map<String, dynamic>.from(res['data']) : <String, dynamic>{};
+      final pageObj = (res['data'] is Map)
+          ? Map<String, dynamic>.from(res['data'])
+          : <String, dynamic>{};
       final rawList = pageObj['data'];
       final list = (rawList is List) ? rawList : const [];
 
-      _rules = list.where((e) => e is Map).map((e) => FeeRule.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      _rules = list
+          .where((e) => e is Map)
+          .map((e) => FeeRule.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
 
-      final meta = (res['meta'] is Map) ? Map<String, dynamic>.from(res['meta']) : <String, dynamic>{};
+      final meta = (res['meta'] is Map)
+          ? Map<String, dynamic>.from(res['meta'])
+          : <String, dynamic>{};
 
       _sumPercent = parseNum(meta['sum_percent_active']);
-      _activeCount = (meta['active_count'] ?? 0) is num ? (meta['active_count'] as num).toInt() : 0;
+      _activeCount = (meta['active_count'] ?? 0) is num
+          ? (meta['active_count'] as num).toInt()
+          : 0;
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -876,14 +951,14 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
       for (final item in _items) {
         final res = await widget.api.getJson('$baseUrl/${item.id}/simulate');
         final list = (res['data'] ?? []) as List;
-        
+
         for (final row in list) {
           final simItem = FeeSimItem.fromJson(row as Map<String, dynamic>);
           if (simItem.userId == null) continue;
 
           final key = simItem.userId!;
           final existing = agg[key];
-          
+
           if (existing == null) {
             agg[key] = simItem;
           } else {
@@ -903,7 +978,8 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
         }
       }
 
-      final listAgg = agg.values.toList()..sort((a, b) => b.nominal.compareTo(a.nominal));
+      final listAgg = agg.values.toList()
+        ..sort((a, b) => b.nominal.compareTo(a.nominal));
 
       _globalItems = listAgg;
       _globalTotalNominal = grandTotal;
@@ -938,17 +1014,23 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
     if (id == null) return;
 
     try {
-      final url = widget.isAddon ? '$kFeeAddonRulesUrl/$id/recalc' : '$kFeeRulesUrl/$id/recalc';
+      final url = widget.isAddon
+          ? '$kFeeAddonRulesUrl/$id/recalc'
+          : '$kFeeRulesUrl/$id/recalc';
       await widget.api.postJson(url, {});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Persentase dibagi ulang (100% dibagi rata).')),
+          const SnackBar(
+            content: Text('Persentase dibagi ulang (100% dibagi rata).'),
+          ),
         );
       }
       await _loadRules();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -964,18 +1046,33 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Nonaktifkan Penerima?', style: TextStyle(color: kText, fontWeight: FontWeight.w900)),
+              const Text(
+                'Nonaktifkan Penerima?',
+                style: TextStyle(color: kText, fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 10),
-              Text('Penerima "${r.namaPenerima}" akan dinonaktifkan.', style: const TextStyle(color: kTextSub)),
+              Text(
+                'Penerima "${r.namaPenerima}" akan dinonaktifkan.',
+                style: const TextStyle(color: kTextSub),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
-                    child: _RBtn(filled: false, onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+                    child: _RBtn(
+                      filled: false,
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Batal'),
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _RBtn(filled: true, color: kDanger, onPressed: () => Navigator.pop(context, true), child: const Text('Nonaktifkan')),
+                    child: _RBtn(
+                      filled: true,
+                      color: kDanger,
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Nonaktifkan'),
+                    ),
                   ),
                 ],
               ),
@@ -987,15 +1084,21 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
 
     if (ok == true) {
       try {
-        final url = widget.isAddon ? '$kFeeAddonRulesUrl/${r.id}' : '$kFeeRulesUrl/${r.id}';
+        final url = widget.isAddon
+            ? '$kFeeAddonRulesUrl/${r.id}'
+            : '$kFeeRulesUrl/${r.id}';
         await widget.api.deleteJson(url);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Penerima dinonaktifkan.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Penerima dinonaktifkan.')),
+          );
         }
         await _loadRules();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.toString())));
         }
       }
     }
@@ -1009,7 +1112,9 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
     final totalNominal = chartItems.fold<num>(0, (p, e) => p + e.nominal);
 
     final itemLabel = widget.isAddon ? 'add-on' : 'layanan';
-    final itemIcon = widget.isAddon ? Icons.extension_outlined : Icons.medical_services_outlined;
+    final itemIcon = widget.isAddon
+        ? Icons.extension_outlined
+        : Icons.medical_services_outlined;
     final itemColor = widget.isAddon ? kAddon : kPrimary;
 
     return RefreshIndicator(
@@ -1027,81 +1132,199 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pilih $itemLabel untuk mengatur penerima fee:', style: const TextStyle(color: kTextSub, fontWeight: FontWeight.w600)),
+                Text(
+                  'Pilih $itemLabel untuk mengatur penerima fee:',
+                  style: const TextStyle(
+                    color: kTextSub,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                
+
                 DropdownButtonFormField<int>(
                   value: _selectedId,
+                  isExpanded: true,
                   dropdownColor: Colors.white,
-                  decoration: fieldDeco(hint: 'Pilih $itemLabel', prefixIcon: Icon(itemIcon)),
+                  decoration: fieldDeco(
+                    hint: 'Pilih $itemLabel',
+                    prefixIcon: Icon(itemIcon),
+                  ),
                   items: _items.map((i) {
                     return DropdownMenuItem<int>(
                       value: i.id,
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
                           if ((i.gambarUrl ?? '').isNotEmpty) ...[
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.network(i.gambarUrl!, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox(width: 28, height: 28)),
+                              child: Image.network(
+                                i.gambarUrl!,
+                                width: 28,
+                                height: 28,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    const SizedBox(width: 28, height: 28),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ] else ...[
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: itemColor.withOpacity(.10),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(itemIcon, size: 16, color: itemColor),
                             ),
                             const SizedBox(width: 10),
                           ],
-                          SizedBox(
-                            width: 260,
-                            child: Text('${i.nama} • ${formatRupiah(i.hargaFix)}', overflow: TextOverflow.ellipsis, style: const TextStyle(color: kText)),
+                          Expanded(
+                            child: Text(
+                              '${i.nama} • ${formatRupiah(i.hargaFix)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: kText),
+                            ),
                           ),
                         ],
                       ),
                     );
                   }).toList(),
-                  onChanged: _loading ? null : (v) async {
-                    setState(() => _selectedId = v);
-                    await _loadRules();
+                  selectedItemBuilder: (context) {
+                    return _items.map<Widget>((i) {
+                      return Row(
+                        children: [
+                          if ((i.gambarUrl ?? '').isNotEmpty) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                i.gambarUrl!,
+                                width: 24,
+                                height: 24,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    Icon(itemIcon, size: 18, color: itemColor),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ] else ...[
+                            Icon(itemIcon, size: 18, color: itemColor),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: Text(
+                              i.nama,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: kText,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList();
                   },
+                  onChanged: _loading
+                      ? null
+                      : (v) async {
+                          setState(() => _selectedId = v);
+                          await _loadRules();
+                        },
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _MiniChip(text: 'Aktif: $_activeCount orang', icon: Icons.people_alt_outlined, color: itemColor),
-                    _MiniChip(text: 'Total %: ${_sumPercent.toStringAsFixed(2)}%', icon: Icons.percent, color: itemColor),
-                    if (item != null) _MiniChip(text: 'Harga: ${formatRupiah(item.hargaFix)}', icon: Icons.payments_outlined, color: itemColor),
+                    _MiniChip(
+                      text: 'Aktif: $_activeCount orang',
+                      icon: Icons.people_alt_outlined,
+                      color: itemColor,
+                    ),
+                    _MiniChip(
+                      text: 'Total %: ${_sumPercent.toStringAsFixed(2)}%',
+                      icon: Icons.percent,
+                      color: itemColor,
+                    ),
+                    if (item != null)
+                      _MiniChip(
+                        text: 'Harga: ${formatRupiah(item.hargaFix)}',
+                        icon: Icons.payments_outlined,
+                        color: itemColor,
+                      ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 if (R.isPhone(context)) ...[
-                  _RBtn(filled: false, onPressed: _loading ? null : _recalc, icon: Icons.calculate, color: itemColor, child: const Text('Bagi Ulang %')),
+                  _RBtn(
+                    filled: false,
+                    onPressed: _loading ? null : _recalc,
+                    icon: Icons.calculate,
+                    color: itemColor,
+                    child: const Text('Bagi Ulang %'),
+                  ),
                   const SizedBox(height: 10),
-                  _RBtn(filled: true, onPressed: _loading ? null : () => _openForm(), icon: Icons.add, color: itemColor, child: const Text('Tambah Penerima')),
+                  _RBtn(
+                    filled: true,
+                    onPressed: _loading ? null : () => _openForm(),
+                    icon: Icons.add,
+                    color: itemColor,
+                    child: const Text('Tambah Penerima'),
+                  ),
                 ] else ...[
                   Row(
                     children: [
-                      Expanded(child: _RBtn(filled: false, onPressed: _loading ? null : _recalc, icon: Icons.calculate, color: itemColor, child: const Text('Bagi Ulang %'))),
+                      Expanded(
+                        child: _RBtn(
+                          filled: false,
+                          onPressed: _loading ? null : _recalc,
+                          icon: Icons.calculate,
+                          color: itemColor,
+                          child: const Text('Bagi Ulang %'),
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _RBtn(filled: true, onPressed: _loading ? null : () => _openForm(), icon: Icons.add, color: itemColor, child: const Text('Tambah Penerima'))),
+                      Expanded(
+                        child: _RBtn(
+                          filled: true,
+                          onPressed: _loading ? null : () => _openForm(),
+                          icon: Icons.add,
+                          color: itemColor,
+                          child: const Text('Tambah Penerima'),
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ],
             ),
           ),
-          
+
           const SizedBox(height: 14),
-          
+
           // CARD CHART
           _MiniCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Statistik Distribusi Fee', style: TextStyle(color: kText, fontSize: 14, fontWeight: FontWeight.w800)),
+                const Text(
+                  'Statistik Distribusi Fee',
+                  style: TextStyle(
+                    color: kText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                
+
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -1115,7 +1338,9 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
                       },
                     ),
                     ChoiceChip(
-                      label: Text('Semua ${itemLabel.capitalize()} (Leaderboard)'),
+                      label: Text(
+                        'Semua ${itemLabel.capitalize()} (Leaderboard)',
+                      ),
                       selected: _mode == _SimMode.semuaItem,
                       onSelected: (v) async {
                         if (!v) return;
@@ -1127,50 +1352,110 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    ChoiceChip(label: const Text('Bar'), selected: _chartType == _ChartType.bar, onSelected: (v) { if (!v) return; setState(() => _chartType = _ChartType.bar); }),
-                    ChoiceChip(label: const Text('Pie'), selected: _chartType == _ChartType.pie, onSelected: (v) { if (!v) return; setState(() => _chartType = _ChartType.pie); }),
-                    ChoiceChip(label: const Text('Gunung'), selected: _chartType == _ChartType.area, onSelected: (v) { if (!v) return; setState(() => _chartType = _ChartType.area); }),
+                    ChoiceChip(
+                      label: const Text('Bar'),
+                      selected: _chartType == _ChartType.bar,
+                      onSelected: (v) {
+                        if (!v) return;
+                        setState(() => _chartType = _ChartType.bar);
+                      },
+                    ),
+                    ChoiceChip(
+                      label: const Text('Pie'),
+                      selected: _chartType == _ChartType.pie,
+                      onSelected: (v) {
+                        if (!v) return;
+                        setState(() => _chartType = _ChartType.pie);
+                      },
+                    ),
+                    ChoiceChip(
+                      label: const Text('Gunung'),
+                      selected: _chartType == _ChartType.area,
+                      onSelected: (v) {
+                        if (!v) return;
+                        setState(() => _chartType = _ChartType.area);
+                      },
+                    ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 if (_mode == _SimMode.perItem)
-                  _buildChartSection(loading: _loading, error: _error, items: chartItems, totalNominal: totalNominal, isGlobal: false)
+                  _buildChartSection(
+                    loading: _loading,
+                    error: _error,
+                    items: chartItems,
+                    totalNominal: totalNominal,
+                    isGlobal: false,
+                  )
                 else
-                  _buildChartSection(loading: _globalLoading, error: _globalError, items: _globalItems, totalNominal: _globalTotalNominal, isGlobal: true),
+                  _buildChartSection(
+                    loading: _globalLoading,
+                    error: _globalError,
+                    items: _globalItems,
+                    totalNominal: _globalTotalNominal,
+                    isGlobal: true,
+                  ),
               ],
             ),
           ),
-          
+
           const SizedBox(height: 14),
-          
+
           // LIST
           if (_mode == _SimMode.perItem) ...[
             if (_loading)
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              )
             else if (_error != null)
               _ErrorBox(message: _error!)
             else if (_rules.isEmpty)
-              _HintBox(text: 'Belum ada penerima fee untuk $itemLabel ini. Klik "Tambah Penerima".')
+              _HintBox(
+                text:
+                    'Belum ada penerima fee untuk $itemLabel ini. Klik "Tambah Penerima".',
+              )
             else
-              ..._rules.map((r) => _RecipientCard(rule: r, itemHargaFix: item?.hargaFix ?? 0, onEdit: () => _openForm(existing: r), onDelete: () => _confirmDelete(r))),
+              ..._rules.map(
+                (r) => _RecipientCard(
+                  rule: r,
+                  itemHargaFix: item?.hargaFix ?? 0,
+                  onEdit: () => _openForm(existing: r),
+                  onDelete: () => _confirmDelete(r),
+                ),
+              ),
           ] else ...[
             if (_globalLoading)
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              )
             else if (_globalError != null)
               _ErrorBox(message: _globalError!)
             else if (_globalItems.isEmpty)
               const _HintBox(text: 'Belum ada data leaderboard.')
             else ...[
-              Text('Leaderboard Penerima Fee (semua $itemLabel)', style: const TextStyle(color: kText, fontSize: 14, fontWeight: FontWeight.w800)),
+              Text(
+                'Leaderboard Penerima Fee (semua $itemLabel)',
+                style: const TextStyle(
+                  color: kText,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(height: 8),
               ...List.generate(_globalItems.length, (i) {
                 final x = _globalItems[i];
@@ -1178,22 +1463,37 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
               }),
             ],
           ],
-          
+
           const SizedBox(height: 90),
         ],
       ),
     );
   }
 
-  Widget _buildChartSection({required bool loading, required String? error, required List<FeeSimItem> items, required num totalNominal, required bool isGlobal}) {
+  Widget _buildChartSection({
+    required bool loading,
+    required String? error,
+    required List<FeeSimItem> items,
+    required num totalNominal,
+    required bool isGlobal,
+  }) {
     if (loading) {
-      return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
     if (error != null) {
       return _ErrorBox(message: error);
     }
     if (items.isEmpty) {
-      return _HintBox(text: isGlobal ? 'Belum ada data fee global untuk ditampilkan.' : 'Belum ada penerima fee aktif.');
+      return _HintBox(
+        text: isGlobal
+            ? 'Belum ada data fee global untuk ditampilkan.'
+            : 'Belum ada penerima fee aktif.',
+      );
     }
 
     return Column(
@@ -1203,14 +1503,25 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _MiniChip(text: 'Total dibagi: ${formatRupiah(totalNominal)}', icon: Icons.summarize_outlined),
-            _MiniChip(text: 'Penerima: ${items.length}', icon: Icons.people_alt_outlined),
+            _MiniChip(
+              text: 'Total dibagi: ${formatRupiah(totalNominal)}',
+              icon: Icons.summarize_outlined,
+            ),
+            _MiniChip(
+              text: 'Penerima: ${items.length}',
+              icon: Icons.people_alt_outlined,
+            ),
           ],
         ),
         const SizedBox(height: 12),
         SizedBox(
           height: 260,
-          child: _FeeChartSwitcher(items: items, totalNominal: totalNominal, chartType: _chartType, isGlobal: isGlobal),
+          child: _FeeChartSwitcher(
+            items: items,
+            totalNominal: totalNominal,
+            chartType: _chartType,
+            isGlobal: isGlobal,
+          ),
         ),
       ],
     );
@@ -1227,7 +1538,12 @@ class _RecipientCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _RecipientCard({required this.rule, required this.itemHargaFix, required this.onEdit, required this.onDelete});
+  const _RecipientCard({
+    required this.rule,
+    required this.itemHargaFix,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   State<_RecipientCard> createState() => _RecipientCardState();
@@ -1240,7 +1556,9 @@ class _RecipientCardState extends State<_RecipientCard> {
   Widget build(BuildContext context) {
     final r = widget.rule;
     final badgeColor = r.isActive ? kSuccess : kDanger;
-    final num nominal = r.isActive ? (widget.itemHargaFix * (r.percent / 100)) : 0;
+    final num nominal = r.isActive
+        ? (widget.itemHargaFix * (r.percent / 100))
+        : 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1248,7 +1566,13 @@ class _RecipientCardState extends State<_RecipientCard> {
         color: kCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: kBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.035), blurRadius: 14, offset: const Offset(0, 6))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -1256,24 +1580,49 @@ class _RecipientCardState extends State<_RecipientCard> {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                _avatarCircle(url: r.fotoUrl, fallback: r.userId != null ? Icons.person : Icons.badge, radius: 22),
+                _avatarCircle(
+                  url: r.fotoUrl,
+                  fallback: r.userId != null ? Icons.person : Icons.badge,
+                  radius: 22,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(r.namaPenerima, style: const TextStyle(color: kText, fontSize: 16, fontWeight: FontWeight.w800)),
+                      Text(
+                        r.namaPenerima,
+                        style: const TextStyle(
+                          color: kText,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          _MiniChip(text: r.isActive ? 'Aktif' : 'Nonaktif', color: badgeColor, icon: r.isActive ? Icons.check_circle_outline : Icons.block_outlined),
-                          _MiniChip(text: 'Share: ${r.percent.toStringAsFixed(4)}%', icon: Icons.percent),
+                          _MiniChip(
+                            text: r.isActive ? 'Aktif' : 'Nonaktif',
+                            color: badgeColor,
+                            icon: r.isActive
+                                ? Icons.check_circle_outline
+                                : Icons.block_outlined,
+                          ),
+                          _MiniChip(
+                            text: 'Share: ${r.percent.toStringAsFixed(4)}%',
+                            icon: Icons.percent,
+                          ),
                           InkWell(
                             onTap: () => setState(() => _open = !_open),
                             borderRadius: BorderRadius.circular(100),
-                            child: _MiniChip(text: _open ? 'Tutup nominal' : 'Lihat nominal', icon: _open ? Icons.expand_less : Icons.expand_more),
+                            child: _MiniChip(
+                              text: _open ? 'Tutup nominal' : 'Lihat nominal',
+                              icon: _open
+                                  ? Icons.expand_less
+                                  : Icons.expand_more,
+                            ),
                           ),
                         ],
                       ),
@@ -1281,8 +1630,16 @@ class _RecipientCardState extends State<_RecipientCard> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(onPressed: widget.onEdit, icon: const Icon(Icons.edit, color: kTextSub), tooltip: 'Edit'),
-                IconButton(onPressed: widget.onDelete, icon: const Icon(Icons.delete_outline, color: kTextSub), tooltip: 'Nonaktifkan'),
+                IconButton(
+                  onPressed: widget.onEdit,
+                  icon: const Icon(Icons.edit, color: kTextSub),
+                  tooltip: 'Edit',
+                ),
+                IconButton(
+                  onPressed: widget.onDelete,
+                  icon: const Icon(Icons.delete_outline, color: kTextSub),
+                  tooltip: 'Nonaktifkan',
+                ),
               ],
             ),
           ),
@@ -1291,7 +1648,9 @@ class _RecipientCardState extends State<_RecipientCard> {
             borderRadius: BorderRadius.circular(16),
             child: AnimatedCrossFade(
               duration: const Duration(milliseconds: 180),
-              crossFadeState: _open ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              crossFadeState: _open
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
               firstChild: const SizedBox.shrink(),
               secondChild: Container(
                 width: double.infinity,
@@ -1304,17 +1663,35 @@ class _RecipientCardState extends State<_RecipientCard> {
                       spacing: 8,
                       runSpacing: 6,
                       children: [
-                        _MiniChip(text: 'Harga: ${formatRupiah(widget.itemHargaFix)}', icon: Icons.payments_outlined),
-                        _MiniChip(text: 'Nominal: ${formatRupiah(nominal)}', icon: Icons.account_balance_wallet_outlined),
+                        _MiniChip(
+                          text: 'Harga: ${formatRupiah(widget.itemHargaFix)}',
+                          icon: Icons.payments_outlined,
+                        ),
+                        _MiniChip(
+                          text: 'Nominal: ${formatRupiah(nominal)}',
+                          icon: Icons.account_balance_wallet_outlined,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    if ((r.noHpPenerima ?? '').isNotEmpty || (r.emailPenerima ?? '').isNotEmpty)
-                      Text('${r.noHpPenerima ?? '-'} • ${r.emailPenerima ?? '-'}', style: const TextStyle(color: kTextSub)),
-                    if ((r.bankNama ?? '').isNotEmpty || (r.noRekening ?? '').isNotEmpty) ...[
+                    if ((r.noHpPenerima ?? '').isNotEmpty ||
+                        (r.emailPenerima ?? '').isNotEmpty)
+                      Text(
+                        '${r.noHpPenerima ?? '-'} • ${r.emailPenerima ?? '-'}',
+                        style: const TextStyle(color: kTextSub),
+                      ),
+                    if ((r.bankNama ?? '').isNotEmpty ||
+                        (r.noRekening ?? '').isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      Text('${r.bankNama ?? '-'} • ${r.noRekening ?? '-'}', style: TextStyle(color: kTextSub.withOpacity(0.9))),
-                      if ((r.atasNamaRekening ?? '').isNotEmpty) Text('a/n ${r.atasNamaRekening}', style: TextStyle(color: kTextSub.withOpacity(0.9))),
+                      Text(
+                        '${r.bankNama ?? '-'} • ${r.noRekening ?? '-'}',
+                        style: TextStyle(color: kTextSub.withOpacity(0.9)),
+                      ),
+                      if ((r.atasNamaRekening ?? '').isNotEmpty)
+                        Text(
+                          'a/n ${r.atasNamaRekening}',
+                          style: TextStyle(color: kTextSub.withOpacity(0.9)),
+                        ),
                     ],
                   ],
                 ),
@@ -1342,10 +1719,10 @@ class _LeaderboardCard extends StatelessWidget {
     final badgeColor = rank == 1
         ? Colors.amber.shade600
         : rank == 2
-            ? Colors.blueGrey.shade400
-            : rank == 3
-                ? Colors.brown.shade400
-                : kPrimary.withOpacity(0.15);
+        ? Colors.blueGrey.shade400
+        : rank == 3
+        ? Colors.brown.shade400
+        : kPrimary.withOpacity(0.15);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -1353,7 +1730,13 @@ class _LeaderboardCard extends StatelessWidget {
         color: kCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: kBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -1362,8 +1745,17 @@ class _LeaderboardCard extends StatelessWidget {
             width: 32,
             height: 32,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(999)),
-            child: Text('$rank', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+            decoration: BoxDecoration(
+              color: badgeColor,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '$rank',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
           ),
           const SizedBox(width: 10),
           _avatarCircle(url: item.fotoUrl, fallback: Icons.person, radius: 20),
@@ -1372,14 +1764,32 @@ class _LeaderboardCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.nama, style: const TextStyle(color: kText, fontSize: 14, fontWeight: FontWeight.w800), overflow: TextOverflow.ellipsis),
+                Text(
+                  item.nama,
+                  style: const TextStyle(
+                    color: kText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 2),
-                Text('Total: ${formatRupiah(item.nominal)}', style: const TextStyle(color: kTextSub, fontSize: 11)),
+                Text(
+                  'Total: ${formatRupiah(item.nominal)}',
+                  style: const TextStyle(color: kTextSub, fontSize: 11),
+                ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          Text('${item.percent.toStringAsFixed(2)}%', style: const TextStyle(color: kTextSub, fontSize: 11, fontWeight: FontWeight.w700)),
+          Text(
+            '${item.percent.toStringAsFixed(2)}%',
+            style: const TextStyle(
+              color: kTextSub,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -1396,7 +1806,12 @@ class _FeeChartSwitcher extends StatelessWidget {
   final _ChartType chartType;
   final bool isGlobal;
 
-  const _FeeChartSwitcher({required this.items, required this.totalNominal, required this.chartType, required this.isGlobal});
+  const _FeeChartSwitcher({
+    required this.items,
+    required this.totalNominal,
+    required this.chartType,
+    required this.isGlobal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1416,7 +1831,16 @@ class _FeeChartSwitcher extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(isGlobal ? 'Grafik Distribusi Fee Global' : 'Grafik Distribusi Fee per Penerima', style: const TextStyle(color: kText, fontSize: 14, fontWeight: FontWeight.w800)),
+        Text(
+          isGlobal
+              ? 'Grafik Distribusi Fee Global'
+              : 'Grafik Distribusi Fee per Penerima',
+          style: const TextStyle(
+            color: kText,
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 8),
         Expanded(child: chart),
       ],
@@ -1451,9 +1875,13 @@ class _FeeBarChart extends StatelessWidget {
         return SingleChildScrollView(
           child: Column(
             children: items.map((e) {
-              final ratio = e.nominal <= 0 ? 0.0 : (e.nominal / maxNominal).clamp(0, 1).toDouble();
-              final barWidth = (barMaxWidth * ratio).clamp(10, barMaxWidth).toDouble();
-              
+              final ratio = e.nominal <= 0
+                  ? 0.0
+                  : (e.nominal / maxNominal).clamp(0, 1).toDouble();
+              final barWidth = (barMaxWidth * ratio)
+                  .clamp(10, barMaxWidth)
+                  .toDouble();
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Column(
@@ -1461,9 +1889,26 @@ class _FeeBarChart extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(e.nama, style: const TextStyle(color: kText, fontSize: 13, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis)),
+                        Expanded(
+                          child: Text(
+                            e.nama,
+                            style: const TextStyle(
+                              color: kText,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Text('${e.percent.toStringAsFixed(2)}%', style: const TextStyle(color: kTextSub, fontSize: 12, fontWeight: FontWeight.w700)),
+                        Text(
+                          '${e.percent.toStringAsFixed(2)}%',
+                          style: const TextStyle(
+                            color: kTextSub,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -1472,18 +1917,34 @@ class _FeeBarChart extends StatelessWidget {
                         Expanded(
                           child: Stack(
                             children: [
-                              Container(height: 12, decoration: BoxDecoration(color: kBorder, borderRadius: BorderRadius.circular(999))),
+                              Container(
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: kBorder,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                              ),
                               AnimatedContainer(
                                 duration: const Duration(milliseconds: 180),
                                 height: 12,
                                 width: barWidth,
-                                decoration: BoxDecoration(color: kPrimary.withOpacity(0.85), borderRadius: BorderRadius.circular(999)),
+                                decoration: BoxDecoration(
+                                  color: kPrimary.withOpacity(0.85),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(formatRupiah(e.nominal), style: const TextStyle(color: kTextSub, fontSize: 11, fontWeight: FontWeight.w700)),
+                        Text(
+                          formatRupiah(e.nominal),
+                          style: const TextStyle(
+                            color: kTextSub,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -1510,7 +1971,12 @@ class _FeePieChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty || totalNominal <= 0) {
-      return const Center(child: Text('Tidak ada data untuk pie chart.', style: TextStyle(color: kTextSub)));
+      return const Center(
+        child: Text(
+          'Tidak ada data untuk pie chart.',
+          style: TextStyle(color: kTextSub),
+        ),
+      );
     }
 
     final sections = items.map((e) {
@@ -1519,7 +1985,11 @@ class _FeePieChart extends StatelessWidget {
         value: value,
         title: '${e.percent.toStringAsFixed(1)}%',
         radius: 60,
-        titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+        titleStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
       );
     }).toList();
 
@@ -1527,7 +1997,13 @@ class _FeePieChart extends StatelessWidget {
       children: [
         Expanded(
           flex: 2,
-          child: PieChart(PieChartData(sections: sections, sectionsSpace: 1, centerSpaceRadius: 30)),
+          child: PieChart(
+            PieChartData(
+              sections: sections,
+              sectionsSpace: 1,
+              centerSpaceRadius: 30,
+            ),
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -1536,16 +2012,42 @@ class _FeePieChart extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: items.map((e) {
-                final persen = e.nominal <= 0 || totalNominal <= 0 ? 0.0 : (e.nominal / totalNominal * 100);
+                final persen = e.nominal <= 0 || totalNominal <= 0
+                    ? 0.0
+                    : (e.nominal / totalNominal * 100);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
                     children: [
-                      Container(width: 10, height: 10, decoration: BoxDecoration(color: kPrimary.withOpacity(0.8), borderRadius: BorderRadius.circular(4))),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: kPrimary.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(e.nama, style: const TextStyle(color: kText, fontSize: 12, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis)),
+                      Expanded(
+                        child: Text(
+                          e.nama,
+                          style: const TextStyle(
+                            color: kText,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       const SizedBox(width: 6),
-                      Text('${persen.toStringAsFixed(1)}%', style: const TextStyle(color: kTextSub, fontSize: 11, fontWeight: FontWeight.w700)),
+                      Text(
+                        '${persen.toStringAsFixed(1)}%',
+                        style: const TextStyle(
+                          color: kTextSub,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -1571,7 +2073,12 @@ class _FeeAreaChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(child: Text('Tidak ada data untuk grafik gunung.', style: TextStyle(color: kTextSub)));
+      return const Center(
+        child: Text(
+          'Tidak ada data untuk grafik gunung.',
+          style: TextStyle(color: kTextSub),
+        ),
+      );
     }
 
     double maxY = 0;
@@ -1602,8 +2109,15 @@ class _FeeAreaChart extends StatelessWidget {
                 interval: 1,
                 getTitlesWidget: (value, meta) {
                   final idx = value.toInt();
-                  if (idx < 0 || idx >= items.length) return const SizedBox.shrink();
-                  return Padding(padding: const EdgeInsets.only(top: 4), child: Text('${idx + 1}', style: const TextStyle(color: kTextSub, fontSize: 10)));
+                  if (idx < 0 || idx >= items.length)
+                    return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '${idx + 1}',
+                      style: const TextStyle(color: kTextSub, fontSize: 10),
+                    ),
+                  );
                 },
               ),
             ),
@@ -1612,11 +2126,18 @@ class _FeeAreaChart extends StatelessWidget {
                 reservedSize: 40,
                 showTitles: true,
                 interval: maxY / 4,
-                getTitlesWidget: (value, meta) => Text(value.toInt().toString(), style: const TextStyle(color: kTextSub, fontSize: 10)),
+                getTitlesWidget: (value, meta) => Text(
+                  value.toInt().toString(),
+                  style: const TextStyle(color: kTextSub, fontSize: 10),
+                ),
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           lineBarsData: [
             LineChartBarData(
@@ -1627,7 +2148,10 @@ class _FeeAreaChart extends StatelessWidget {
               belowBarData: BarAreaData(
                 show: true,
                 gradient: LinearGradient(
-                  colors: [kPrimary.withOpacity(0.35), kPrimary.withOpacity(0.05)],
+                  colors: [
+                    kPrimary.withOpacity(0.35),
+                    kPrimary.withOpacity(0.05),
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -1647,7 +2171,7 @@ class _FeeAreaChart extends StatelessWidget {
 class _UserPickerDialog extends StatefulWidget {
   final ApiClient api;
   final int itemId;
-  
+
   const _UserPickerDialog({required this.api, required this.itemId});
 
   @override
@@ -1679,14 +2203,19 @@ class _UserPickerDialogState extends State<_UserPickerDialog> {
     });
 
     try {
-      final res = await widget.api.getJson(kFeeUsersUrl, query: {
-        'per_page': '20',
-        if (_search.text.trim().isNotEmpty) 'search': _search.text.trim(),
-      });
+      final res = await widget.api.getJson(
+        kFeeUsersUrl,
+        query: {
+          'per_page': '20',
+          if (_search.text.trim().isNotEmpty) 'search': _search.text.trim(),
+        },
+      );
 
       final data = (res['data'] ?? {}) as Map<String, dynamic>;
       final list = (data['data'] ?? []) as List;
-      _items = list.map((e) => SelectableUser.fromJson(e as Map<String, dynamic>)).toList();
+      _items = list
+          .map((e) => SelectableUser.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -1704,37 +2233,82 @@ class _UserPickerDialogState extends State<_UserPickerDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Cari & Pilih User (kecuali pasien)', style: TextStyle(color: kText, fontSize: 18, fontWeight: FontWeight.w800)),
+            const Text(
+              'Cari & Pilih User (kecuali pasien)',
+              style: TextStyle(
+                color: kText,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 12),
-            TextField(controller: _search, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Cari nama / email...', prefixIcon: const Icon(Icons.search)), onSubmitted: (_) => _load()),
+            TextField(
+              controller: _search,
+              style: const TextStyle(color: kText),
+              decoration: fieldDeco(
+                hint: 'Cari nama / email...',
+                prefixIcon: const Icon(Icons.search),
+              ),
+              onSubmitted: (_) => _load(),
+            ),
             const SizedBox(height: 12),
             if (_error != null) _ErrorBox(message: _error!),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _items.isEmpty
-                      ? const _HintBox(text: 'User tidak ditemukan.')
-                      : ListView.separated(
-                          itemCount: _items.length,
-                          separatorBuilder: (_, __) => const Divider(color: kBorder, height: 1),
-                          itemBuilder: (_, i) {
-                            final u = _items[i];
-                            return ListTile(
-                              onTap: () => Navigator.pop(context, u),
-                              leading: _avatarCircle(url: u.fotoUrl, fallback: Icons.person, radius: 20),
-                              title: Text(u.displayName, style: const TextStyle(color: kText, fontWeight: FontWeight.w800)),
-                              subtitle: Text('${u.role} • ${u.email}${(u.noHp ?? '').isNotEmpty ? ' • ${u.noHp}' : ''}', style: const TextStyle(color: kTextSub)),
-                              trailing: const Icon(Icons.chevron_right, color: kTextSub),
-                            );
-                          },
-                        ),
+                  ? const _HintBox(text: 'User tidak ditemukan.')
+                  : ListView.separated(
+                      itemCount: _items.length,
+                      separatorBuilder: (_, __) =>
+                          const Divider(color: kBorder, height: 1),
+                      itemBuilder: (_, i) {
+                        final u = _items[i];
+                        return ListTile(
+                          onTap: () => Navigator.pop(context, u),
+                          leading: _avatarCircle(
+                            url: u.fotoUrl,
+                            fallback: Icons.person,
+                            radius: 20,
+                          ),
+                          title: Text(
+                            u.displayName,
+                            style: const TextStyle(
+                              color: kText,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '${u.role} • ${u.email}${(u.noHp ?? '').isNotEmpty ? ' • ${u.noHp}' : ''}',
+                            style: const TextStyle(color: kTextSub),
+                          ),
+                          trailing: const Icon(
+                            Icons.chevron_right,
+                            color: kTextSub,
+                          ),
+                        );
+                      },
+                    ),
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: _RBtn(filled: false, onPressed: () => Navigator.pop(context), child: const Text('Tutup'))),
+                Expanded(
+                  child: _RBtn(
+                    filled: false,
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Tutup'),
+                  ),
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: _RBtn(filled: true, onPressed: _loading ? null : _load, icon: Icons.refresh, child: const Text('Cari'))),
+                Expanded(
+                  child: _RBtn(
+                    filled: true,
+                    onPressed: _loading ? null : _load,
+                    icon: Icons.refresh,
+                    child: const Text('Cari'),
+                  ),
+                ),
               ],
             ),
           ],
@@ -1755,7 +2329,13 @@ class _CreatedUserResult {
   final String role;
   final String? noHp;
 
-  _CreatedUserResult({required this.userId, required this.name, required this.email, required this.role, required this.noHp});
+  _CreatedUserResult({
+    required this.userId,
+    required this.name,
+    required this.email,
+    required this.role,
+    required this.noHp,
+  });
 }
 
 class _CreateUserDialog extends StatefulWidget {
@@ -1764,7 +2344,12 @@ class _CreateUserDialog extends StatefulWidget {
   final bool isAddon;
   final double? percent;
 
-  const _CreateUserDialog({required this.api, required this.itemId, required this.isAddon, required this.percent});
+  const _CreateUserDialog({
+    required this.api,
+    required this.itemId,
+    required this.isAddon,
+    required this.percent,
+  });
 
   @override
   State<_CreateUserDialog> createState() => _CreateUserDialogState();
@@ -1812,9 +2397,14 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
     setState(() => _loadingRoles = true);
 
     try {
-      final res = await widget.api.getJson(kRolesUrl, query: {'per_page': '100'});
+      final res = await widget.api.getJson(
+        kRolesUrl,
+        query: {'per_page': '100'},
+      );
       final list = extractList(res);
-      _roleOptions = list.map((e) => RoleOption.fromJson(e as Map<String, dynamic>)).toList();
+      _roleOptions = list
+          .map((e) => RoleOption.fromJson(e as Map<String, dynamic>))
+          .toList();
 
       if (_roleOptions.isNotEmpty) {
         _selectedRole ??= _roleOptions.first;
@@ -1832,7 +2422,8 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
     if (s.length < 8) return 'Password minimal 8 karakter.';
     final hasLetter = RegExp(r'[A-Za-z]').hasMatch(s);
     final hasDigit = RegExp(r'\d').hasMatch(s);
-    if (!hasLetter || !hasDigit) return 'Password harus kombinasi huruf dan angka.';
+    if (!hasLetter || !hasDigit)
+      return 'Password harus kombinasi huruf dan angka.';
     return null;
   }
 
@@ -1852,7 +2443,9 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
       'bank_nama': _bankNama.text.trim().isEmpty ? null : _bankNama.text.trim(),
       'bank_kode': _bankKode.text.trim().isEmpty ? null : _bankKode.text.trim(),
       'no_rekening': _noRek.text.trim().isEmpty ? null : _noRek.text.trim(),
-      'atas_nama_rekening': _atasNama.text.trim().isEmpty ? null : _atasNama.text.trim(),
+      'atas_nama_rekening': _atasNama.text.trim().isEmpty
+          ? null
+          : _atasNama.text.trim(),
       'percent': widget.percent,
     };
 
@@ -1893,7 +2486,14 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Buat User Baru (Sekaligus jadi penerima fee $itemLabel)', style: const TextStyle(color: kText, fontSize: 14, fontWeight: FontWeight.w900)),
+                Text(
+                  'Buat User Baru (Sekaligus jadi penerima fee $itemLabel)',
+                  style: const TextStyle(
+                    color: kText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 if (_error != null) _ErrorBox(message: _error!),
 
@@ -1901,8 +2501,12 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                 TextFormField(
                   controller: _name,
                   style: const TextStyle(color: kText),
-                  decoration: fieldDeco(hint: 'Nama lengkap', prefixIcon: const Icon(Icons.badge_outlined)),
-                  validator: (v) => (v ?? '').trim().isEmpty ? 'Nama wajib diisi' : null,
+                  decoration: fieldDeco(
+                    hint: 'Nama lengkap',
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                  ),
+                  validator: (v) =>
+                      (v ?? '').trim().isEmpty ? 'Nama wajib diisi' : null,
                 ),
                 const SizedBox(height: 12),
 
@@ -1911,7 +2515,10 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                   TextFormField(
                     controller: _email,
                     style: const TextStyle(color: kText),
-                    decoration: fieldDeco(hint: 'email@domain.com', prefixIcon: const Icon(Icons.email_outlined)),
+                    decoration: fieldDeco(
+                      hint: 'email@domain.com',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                    ),
                     validator: (v) {
                       final s = (v ?? '').trim();
                       if (s.isEmpty) return 'Email wajib diisi';
@@ -1924,7 +2531,10 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                   TextFormField(
                     controller: _noHp,
                     style: const TextStyle(color: kText),
-                    decoration: fieldDeco(hint: '08xxxxxxxxxx', prefixIcon: const Icon(Icons.phone_outlined)),
+                    decoration: fieldDeco(
+                      hint: '08xxxxxxxxxx',
+                      prefixIcon: const Icon(Icons.phone_outlined),
+                    ),
                   ),
                 ] else ...[
                   Row(
@@ -1937,11 +2547,15 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                             TextFormField(
                               controller: _email,
                               style: const TextStyle(color: kText),
-                              decoration: fieldDeco(hint: 'email@domain.com', prefixIcon: const Icon(Icons.email_outlined)),
+                              decoration: fieldDeco(
+                                hint: 'email@domain.com',
+                                prefixIcon: const Icon(Icons.email_outlined),
+                              ),
                               validator: (v) {
                                 final s = (v ?? '').trim();
                                 if (s.isEmpty) return 'Email wajib diisi';
-                                if (!s.contains('@')) return 'Email tidak valid';
+                                if (!s.contains('@'))
+                                  return 'Email tidak valid';
                                 return null;
                               },
                             ),
@@ -1957,7 +2571,10 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                             TextFormField(
                               controller: _noHp,
                               style: const TextStyle(color: kText),
-                              decoration: fieldDeco(hint: '08xxxxxxxxxx', prefixIcon: const Icon(Icons.phone_outlined)),
+                              decoration: fieldDeco(
+                                hint: '08xxxxxxxxxx',
+                                prefixIcon: const Icon(Icons.phone_outlined),
+                              ),
                             ),
                           ],
                         ),
@@ -1969,18 +2586,32 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                 const SizedBox(height: 12),
                 const _Label('Jabatan/Role'),
                 _loadingRoles
-                    ? const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: LinearProgressIndicator(minHeight: 4))
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: LinearProgressIndicator(minHeight: 4),
+                      )
                     : DropdownButtonFormField<RoleOption>(
                         value: _selectedRole,
-                        decoration: fieldDeco(hint: 'Pilih role', prefixIcon: const Icon(Icons.admin_panel_settings_outlined)),
+                        decoration: fieldDeco(
+                          hint: 'Pilih role',
+                          prefixIcon: const Icon(
+                            Icons.admin_panel_settings_outlined,
+                          ),
+                        ),
                         items: _roleOptions.map((r) {
                           return DropdownMenuItem<RoleOption>(
                             value: r,
-                            child: Text(r.name, overflow: TextOverflow.ellipsis),
+                            child: Text(
+                              r.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           );
                         }).toList(),
-                        onChanged: _saving ? null : (v) => setState(() => _selectedRole = v),
-                        validator: (v) => v == null ? 'Role/jabatan wajib dipilih.' : null,
+                        onChanged: _saving
+                            ? null
+                            : (v) => setState(() => _selectedRole = v),
+                        validator: (v) =>
+                            v == null ? 'Role/jabatan wajib dipilih.' : null,
                       ),
 
                 const SizedBox(height: 12),
@@ -1989,12 +2620,23 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                   controller: _password,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: kText),
-                  decoration: fieldDeco(hint: 'Kosongkan untuk auto-generate', prefixIcon: const Icon(Icons.lock_outline)).copyWith(
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: kTextSub),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
+                  decoration:
+                      fieldDeco(
+                        hint: 'Kosongkan untuk auto-generate',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                      ).copyWith(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: kTextSub,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                        ),
+                      ),
                   validator: _validatePassword,
                 ),
 
@@ -2002,27 +2644,97 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                 const _Label('Rekening (opsional)'),
 
                 if (R.isPhone(context)) ...[
-                  TextFormField(controller: _bankNama, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Bank', prefixIcon: const Icon(Icons.account_balance_outlined))),
+                  TextFormField(
+                    controller: _bankNama,
+                    style: const TextStyle(color: kText),
+                    decoration: fieldDeco(
+                      hint: 'Bank',
+                      prefixIcon: const Icon(Icons.account_balance_outlined),
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _bankKode, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Kode bank', prefixIcon: const Icon(Icons.confirmation_number_outlined))),
+                  TextFormField(
+                    controller: _bankKode,
+                    style: const TextStyle(color: kText),
+                    decoration: fieldDeco(
+                      hint: 'Kode bank',
+                      prefixIcon: const Icon(
+                        Icons.confirmation_number_outlined,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _noRek, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'No rekening', prefixIcon: const Icon(Icons.numbers_outlined))),
+                  TextFormField(
+                    controller: _noRek,
+                    style: const TextStyle(color: kText),
+                    decoration: fieldDeco(
+                      hint: 'No rekening',
+                      prefixIcon: const Icon(Icons.numbers_outlined),
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _atasNama, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Atas nama', prefixIcon: const Icon(Icons.badge_outlined))),
+                  TextFormField(
+                    controller: _atasNama,
+                    style: const TextStyle(color: kText),
+                    decoration: fieldDeco(
+                      hint: 'Atas nama',
+                      prefixIcon: const Icon(Icons.badge_outlined),
+                    ),
+                  ),
                 ] else ...[
                   Row(
                     children: [
-                      Expanded(child: TextFormField(controller: _bankNama, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Bank', prefixIcon: const Icon(Icons.account_balance_outlined)))),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _bankNama,
+                          style: const TextStyle(color: kText),
+                          decoration: fieldDeco(
+                            hint: 'Bank',
+                            prefixIcon: const Icon(
+                              Icons.account_balance_outlined,
+                            ),
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: TextFormField(controller: _bankKode, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Kode bank', prefixIcon: const Icon(Icons.confirmation_number_outlined)))),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _bankKode,
+                          style: const TextStyle(color: kText),
+                          decoration: fieldDeco(
+                            hint: 'Kode bank',
+                            prefixIcon: const Icon(
+                              Icons.confirmation_number_outlined,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: TextFormField(controller: _noRek, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'No rekening', prefixIcon: const Icon(Icons.numbers_outlined)))),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _noRek,
+                          style: const TextStyle(color: kText),
+                          decoration: fieldDeco(
+                            hint: 'No rekening',
+                            prefixIcon: const Icon(Icons.numbers_outlined),
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: TextFormField(controller: _atasNama, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Atas nama', prefixIcon: const Icon(Icons.badge_outlined)))),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _atasNama,
+                          style: const TextStyle(color: kText),
+                          decoration: fieldDeco(
+                            hint: 'Atas nama',
+                            prefixIcon: const Icon(Icons.badge_outlined),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -2030,23 +2742,49 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                 const SizedBox(height: 16),
 
                 if (R.isPhone(context)) ...[
-                  _RBtn(filled: false, onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('Batal')),
+                  _RBtn(
+                    filled: false,
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                    child: const Text('Batal'),
+                  ),
                   const SizedBox(height: 10),
                   _RBtn(
                     filled: true,
                     onPressed: _saving ? null : _submit,
-                    child: _saving ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Buat & Tambah'),
+                    child: _saving
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Buat & Tambah'),
                   ),
                 ] else ...[
                   Row(
                     children: [
-                      Expanded(child: _RBtn(filled: false, onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('Batal'))),
+                      Expanded(
+                        child: _RBtn(
+                          filled: false,
+                          onPressed: _saving
+                              ? null
+                              : () => Navigator.pop(context),
+                          child: const Text('Batal'),
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _RBtn(
                           filled: true,
                           onPressed: _saving ? null : _submit,
-                          child: _saving ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Buat & Tambah'),
+                          child: _saving
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Buat & Tambah'),
                         ),
                       ),
                     ],
@@ -2071,7 +2809,12 @@ class _FeeRuleFormDialog extends StatefulWidget {
   final bool isAddon;
   final FeeRule? existing;
 
-  const _FeeRuleFormDialog({required this.api, required this.itemId, required this.isAddon, this.existing});
+  const _FeeRuleFormDialog({
+    required this.api,
+    required this.itemId,
+    required this.isAddon,
+    this.existing,
+  });
 
   @override
   State<_FeeRuleFormDialog> createState() => _FeeRuleFormDialogState();
@@ -2214,9 +2957,13 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
       idKey: widget.itemId,
       'user_id': _userId,
       'bank_nama': _bankNama.text.trim().isEmpty ? null : _bankNama.text.trim(),
-      'bank_kode': _bankKode.text.trim().isNotEmpty ? _bankKode.text.trim() : null,
+      'bank_kode': _bankKode.text.trim().isNotEmpty
+          ? _bankKode.text.trim()
+          : null,
       'no_rekening': _noRek.text.trim().isEmpty ? null : _noRek.text.trim(),
-      'atas_nama_rekening': _atasNama.text.trim().isEmpty ? null : _atasNama.text.trim(),
+      'atas_nama_rekening': _atasNama.text.trim().isEmpty
+          ? null
+          : _atasNama.text.trim(),
       'percent': percentVal,
       'is_active': _isActive,
     };
@@ -2256,24 +3003,47 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(isEdit ? 'Edit Penerima Fee $itemLabel' : 'Tambah Penerima Fee $itemLabel', style: const TextStyle(color: kText, fontSize: 18, fontWeight: FontWeight.w900)),
+                Text(
+                  isEdit
+                      ? 'Edit Penerima Fee $itemLabel'
+                      : 'Tambah Penerima Fee $itemLabel',
+                  style: const TextStyle(
+                    color: kText,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 if (_error != null) _ErrorBox(message: _error!),
-                
+
                 const _Label('Pilih User (wajib)'),
-                
+
                 if (R.isPhone(context)) ...[
                   TextFormField(
                     controller: _nama,
                     readOnly: true,
                     style: const TextStyle(color: kText),
-                    decoration: fieldDeco(hint: 'Klik "Cari User" / "Buat User Baru"', prefixIcon: const Icon(Icons.person_outline)),
-                    validator: (_) => _userId == null ? 'User wajib dipilih.' : null,
+                    decoration: fieldDeco(
+                      hint: 'Klik "Cari User" / "Buat User Baru"',
+                      prefixIcon: const Icon(Icons.person_outline),
+                    ),
+                    validator: (_) =>
+                        _userId == null ? 'User wajib dipilih.' : null,
                   ),
                   const SizedBox(height: 10),
-                  _RBtn(filled: true, onPressed: _saving ? null : _pickUser, icon: Icons.search, child: const Text('Cari User')),
+                  _RBtn(
+                    filled: true,
+                    onPressed: _saving ? null : _pickUser,
+                    icon: Icons.search,
+                    child: const Text('Cari User'),
+                  ),
                   const SizedBox(height: 10),
-                  _RBtn(filled: false, onPressed: _saving ? null : _openCreateUser, icon: Icons.person_add_alt_1, child: const Text('Buat User Baru')),
+                  _RBtn(
+                    filled: false,
+                    onPressed: _saving ? null : _openCreateUser,
+                    icon: Icons.person_add_alt_1,
+                    child: const Text('Buat User Baru'),
+                  ),
                 ] else ...[
                   Row(
                     children: [
@@ -2282,47 +3052,113 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                           controller: _nama,
                           readOnly: true,
                           style: const TextStyle(color: kText),
-                          decoration: fieldDeco(hint: 'Klik "Cari User" / "Buat User Baru"', prefixIcon: const Icon(Icons.person_outline)),
-                          validator: (_) => _userId == null ? 'User wajib dipilih.' : null,
+                          decoration: fieldDeco(
+                            hint: 'Klik "Cari User" / "Buat User Baru"',
+                            prefixIcon: const Icon(Icons.person_outline),
+                          ),
+                          validator: (_) =>
+                              _userId == null ? 'User wajib dipilih.' : null,
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(child: _RBtn(filled: true, onPressed: _saving ? null : _pickUser, icon: Icons.search, child: const Text('Cari'))),
+                      Expanded(
+                        child: _RBtn(
+                          filled: true,
+                          onPressed: _saving ? null : _pickUser,
+                          icon: Icons.search,
+                          child: const Text('Cari'),
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _RBtn(filled: false, onPressed: _saving ? null : _openCreateUser, icon: Icons.person_add_alt_1, child: const Text('Buat'))),
+                      Expanded(
+                        child: _RBtn(
+                          filled: false,
+                          onPressed: _saving ? null : _openCreateUser,
+                          icon: Icons.person_add_alt_1,
+                          child: const Text('Buat'),
+                        ),
+                      ),
                     ],
                   ),
                 ],
-                
+
                 const SizedBox(height: 10),
-                if (_selectedUser != null) _HintBox(text: 'Dipilih: ${_selectedUser!.displayName} • ${_selectedUser!.role}'),
-                
+                if (_selectedUser != null)
+                  _HintBox(
+                    text:
+                        'Dipilih: ${_selectedUser!.displayName} • ${_selectedUser!.role}',
+                  ),
+
                 const SizedBox(height: 12),
                 const _Label('Email (readonly)'),
-                TextFormField(controller: _email, readOnly: true, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'email@domain.com', prefixIcon: const Icon(Icons.email_outlined))),
-                
+                TextFormField(
+                  controller: _email,
+                  readOnly: true,
+                  style: const TextStyle(color: kText),
+                  decoration: fieldDeco(
+                    hint: 'email@domain.com',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                  ),
+                ),
+
                 const SizedBox(height: 12),
                 const _Label('No HP (readonly)'),
-                TextFormField(controller: _noHp, readOnly: true, style: const TextStyle(color: kText), decoration: fieldDeco(hint: '08xxxxxxxxxx', prefixIcon: const Icon(Icons.phone_outlined))),
-                
+                TextFormField(
+                  controller: _noHp,
+                  readOnly: true,
+                  style: const TextStyle(color: kText),
+                  decoration: fieldDeco(
+                    hint: '08xxxxxxxxxx',
+                    prefixIcon: const Icon(Icons.phone_outlined),
+                  ),
+                ),
+
                 const SizedBox(height: 12),
                 const _Label('Rekening (opsional)'),
-                TextFormField(controller: _bankNama, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Bank (BCA/BRI/...)', prefixIcon: const Icon(Icons.account_balance_outlined))),
+                TextFormField(
+                  controller: _bankNama,
+                  style: const TextStyle(color: kText),
+                  decoration: fieldDeco(
+                    hint: 'Bank (BCA/BRI/...)',
+                    prefixIcon: const Icon(Icons.account_balance_outlined),
+                  ),
+                ),
                 const SizedBox(height: 12),
-                TextFormField(controller: _noRek, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'No rekening', prefixIcon: const Icon(Icons.numbers_outlined))),
+                TextFormField(
+                  controller: _noRek,
+                  style: const TextStyle(color: kText),
+                  decoration: fieldDeco(
+                    hint: 'No rekening',
+                    prefixIcon: const Icon(Icons.numbers_outlined),
+                  ),
+                ),
                 const SizedBox(height: 12),
-                TextFormField(controller: _atasNama, style: const TextStyle(color: kText), decoration: fieldDeco(hint: 'Atas nama', prefixIcon: const Icon(Icons.badge_outlined))),
-                
+                TextFormField(
+                  controller: _atasNama,
+                  style: const TextStyle(color: kText),
+                  decoration: fieldDeco(
+                    hint: 'Atas nama',
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                  ),
+                ),
+
                 const SizedBox(height: 12),
                 const _Label('Persentase Fee (%)'),
                 TextFormField(
                   controller: _percent,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(color: kText),
-                  decoration: fieldDeco(hint: 'contoh: 25 atau 12.5', prefixIcon: const Icon(Icons.percent)).copyWith(
-                    helperText: 'Total persentase aktif per $itemLabel maksimal 100%',
-                    helperStyle: const TextStyle(color: kTextSub),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
+                  style: const TextStyle(color: kText),
+                  decoration:
+                      fieldDeco(
+                        hint: 'contoh: 25 atau 12.5',
+                        prefixIcon: const Icon(Icons.percent),
+                      ).copyWith(
+                        helperText:
+                            'Total persentase aktif per $itemLabel maksimal 100%',
+                        helperStyle: const TextStyle(color: kTextSub),
+                      ),
                   validator: (v) {
                     final s = (v ?? '').trim();
                     if (s.isEmpty) return null;
@@ -2332,27 +3168,53 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 12),
                 SwitchListTile.adaptive(
                   value: _isActive,
-                  onChanged: _saving ? null : (v) => setState(() => _isActive = v),
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _isActive = v),
                   activeColor: kPrimary,
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Aktif', style: TextStyle(color: kText, fontWeight: FontWeight.w800)),
-                  subtitle: Text(_isActive ? 'Penerima dihitung dalam pembagian %' : 'Tidak ikut pembagian fee', style: const TextStyle(color: kTextSub)),
+                  title: const Text(
+                    'Aktif',
+                    style: TextStyle(color: kText, fontWeight: FontWeight.w800),
+                  ),
+                  subtitle: Text(
+                    _isActive
+                        ? 'Penerima dihitung dalam pembagian %'
+                        : 'Tidak ikut pembagian fee',
+                    style: const TextStyle(color: kTextSub),
+                  ),
                 ),
-                
+
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _RBtn(filled: false, onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Batal'))),
+                    Expanded(
+                      child: _RBtn(
+                        filled: false,
+                        onPressed: _saving
+                            ? null
+                            : () => Navigator.pop(context, false),
+                        child: const Text('Batal'),
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: _RBtn(
                         filled: true,
                         onPressed: _saving ? null : _save,
-                        child: _saving ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Text(isEdit ? 'Simpan' : 'Tambah'),
+                        child: _saving
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(isEdit ? 'Simpan' : 'Tambah'),
                       ),
                     ),
                   ],

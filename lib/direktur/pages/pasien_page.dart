@@ -43,7 +43,7 @@ class PasienPage extends StatefulWidget {
 
 class _PasienPageState extends State<PasienPage>
     with SingleTickerProviderStateMixin {
-  static const String kBaseUrl = 'http://192.168.1.6:8000';
+  static const String kBaseUrl = 'http://147.93.81.243';
   String get kApiBase => '$kBaseUrl/api';
   String get _url =>
       '$kApiBase/direktur/dashboard/pasien?range=${Uri.encodeComponent(widget.range)}';

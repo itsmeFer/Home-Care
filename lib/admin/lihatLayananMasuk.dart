@@ -6,18 +6,28 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/admin/lihatDetailLayananMasuk.dart';
 
-/// Sesuaikan dengan API-mu
-const String kBaseUrl = 'http://192.168.1.6:8000/api';
+const String kBaseUrl = 'http://147.93.81.243/api';
 
-/// Model sederhana untuk order layanan di sisi admin
+class HCColor {
+  static const primary = Color(0xFF0BA5A7);
+  static const primaryDark = Color(0xFF088088);
+  static const bg = Color(0xFFF5F7FA);
+  static const card = Colors.white;
+  static const textMuted = Colors.black54;
+  static const lightTeal = Color(0xFFE0F7F7);
+  static const success = Color(0xFF10B981);
+  static const warning = Color(0xFFF59E0B);
+  static const error = Color(0xFFEF4444);
+}
+
 class OrderLayananAdmin {
   final int id;
   final String kodeOrder;
   final String statusOrder;
   final String namaLayanan;
 
-  final String? tanggalMulai; // format yyyy-MM-dd dari API
-  final String? jamMulai;     // format HH:mm:ss atau HH:mm
+  final String? tanggalMulai;
+  final String? jamMulai;
 
   final Map<String, dynamic>? pasien;
   final Map<String, dynamic>? koordinator;
@@ -63,13 +73,15 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
   String? _error;
   List<OrderLayananAdmin> _orders = [];
 
-  /// Filter status (optional)
-  String? _selectedStatus; // null = semua
+  String? _selectedStatus;
 
   final List<String> _statusOptions = const [
     'pending',
     'menunggu_penugasan',
     'mendapatkan_perawat',
+    'sedang_dalam_perjalanan',
+    'sampai_ditempat',
+    'sedang_berjalan',
     'selesai',
     'dibatalkan',
   ];
@@ -98,7 +110,6 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
         return;
       }
 
-      // Build URL dengan optional status filter
       String url = '$kBaseUrl/admin/order-layanan';
       if (_selectedStatus != null && _selectedStatus!.isNotEmpty) {
         url += '?status=$_selectedStatus';
@@ -130,8 +141,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
         }
 
         final List<dynamic> data = decoded['data'] ?? [];
-        final list =
-            data.map((e) => OrderLayananAdmin.fromJson(e)).toList();
+        final list = data.map((e) => OrderLayananAdmin.fromJson(e)).toList();
 
         setState(() {
           _isLoading = false;
@@ -158,7 +168,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
     }
   }
 
-  String _formatTanggal(String? iso) {
+  String _fmtTanggal(String? iso) {
     if (iso == null || iso.isEmpty) return '-';
     try {
       final date = DateTime.parse(iso);
@@ -168,9 +178,8 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
     }
   }
 
-  String _formatJam(String? jam) {
+  String _fmtJam(String? jam) {
     if (jam == null || jam.isEmpty) return '-';
-    // Kalau dari DB "HH:mm:ss" → kita potong saja
     if (jam.length >= 5) {
       return jam.substring(0, 5);
     }
@@ -188,257 +197,534 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
   Color _statusColor(String status) {
     switch (status) {
       case 'pending':
-        return Colors.orange;
+        return HCColor.warning;
       case 'menunggu_penugasan':
         return Colors.deepOrange;
       case 'mendapatkan_perawat':
         return Colors.blue;
+      case 'sedang_dalam_perjalanan':
+        return Colors.teal;
+      case 'sampai_ditempat':
+        return Colors.indigo;
+      case 'sedang_berjalan':
+        return Colors.purple;
       case 'selesai':
-        return Colors.green;
+        return HCColor.success;
       case 'dibatalkan':
-        return Colors.red;
+        return HCColor.error;
       default:
         return Colors.grey;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending':
+        return 'Menunggu';
+      case 'menunggu_penugasan':
+        return 'Belum Ditugaskan';
+      case 'mendapatkan_perawat':
+        return 'Menunggu Respon';
+      case 'sedang_dalam_perjalanan':
+        return 'Dalam Perjalanan';
+      case 'sampai_ditempat':
+        return 'Sudah Sampai';
+      case 'sedang_berjalan':
+        return 'Sedang Berjalan';
+      case 'selesai':
+        return 'Selesai';
+      case 'dibatalkan':
+        return 'Dibatalkan';
+      default:
+        return status;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Layanan Masuk'),
+      backgroundColor: HCColor.bg,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(),
+          SliverToBoxAdapter(child: _buildFilters()),
+          _buildBody(),
+        ],
       ),
-      body: Column(
-        children: [
-          // Filter status
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Row(
-              children: [
-                const Text(
-                  'Status:',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedStatus,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                    hint: const Text('Semua'),
-                    items: [
-                      const DropdownMenuItem<String>(
-                        value: null,
-                        child: Text('Semua status'),
-                      ),
-                      ..._statusOptions.map(
-                        (s) => DropdownMenuItem<String>(
-                          value: s,
-                          child: Text(s),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedStatus = value;
-                      });
-                      _fetchOrders();
-                    },
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Refresh',
-                  onPressed: _fetchOrders,
-                ),
-              ],
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      pinned: true,
+      backgroundColor: HCColor.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        title: const Text(
+          'Layanan Masuk',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [HCColor.primary, HCColor.primaryDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-          const Divider(height: 1),
-          Expanded(child: _buildBody()),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          tooltip: 'Refresh',
+          onPressed: _fetchOrders,
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  Widget _buildFilters() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.filter_list, size: 20, color: HCColor.primary),
+              const SizedBox(width: 8),
+              const Text(
+                'Filter Status',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _selectedStatus,
+            isExpanded: true,
+            decoration: InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: HCColor.lightTeal.withOpacity(0.3),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              prefixIcon: Icon(Icons.assignment, color: HCColor.primary, size: 20),
+            ),
+            hint: const Text('Semua Status'),
+            items: [
+              const DropdownMenuItem<String>(
+                value: null,
+                child: Text('Semua status'),
+              ),
+              ..._statusOptions.map(
+                (s) => DropdownMenuItem<String>(
+                  value: s,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _statusColor(s),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(_statusLabel(s)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedStatus = value;
+              });
+              _fetchOrders();
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildStatsRow(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow() {
+    final total = _orders.length;
+    final pending = _orders.where((o) => o.statusOrder == 'pending').length;
+    final selesai = _orders.where((o) => o.statusOrder == 'selesai').length;
+
+    return Row(
+      children: [
+        _buildStatCard('Total', total.toString(), HCColor.primary),
+        const SizedBox(width: 8),
+        _buildStatCard('Pending', pending.toString(), HCColor.warning),
+        const SizedBox(width: 8),
+        _buildStatCard('Selesai', selesai.toString(), HCColor.success),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+      return SliverFillRemaining(
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: _fetchOrders,
-                child: const Text('Coba Lagi'),
-              ),
+            children: const [
+              CircularProgressIndicator(color: HCColor.primary),
+              SizedBox(height: 16),
+              Text('Memuat data...'),
             ],
           ),
         ),
       );
     }
 
-    if (_orders.isEmpty) {
-      return const Center(
-        child: Text('Belum ada order layanan.'),
+    if (_error != null) {
+      return SliverFillRemaining(
+        child: _buildError(),
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _fetchOrders,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: _orders.length,
-        itemBuilder: (context, index) {
-          final order = _orders[index];
-          return _buildOrderCard(order);
-        },
+    if (_orders.isEmpty) {
+      return SliverFillRemaining(
+        child: _buildEmpty(),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildOrderCard(_orders[index]),
+            );
+          },
+          childCount: _orders.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: HCColor.error),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _fetchOrders,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HCColor.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 80,
+            color: HCColor.textMuted,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Belum ada order layanan',
+            style: TextStyle(
+              fontSize: 16,
+              color: HCColor.textMuted,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _selectedStatus != null
+                ? 'Tidak ada order dengan status ini'
+                : 'Order akan muncul di sini',
+            style: TextStyle(
+              fontSize: 13,
+              color: HCColor.textMuted,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildOrderCard(OrderLayananAdmin order) {
-    final tanggal = _formatTanggal(order.tanggalMulai);
-    final jam = _formatJam(order.jamMulai);
+    final tanggal = _fmtTanggal(order.tanggalMulai);
+    final jam = _fmtJam(order.jamMulai);
 
     final pasienNama = _getNama(order.pasien);
     final koordinatorNama = _getNama(order.koordinator);
     final perawatNama = _getNama(order.perawat);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-onTap: () async {
-  // buka halaman detail
-  final needRefresh = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => DetailOrderLayananAdminPage(orderId: order.id),
-    ),
-  );
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () async {
+            final needRefresh = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DetailOrderLayananAdminPage(orderId: order.id),
+              ),
+            );
 
-  // kalau di detail nanti kita ubah status, bisa trigger refresh list
-  if (needRefresh == true) {
-    _fetchOrders();
-  }
-},
-
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Baris atas: kode + status
-              Row(
-                children: [
-                  Text(
-                    order.kodeOrder,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _statusColor(order.statusOrder)
-                          .withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      order.statusOrder,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _statusColor(order.statusOrder),
+            if (needRefresh == true) {
+              _fetchOrders();
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: HCColor.lightTeal,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.medical_services,
+                        color: HCColor.primary,
+                        size: 20,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                order.namaLayanan,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.kodeOrder,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            order.namaLayanan,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: HCColor.textMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _statusColor(order.statusOrder).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _statusColor(order.statusOrder).withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        _statusLabel(order.statusOrder),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _statusColor(order.statusOrder),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today, size: 14),
-                  const SizedBox(width: 4),
-                  Text(
-                    tanggal,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  const SizedBox(width: 12),
-                  const Icon(Icons.access_time, size: 14),
-                  const SizedBox(width: 4),
-                  Text(
-                    jam,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Divider(),
-              const SizedBox(height: 4),
-              _buildInfoRow('Pasien', pasienNama),
-              const SizedBox(height: 2),
-              _buildInfoRow('Koordinator', koordinatorNama),
-              const SizedBox(height: 2),
-              _buildInfoRow('Perawat', perawatNama),
-            ],
+
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+
+                // Date & Time
+                Row(
+                  children: [
+                    _buildMetaChip(Icons.calendar_today, tanggal),
+                    const SizedBox(width: 8),
+                    _buildMetaChip(Icons.access_time, jam),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Info rows
+                _buildInfoRow(Icons.person, 'Pasien', pasienNama),
+                const SizedBox(height: 6),
+                _buildInfoRow(Icons.supervisor_account, 'Koordinator',
+                    koordinatorNama),
+                const SizedBox(height: 6),
+                _buildInfoRow(Icons.local_hospital, 'Perawat', perawatNama),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 90,
-          child: Text(
-            '$label',
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
+  Widget _buildMetaChip(IconData icon, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: HCColor.lightTeal.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: HCColor.primary),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: HCColor.textMuted),
+        const SizedBox(width: 8),
+        Text(
+          '$label:',
+          style: TextStyle(
+            fontSize: 12,
+            color: HCColor.textMuted,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const Text(':  ', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(width: 6),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

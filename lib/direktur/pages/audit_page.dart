@@ -1,4 +1,6 @@
-// AuditPage.dart (FULL) ✅
+// AuditPage.dart (FULL) ✅ FIXED + RESPONSIVE
+// ✅ TOKEN FIX: cek 'auth_token' dulu (sesuai login.dart), fallback 'token'
+// ✅ RESPONSIVE FULL: Desktop (3 cols) / Tablet (2 cols) / Mobile (1 col)
 // ✅ Audit KPI + Logs
 // ✅ Export CSV (Web & Mobile) kolom rapi (sep=; + BOM)
 // ✅ Freeze/Unfreeze SEMUA USER (tanpa filter role)
@@ -53,7 +55,7 @@ class AuditPage extends StatefulWidget {
 }
 
 class _AuditPageState extends State<AuditPage> {
-  static const String kBaseUrl = 'http://192.168.1.6:8000';
+  static const String kBaseUrl = 'http://147.93.81.243';
   String get kApiBase => '$kBaseUrl/api';
 
   // ✅ sesuai route:list kamu: api/direktur/dashboard/audit
@@ -94,7 +96,8 @@ class _AuditPageState extends State<AuditPage> {
   Future<Map<String, dynamic>> _fetch() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final token = prefs.getString('token') ?? '';
+    // ✅ Cek auth_token dulu (sesuai login.dart), fallback ke token
+    final token = prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
 
     final res = await http.get(
@@ -117,7 +120,8 @@ class _AuditPageState extends State<AuditPage> {
 
   Future<String> _token() async {
     final prefs = await SharedPreferences.getInstance();
-    final t = prefs.getString('token') ?? '';
+    // ✅ Cek auth_token dulu (sesuai login.dart), fallback ke token
+    final t = prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
     if (t.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
     return t;
   }
@@ -2130,7 +2134,7 @@ class _AuditPageState extends State<AuditPage> {
                                         const SizedBox(height: 6),
                                         if (logPreview.isEmpty)
                                           const Text(
-                                            'Belum ada aksi. Setelah “Simpan Perubahan”, log akan muncul di sini.',
+                                            'Belum ada aksi. Setelah "Simpan Perubahan", log akan muncul di sini.',
                                             style: TextStyle(
                                               color: kMuted,
                                               fontWeight: FontWeight.w700,
@@ -2276,7 +2280,8 @@ class _AuditPageState extends State<AuditPage> {
   // =========================
   @override
   Widget build(BuildContext context) {
-    final cols = widget.isDesktop ? 3 : 2;
+    // ✅ RESPONSIVE: Desktop (3 cols) / Tablet (2 cols) / Mobile (1 col)
+    final cols = widget.isDesktop ? 3 : (widget.isTablet ? 2 : 1);
 
     return FutureBuilder<Map<String, dynamic>>(
       future: _future,

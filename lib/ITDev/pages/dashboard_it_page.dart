@@ -24,7 +24,7 @@ class DashboardITPage extends StatefulWidget {
 }
 
 class _DashboardITPageState extends State<DashboardITPage> {
-  static const String kBaseUrl = 'http://192.168.1.6:8000';
+  static const String kBaseUrl = 'http://147.93.81.243';
   String get kApiBase => '$kBaseUrl/api';
   Timer? _timer;
   Future<Map<String, dynamic>>? _metricsFuture;

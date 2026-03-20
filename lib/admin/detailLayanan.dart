@@ -1,12 +1,12 @@
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:home_care/users/HomePage.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DetailLayananPage extends StatefulWidget {
   final int layananId;
@@ -18,14 +18,20 @@ class DetailLayananPage extends StatefulWidget {
 }
 
 class _DetailLayananPageState extends State<DetailLayananPage> {
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   bool _isLoading = true;
   bool _isError = false;
   String? _errorMessage;
+
   LayananDetail? _layanan;
   File? _selectedImage;
   bool _isUploadingImage = false;
+
+  List<KoordinatorItem> _koordinatorLayanan = [];
+  List<KoordinatorItem> _allKoordinator = [];
+  bool _isLoadingKoordinator = false;
+  bool _isSavingKoordinator = false;
 
   @override
   void initState() {
@@ -38,7 +44,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
     return prefs.getString('auth_token');
   }
 
-  /// Helper untuk gabung pesan error validasi 422 dari backend
   String _extractValidationMessage(String rawBody, String defaultMsg) {
     try {
       final body = json.decode(rawBody);
@@ -76,7 +81,7 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
         imageQuality: 80,
       );
 
-      if (picked == null) return; // user batal pilih gambar
+      if (picked == null) return;
 
       setState(() {
         _isUploadingImage = true;
@@ -94,9 +99,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       });
 
       if (kIsWeb) {
-        // ===========================
-        // MODE WEB: pakai bytes
-        // ===========================
         final bytes = await picked.readAsBytes();
         final multipartFile = http.MultipartFile.fromBytes(
           'gambar',
@@ -105,9 +107,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
         );
         request.files.add(multipartFile);
       } else {
-        // ===========================
-        // MODE MOBILE: pakai path
-        // ===========================
         request.files.add(
           await http.MultipartFile.fromPath('gambar', picked.path),
         );
@@ -134,7 +133,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
         ),
       );
 
-      // refresh data biar gambar_url baru ke-load
       await _fetchDetail();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,9 +188,11 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       final body = json.decode(res.body);
       if (body is Map && body['success'] == true && body['data'] != null) {
         final data = body['data'] as Map<String, dynamic>;
-        setState(() {
-          _layanan = LayananDetail.fromJson(data);
-        });
+        _layanan = LayananDetail.fromJson(data);
+
+        setState(() {});
+
+        await _fetchKoordinatorLayanan();
       } else {
         setState(() {
           _isError = true;
@@ -208,6 +208,231 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _fetchKoordinatorLayanan() async {
+    if (_layanan == null) return;
+
+    try {
+      setState(() => _isLoadingKoordinator = true);
+
+      final token = await _getToken();
+      if (token == null) throw 'Token tidak ditemukan.';
+
+      final url = Uri.parse(
+        '$baseUrl/admin/layanan/${_layanan!.id}/koordinator',
+      );
+      final res = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (res.statusCode != 200) {
+        throw 'Gagal mengambil koordinator layanan (${res.statusCode})';
+      }
+
+      final body = json.decode(res.body);
+      final List data = (body['data'] as List?) ?? [];
+
+      setState(() {
+        _koordinatorLayanan = data
+            .map((e) => KoordinatorItem.fromJson(e))
+            .toList();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengambil koordinator layanan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingKoordinator = false);
+      }
+    }
+  }
+
+  Future<void> _fetchAllKoordinator() async {
+    final token = await _getToken();
+    if (token == null) throw 'Token tidak ditemukan.';
+
+    final url = Uri.parse('$baseUrl/admin/koordinator');
+    final res = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
+
+    print('STATUS KOORDINATOR: ${res.statusCode}');
+    print('BODY KOORDINATOR: ${res.body}');
+
+    if (res.statusCode != 200) {
+      throw 'Gagal mengambil daftar koordinator (${res.statusCode})';
+    }
+
+    final body = json.decode(res.body);
+    final List data = (body['data'] as List?) ?? [];
+
+    _allKoordinator = data.map((e) => KoordinatorItem.fromJson(e)).toList();
+  }
+
+  Future<void> _openKelolaKoordinatorDialog() async {
+    if (_layanan == null) return;
+
+    try {
+      setState(() => _isSavingKoordinator = true);
+
+      await _fetchAllKoordinator();
+
+      final selectedIds = _koordinatorLayanan.map((e) => e.id).toSet();
+
+      setState(() => _isSavingKoordinator = false);
+
+      final result = await showDialog<List<int>>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _KoordinatorMultiSelectDialog(
+          allKoordinator: _allKoordinator,
+          selectedIds: selectedIds,
+        ),
+      );
+
+      if (result == null) return;
+
+      await _syncKoordinator(result);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSavingKoordinator = false);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal membuka kelola koordinator: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _syncKoordinator(List<int> koordinatorIds) async {
+    if (_layanan == null) return;
+
+    try {
+      setState(() => _isSavingKoordinator = true);
+
+      final token = await _getToken();
+      if (token == null) throw 'Token tidak ditemukan.';
+
+      final url = Uri.parse(
+        '$baseUrl/admin/layanan/${_layanan!.id}/koordinator',
+      );
+
+      final res = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+        body: json.encode({'koordinator_ids': koordinatorIds}),
+      );
+
+      if (res.statusCode != 200) {
+        String msg = 'Gagal menyimpan koordinator (${res.statusCode})';
+        if (res.statusCode == 422) {
+          msg = _extractValidationMessage(res.body, msg);
+        } else {
+          try {
+            final body = json.decode(res.body);
+            if (body is Map && body['message'] != null) {
+              msg = body['message'];
+            }
+          } catch (_) {}
+        }
+        throw msg;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Koordinator layanan berhasil diupdate'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      await _fetchKoordinatorLayanan();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan koordinator: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingKoordinator = false);
+      }
+    }
+  }
+
+  Future<void> _updateKoordinatorPivot({
+    required int koordinatorId,
+    required bool aktif,
+    String? catatan,
+  }) async {
+    if (_layanan == null) return;
+
+    try {
+      final token = await _getToken();
+      if (token == null) throw 'Token tidak ditemukan.';
+
+      final url = Uri.parse(
+        '$baseUrl/admin/layanan/${_layanan!.id}/koordinator/$koordinatorId',
+      );
+
+      final res = await http.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+        body: json.encode({'aktif': aktif, 'catatan': catatan}),
+      );
+
+      if (res.statusCode != 200) {
+        String msg = 'Gagal update status koordinator (${res.statusCode})';
+        if (res.statusCode == 422) {
+          msg = _extractValidationMessage(res.body, msg);
+        } else {
+          try {
+            final body = json.decode(res.body);
+            if (body is Map && body['message'] != null) {
+              msg = body['message'];
+            }
+          } catch (_) {}
+        }
+        throw msg;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Status koordinator berhasil diupdate'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      await _fetchKoordinatorLayanan();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal update status koordinator: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -253,7 +478,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
         ),
       );
 
-      // refresh detail, tetap di halaman ini
       await _fetchDetail();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -321,7 +545,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
         ),
       );
 
-      // kembali ke halaman sebelumnya, kirim flag true supaya list bisa refresh
       Navigator.of(context).pop(true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -365,73 +588,245 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _isError
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      _errorMessage ?? 'Terjadi kesalahan',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _errorMessage ?? 'Terjadi kesalahan',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            )
+          : _layanan == null
+          ? const Center(child: Text('Data layanan tidak ditemukan'))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ),
-                )
-              : _layanan == null
-                  ? const Center(child: Text('Data layanan tidak ditemukan'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                          if (_layanan!.gambarUrl != null &&
+                              _layanan!.gambarUrl!.isNotEmpty) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                _layanan!.gambarUrl!,
+                                height: 180,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // (optional) kalau mau render gambar besar dulu
-                                  if (_layanan!.gambarUrl != null &&
-                                      _layanan!.gambarUrl!.isNotEmpty) ...[
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        _layanan!.gambarUrl!,
-                                        height: 180,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
+                            const SizedBox(height: 12),
+                          ],
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                radius: 28,
+                                backgroundColor: HCColor.primary.withOpacity(
+                                  .1,
+                                ),
+                                backgroundImage:
+                                    (_layanan!.gambarUrl != null &&
+                                        _layanan!.gambarUrl!.isNotEmpty)
+                                    ? NetworkImage(_layanan!.gambarUrl!)
+                                    : null,
+                                child:
+                                    (_layanan!.gambarUrl == null ||
+                                        _layanan!.gambarUrl!.isEmpty)
+                                    ? Icon(
+                                        Icons.medical_services_outlined,
+                                        size: 26,
+                                        color: HCColor.primaryDark,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _layanan!.namaLayanan ?? '-',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
+                                    if (_layanan!.kodeLayanan != null)
+                                      Text(
+                                        'Kode: ${_layanan!.kodeLayanan}',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
                                   ],
-
-                                  // ROW HEADER (AVATAR + INFO)
-                                  Row(
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text(
+                                    'Aktif',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  Switch(
+                                    value: _layanan!.aktif ?? true,
+                                    onChanged: (val) {
+                                      _updateLayanan({'aktif': val});
+                                    },
+                                    activeColor: HCColor.primary,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _infoRow('Kategori', _layanan!.kategori),
+                          _infoRow('Tipe Layanan', _layanan!.tipeLayananLabel),
+                          _infoRow(
+                            'Syarat Perawat',
+                            _layanan!.syaratPerawatLabel,
+                          ),
+                          _infoRow('Lokasi Tersedia', _layanan!.lokasiLabel),
+                          if (_layanan!.hargaDasar != null)
+                            _infoRow(
+                              'Harga Dasar',
+                              'Rp ${_layanan!.hargaDasar!.toStringAsFixed(0)}',
+                            ),
+                          if (_layanan!.durasiMenit != null)
+                            _infoRow(
+                              'Durasi',
+                              '${_layanan!.durasiMenit} menit',
+                            ),
+                          if (_layanan!.jumlahVisit != null)
+                            _infoRow(
+                              'Jumlah Visit (paket)',
+                              '${_layanan!.jumlahVisit}',
+                            ),
+                          if (_layanan!.deskripsi != null &&
+                              _layanan!.deskripsi!.isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Deskripsi',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _layanan!.deskripsi!,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Koordinator Penanggung Jawab',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: _isSavingKoordinator
+                                    ? null
+                                    : _openKelolaKoordinatorDialog,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: HCColor.primary,
+                                ),
+                                icon: _isSavingKoordinator
+                                    ? const SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.people_alt),
+                                label: Text(
+                                  _isSavingKoordinator
+                                      ? 'Memproses...'
+                                      : 'Kelola',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (_isLoadingKoordinator)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(12),
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          else if (_koordinatorLayanan.isEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.orange.shade100,
+                                ),
+                              ),
+                              child: const Text(
+                                'Belum ada koordinator yang ditugaskan ke layanan ini.',
+                              ),
+                            )
+                          else
+                            Column(
+                              children: _koordinatorLayanan.map((k) {
+                                final pivotAktif = k.pivotAktif ?? true;
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       CircleAvatar(
-                                        radius: 28,
                                         backgroundColor: HCColor.primary
                                             .withOpacity(.1),
-                                        backgroundImage: (_layanan!.gambarUrl !=
-                                                    null &&
-                                                _layanan!.gambarUrl!
-                                                    .isNotEmpty)
-                                            ? NetworkImage(
-                                                _layanan!.gambarUrl!)
-                                            : null,
-                                        child: (_layanan!.gambarUrl == null ||
-                                                _layanan!.gambarUrl!.isEmpty)
-                                            ? Icon(
-                                                Icons
-                                                    .medical_services_outlined,
-                                                size: 26,
-                                                color: HCColor.primaryDark,
-                                              )
-                                            : null,
+                                        child: Icon(
+                                          Icons.person,
+                                          color: HCColor.primaryDark,
+                                        ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -440,144 +835,175 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              _layanan!.namaLayanan ?? '-',
+                                              k.namaLengkap,
                                               style: const TextStyle(
-                                                fontSize: 18,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
-                                            if (_layanan!.kodeLayanan != null)
+                                            if ((k.kodeKoordinator ?? '')
+                                                .isNotEmpty)
                                               Text(
-                                                'Kode: ${_layanan!.kodeLayanan}',
+                                                'Kode: ${k.kodeKoordinator}',
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                 ),
                                               ),
+                                            if ((k.wilayah ?? '').isNotEmpty)
+                                              Text(
+                                                'Wilayah: ${k.wilayah}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            const SizedBox(height: 6),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 5,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: k.isActive
+                                                        ? Colors.green.shade50
+                                                        : Colors.red.shade50,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    k.isActive
+                                                        ? 'Akun aktif'
+                                                        : 'Akun nonaktif',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: k.isActive
+                                                          ? Colors
+                                                                .green
+                                                                .shade800
+                                                          : Colors.red.shade800,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 5,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: pivotAktif
+                                                        ? Colors.blue.shade50
+                                                        : Colors.grey.shade200,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    pivotAktif
+                                                        ? 'Ditugaskan aktif'
+                                                        : 'Ditugaskan nonaktif',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: pivotAktif
+                                                          ? Colors.blue.shade800
+                                                          : Colors
+                                                                .grey
+                                                                .shade800,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            if ((k.pivotCatatan ?? '')
+                                                .trim()
+                                                .isNotEmpty) ...[
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Catatan: ${k.pivotCatatan}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ],
                                           ],
                                         ),
                                       ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          const Text(
-                                            'Aktif',
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                          Switch(
-                                            value: _layanan!.aktif ?? true,
-                                            onChanged: (val) {
-                                              _updateLayanan({'aktif': val});
-                                            },
-                                            activeColor: HCColor.primary,
-                                          ),
-                                        ],
+                                      Switch(
+                                        value: pivotAktif,
+                                        onChanged: (val) {
+                                          _updateKoordinatorPivot(
+                                            koordinatorId: k.id,
+                                            aktif: val,
+                                            catatan: k.pivotCatatan,
+                                          );
+                                        },
+                                        activeColor: HCColor.primary,
                                       ),
                                     ],
                                   ),
-
-                                  const SizedBox(height: 12),
-
-                                  _infoRow('Kategori', _layanan!.kategori),
-                                  _infoRow('Tipe Layanan',
-                                      _layanan!.tipeLayananLabel),
-                                  _infoRow('Syarat Perawat',
-                                      _layanan!.syaratPerawatLabel),
-                                  _infoRow('Lokasi Tersedia',
-                                      _layanan!.lokasiLabel),
-                                  if (_layanan!.hargaDasar != null)
-                                    _infoRow(
-                                      'Harga Dasar',
-                                      'Rp ${_layanan!.hargaDasar!.toStringAsFixed(0)}',
-                                    ),
-                                  if (_layanan!.durasiMenit != null)
-                                    _infoRow(
-                                      'Durasi',
-                                      '${_layanan!.durasiMenit} menit',
-                                    ),
-                                  if (_layanan!.jumlahVisit != null)
-                                    _infoRow(
-                                      'Jumlah Visit (paket)',
-                                      '${_layanan!.jumlahVisit}',
-                                    ),
-                                  if (_layanan!.deskripsi != null &&
-                                      _layanan!.deskripsi!.isNotEmpty)
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(height: 12),
-                                        const Text(
-                                          'Deskripsi',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _layanan!.deskripsi!,
-                                          style:
-                                              const TextStyle(fontSize: 13),
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              ),
+                                );
+                              }).toList(),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _deleteLayanan,
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side:
-                                        const BorderSide(color: Colors.red),
-                                  ),
-                                  icon:
-                                      const Icon(Icons.delete_outline),
-                                  label: const Text('Hapus'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _openEditForm,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: HCColor.primary,
-                                  ),
-                                  icon: const Icon(Icons.edit),
-                                  label: const Text('Edit'),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton.icon(
-                            onPressed:
-                                _isUploadingImage ? null : _pickAndUploadImage,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: HCColor.primaryDark,
-                            ),
-                            icon: _isUploadingImage
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(Icons.image),
-                            label: Text(
-                              _isUploadingImage
-                                  ? 'Mengupload...'
-                                  : 'Ubah Gambar Layanan',
-                            ),
-                          ),
                         ],
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _deleteLayanan,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                          icon: const Icon(Icons.delete_outline),
+                          label: const Text('Hapus'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _openEditForm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HCColor.primary,
+                          ),
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Edit'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: _isUploadingImage ? null : _pickAndUploadImage,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: HCColor.primaryDark,
+                    ),
+                    icon: _isUploadingImage
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.image),
+                    label: Text(
+                      _isUploadingImage
+                          ? 'Mengupload...'
+                          : 'Ubah Gambar Layanan',
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -592,26 +1018,16 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
             ),
           ),
           const Text(': '),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );
   }
 }
-
-/// ====== MODEL DETAIL LAYANAN ======
 
 class LayananDetail {
   final int? id;
@@ -673,8 +1089,8 @@ class LayananDetail {
       aktif: json['aktif'] == null
           ? null
           : (json['aktif'] is bool
-              ? json['aktif']
-              : json['aktif'].toString() == '1'),
+                ? json['aktif']
+                : json['aktif'].toString() == '1'),
       gambarUrl: json['gambar_url']?.toString(),
     );
   }
@@ -720,9 +1136,176 @@ class LayananDetail {
   }
 }
 
-// =======================
-// FORM EDIT DETAIL LAYANAN
-// =======================
+class KoordinatorItem {
+  final int id;
+  final String namaLengkap;
+  final String? kodeKoordinator;
+  final String? wilayah;
+  final bool isActive;
+  final bool? pivotAktif;
+  final String? pivotCatatan;
+
+  KoordinatorItem({
+    required this.id,
+    required this.namaLengkap,
+    this.kodeKoordinator,
+    this.wilayah,
+    required this.isActive,
+    this.pivotAktif,
+    this.pivotCatatan,
+  });
+
+  factory KoordinatorItem.fromJson(Map<String, dynamic> json) {
+    final pivot = json['pivot'] as Map<String, dynamic>?;
+    final koordinator = json['koordinator'] as Map<String, dynamic>?;
+
+    final rawNama = json['nama_lengkap'] ??
+        json['nama'] ??
+        json['full_name'] ??
+        json['name'] ??
+        koordinator?['nama_lengkap'] ??
+        koordinator?['nama'] ??
+        koordinator?['full_name'] ??
+        koordinator?['name'];
+
+    final rawKode =
+        json['kode_koordinator'] ?? koordinator?['kode_koordinator'];
+
+    final rawWilayah = json['wilayah'] ?? koordinator?['wilayah'];
+
+    final rawIsActive = json['is_active'] ?? koordinator?['is_active'];
+
+    return KoordinatorItem(
+      id: int.tryParse(
+            (koordinator?['id'] ?? json['id']).toString(),
+          ) ??
+          0,
+      namaLengkap: (rawNama?.toString().trim().isNotEmpty ?? false)
+          ? rawNama.toString()
+          : '-',
+      kodeKoordinator: rawKode?.toString(),
+      wilayah: rawWilayah?.toString(),
+      isActive: rawIsActive == true || rawIsActive.toString() == '1',
+      pivotAktif: pivot == null
+          ? null
+          : (pivot['aktif'] == true || pivot['aktif'].toString() == '1'),
+      pivotCatatan: pivot?['catatan']?.toString(),
+    );
+  }
+}
+
+class _KoordinatorMultiSelectDialog extends StatefulWidget {
+  final List<KoordinatorItem> allKoordinator;
+  final Set<int> selectedIds;
+
+  const _KoordinatorMultiSelectDialog({
+    required this.allKoordinator,
+    required this.selectedIds,
+  });
+
+  @override
+  State<_KoordinatorMultiSelectDialog> createState() =>
+      _KoordinatorMultiSelectDialogState();
+}
+
+class _KoordinatorMultiSelectDialogState
+    extends State<_KoordinatorMultiSelectDialog> {
+  late Set<int> _selected;
+  String _keyword = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = {...widget.selectedIds};
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = widget.allKoordinator.where((e) {
+      final q = _keyword.toLowerCase().trim();
+      if (q.isEmpty) return true;
+
+      return e.namaLengkap.toLowerCase().contains(q) ||
+          (e.kodeKoordinator ?? '').toLowerCase().contains(q) ||
+          (e.wilayah ?? '').toLowerCase().contains(q);
+    }).toList();
+
+    return AlertDialog(
+      title: const Text('Kelola Koordinator'),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                hintText: 'Cari koordinator...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (val) {
+                setState(() => _keyword = val);
+              },
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: filtered.isEmpty
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('Koordinator tidak ditemukan'),
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final item = filtered[index];
+                        final checked = _selected.contains(item.id);
+
+                        return CheckboxListTile(
+                          value: checked,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          title: Text(item.namaLengkap),
+                          subtitle: Text(
+                            [
+                              if ((item.kodeKoordinator ?? '').isNotEmpty)
+                                'Kode: ${item.kodeKoordinator}',
+                              if ((item.wilayah ?? '').isNotEmpty)
+                                'Wilayah: ${item.wilayah}',
+                              item.isActive ? 'Akun aktif' : 'Akun nonaktif',
+                            ].join(' • '),
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              if (val == true) {
+                                _selected.add(item.id);
+                              } else {
+                                _selected.remove(item.id);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, _selected.toList()),
+          style: ElevatedButton.styleFrom(backgroundColor: HCColor.primary),
+          child: const Text('Simpan'),
+        ),
+      ],
+    );
+  }
+}
 
 class _LayananFormDialogDetail extends StatefulWidget {
   final LayananDetail layanan;
@@ -734,8 +1317,7 @@ class _LayananFormDialogDetail extends StatefulWidget {
       _LayananFormDialogDetailState();
 }
 
-class _LayananFormDialogDetailState
-    extends State<_LayananFormDialogDetail> {
+class _LayananFormDialogDetailState extends State<_LayananFormDialogDetail> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _namaC;
@@ -793,10 +1375,12 @@ class _LayananFormDialogDetailState
     if (!_formKey.currentState!.validate()) return;
 
     final harga = double.tryParse(_hargaC.text.replaceAll('.', ''));
-    final durasi =
-        _durasiC.text.isEmpty ? null : int.tryParse(_durasiC.text.trim());
-    final jVisit =
-        _jumlahVisitC.text.isEmpty ? null : int.tryParse(_jumlahVisitC.text);
+    final durasi = _durasiC.text.isEmpty
+        ? null
+        : int.tryParse(_durasiC.text.trim());
+    final jVisit = _jumlahVisitC.text.isEmpty
+        ? null
+        : int.tryParse(_jumlahVisitC.text);
 
     final payload = {
       'nama_layanan': _namaC.text.trim(),
@@ -809,7 +1393,6 @@ class _LayananFormDialogDetailState
       'tipe_layanan': _tipeLayanan,
       'jumlah_visit': _tipeLayanan == 'paket' ? jVisit : null,
       'harga_dasar': harga ?? 0,
-      // ✅ durasi_menit tetap dalam menit, opsional
       'durasi_menit': durasi,
       'syarat_perawat': _syaratPerawat,
       'lokasi_tersedia': _lokasi,
@@ -821,10 +1404,8 @@ class _LayananFormDialogDetailState
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.layanan != null;
-
     return AlertDialog(
-      title: Text(isEdit ? 'Edit Layanan' : 'Tambah Layanan'),
+      title: const Text('Edit Layanan'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 380,
@@ -917,7 +1498,6 @@ class _LayananFormDialogDetailState
                   },
                 ),
                 const SizedBox(height: 10),
-                // ✅ Validasi durasi seperti di form lain
                 TextFormField(
                   controller: _durasiC,
                   keyboardType: TextInputType.number,
@@ -927,7 +1507,7 @@ class _LayananFormDialogDetailState
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return null; // opsional
+                      return null;
                     }
                     final parsed = int.tryParse(v.trim());
                     if (parsed == null) {
@@ -1024,7 +1604,7 @@ class _LayananFormDialogDetailState
         ElevatedButton(
           onPressed: _submit,
           style: ElevatedButton.styleFrom(backgroundColor: HCColor.primary),
-          child: Text(isEdit ? 'Simpan' : 'Tambah'),
+          child: const Text('Simpan'),
         ),
       ],
     );

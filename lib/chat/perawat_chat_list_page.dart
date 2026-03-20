@@ -7,12 +7,12 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../chat.dart' show ChatRoomPage; // pastikan path ini benar
+import '../chat.dart' show ChatRoomPage;
 
-const String kBaseUrl = 'http://192.168.1.6:8000/api';
+const String kBaseUrl = 'http://147.93.81.243/api';
 
 class PerawatChatListPage extends StatefulWidget {
-  const PerawatChatListPage({Key? key}) : super(key: key);
+  const PerawatChatListPage({super.key});
 
   @override
   State<PerawatChatListPage> createState() => _PerawatChatListPageState();
@@ -37,23 +37,30 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
   }
 
   Future<void> _fetchRooms() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _isError = false;
       _errorMessage = null;
     });
 
-    final token = await _getToken();
-    if (token == null) {
-      setState(() {
-        _isLoading = false;
-        _isError = true;
-        _errorMessage = 'Token tidak ditemukan. Silakan login sebagai perawat.';
-      });
-      return;
-    }
-
     try {
+      final token = await _getToken();
+
+      if (token == null || token.isEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+          _isError = true;
+          _errorMessage =
+              'Token tidak ditemukan. Silakan login sebagai perawat.';
+        });
+        return;
+      }
+
+      debugPrint('FETCH PERAWAT CHAT START');
+
       final uri = Uri.parse('$kBaseUrl/perawat/chat-rooms');
       final res = await http.get(
         uri,
@@ -63,13 +70,19 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
         },
       );
 
+      debugPrint('FETCH STATUS: ${res.statusCode}');
+      debugPrint('FETCH BODY: ${res.body}');
+
       if (res.statusCode != 200) {
         String? msg;
         try {
           final body = json.decode(res.body);
-          msg = body['message']?.toString();
+          if (body is Map) {
+            msg = body['message']?.toString();
+          }
         } catch (_) {}
 
+        if (!mounted) return;
         setState(() {
           _isLoading = false;
           _isError = true;
@@ -81,23 +94,38 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
 
       final decoded = json.decode(res.body);
 
-      final List data;
+      List data = [];
       if (decoded is List) {
         data = decoded;
-      } else {
-        data = (decoded['data'] ?? []) as List;
+      } else if (decoded is Map<String, dynamic>) {
+        final raw = decoded['data'];
+        if (raw is List) {
+          data = raw;
+        }
       }
 
       final rooms = data
-          .map((e) => _PerawatChatRoomItem.fromJson(e as Map<String, dynamic>))
+          .whereType<Map>()
+          .map(
+            (e) => _PerawatChatRoomItem.fromJson(
+              Map<String, dynamic>.from(e),
+            ),
+          )
           .toList();
 
+      debugPrint('ROOMS COUNT: ${rooms.length}');
+
+      if (!mounted) return;
       setState(() {
+        _rooms = rooms;
         _isLoading = false;
         _isError = false;
-        _rooms = rooms;
       });
-    } catch (e) {
+    } catch (e, s) {
+      debugPrint('FETCH ERROR: $e');
+      debugPrintStack(stackTrace: s);
+
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _isError = true;
@@ -108,7 +136,11 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
 
   String _formatTime(DateTime? dt) {
     if (dt == null) return '';
-    return DateFormat('dd MMM HH:mm', 'id_ID').format(dt);
+    try {
+      return DateFormat('dd MMM HH:mm').format(dt);
+    } catch (_) {
+      return '';
+    }
   }
 
   Color _statusColor(String status) {
@@ -118,7 +150,12 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
       case 'deal':
         return Colors.green;
       case 'closed':
+      case 'selesai':
         return Colors.grey;
+      case 'orderan_berjalan':
+        return Colors.blue;
+      case 'dibatalkan':
+        return Colors.red;
       default:
         return Colors.blueGrey;
     }
@@ -131,14 +168,47 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
       case 'deal':
         return 'Sudah deal';
       case 'closed':
+      case 'selesai':
         return 'Selesai';
+      case 'orderan_berjalan':
+        return 'Order berjalan';
+      case 'dibatalkan':
+        return 'Dibatalkan';
       default:
-        return status;
+        return status.isEmpty ? 'Chat aktif' : status;
     }
+  }
+
+  Widget _buildUnreadBadge(int unreadCount) {
+    if (unreadCount <= 0) return const SizedBox.shrink();
+
+    final text = unreadCount > 99 ? '99+' : unreadCount.toString();
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+      'BUILD PERAWAT CHAT PAGE -> loading=$_isLoading, error=$_isError, rooms=${_rooms.length}',
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chat Pasien (Perawat)'),
@@ -157,6 +227,7 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
 
     if (_isError) {
       return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         children: [
           Text(
@@ -195,85 +266,164 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
       itemCount: _rooms.length,
       itemBuilder: (context, index) {
         final item = _rooms[index];
+        final isUnread = item.unreadCount > 0;
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          child: ListTile(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatRoomPage(
-                    roomId: item.id,
-                    roomTitle: item.title.isNotEmpty
-                        ? item.title
-                        : item.layananName.isNotEmpty
-                            ? item.layananName
-                            : 'Chat Pasien',
-                    role: 'perawat', // 🔥 penting
-                  ),
-                ),
-              );
-            },
-            title: Text(
-              item.pasienName.isNotEmpty ? item.pasienName : 'Pasien',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (item.layananName.isNotEmpty)
-                  Text(
-                    item.layananName,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                const SizedBox(height: 2),
-                Text(
-                  item.lastMessage.isNotEmpty
-                      ? item.lastMessage
-                      : '(Belum ada pesan)',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        color: _statusColor(item.status).withOpacity(0.1),
-                      ),
-                      child: Text(
-                        _statusLabel(item.status),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: _statusColor(item.status),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () async {
+              try {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatRoomPage(
+                      roomId: item.id,
+                      roomTitle: item.title.isNotEmpty
+                          ? item.title
+                          : item.layananName.isNotEmpty
+                              ? item.layananName
+                              : 'Chat Pasien',
+                      role: 'perawat',
                     ),
-                    const SizedBox(width: 8),
-                    if (item.lastTime != null)
-                      Text(
-                        _formatTime(item.lastTime),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
+                  ),
+                );
+
+                _fetchRooms();
+              } catch (e, s) {
+                debugPrint('NAVIGATE CHAT ROOM ERROR: $e');
+                debugPrintStack(stackTrace: s);
+
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Gagal membuka chat: $e')),
+                );
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const CircleAvatar(
+                        child: Icon(Icons.person),
                       ),
-                  ],
-                ),
-              ],
+                      if (isUnread)
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.pasienName.isNotEmpty ? item.pasienName : 'Pasien',
+                          style: TextStyle(
+                            fontWeight:
+                                isUnread ? FontWeight.w700 : FontWeight.w600,
+                          ),
+                        ),
+                        if (item.layananName.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            item.layananName,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isUnread
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        Text(
+                          item.lastMessage.isNotEmpty
+                              ? item.lastMessage
+                              : '(Belum ada pesan)',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight:
+                                isUnread ? FontWeight.w600 : FontWeight.normal,
+                            color: isUnread ? Colors.black87 : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(999),
+                                color: _statusColor(
+                                  item.status,
+                                ).withValues(alpha: 0.1),
+                              ),
+                              child: Text(
+                                _statusLabel(item.status),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: _statusColor(item.status),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            if (item.lastTime != null)
+                              Text(
+                                _formatTime(item.lastTime),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isUnread ? Colors.blue : Colors.grey,
+                                  fontWeight: isUnread
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildUnreadBadge(item.unreadCount),
+                      const SizedBox(height: 6),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            trailing: const Icon(Icons.chevron_right),
           ),
         );
       },
@@ -281,9 +431,6 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
   }
 }
 
-// ==============================
-//  MODEL ROOM SEDERHANA
-// ==============================
 class _PerawatChatRoomItem {
   final int id;
   final String title;
@@ -292,6 +439,7 @@ class _PerawatChatRoomItem {
   final String status;
   final String lastMessage;
   final DateTime? lastTime;
+  final int unreadCount;
 
   _PerawatChatRoomItem({
     required this.id,
@@ -301,6 +449,7 @@ class _PerawatChatRoomItem {
     required this.status,
     required this.lastMessage,
     required this.lastTime,
+    required this.unreadCount,
   });
 
   factory _PerawatChatRoomItem.fromJson(Map<String, dynamic> json) {
@@ -309,20 +458,23 @@ class _PerawatChatRoomItem {
 
     if (rawTime != null) {
       try {
-        parsedTime = DateTime.parse(rawTime.toString());
+        parsedTime = DateTime.tryParse(rawTime.toString());
       } catch (_) {}
     }
 
     return _PerawatChatRoomItem(
       id: json['id'] is int
           ? json['id'] as int
-          : int.tryParse(json['id'].toString()) ?? 0,
+          : int.tryParse('${json['id']}') ?? 0,
       title: json['title']?.toString() ?? '',
       pasienName: json['pasien_name']?.toString() ?? '',
       layananName: json['layanan_name']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       lastMessage: json['last_message']?.toString() ?? '',
       lastTime: parsedTime,
+      unreadCount: json['unread_count'] is int
+          ? json['unread_count'] as int
+          : int.tryParse('${json['unread_count']}') ?? 0,
     );
   }
 }

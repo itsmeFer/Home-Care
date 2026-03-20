@@ -16,7 +16,7 @@ class KelolaLayananPage extends StatefulWidget {
 }
 
 class _KelolaLayananPageState extends State<KelolaLayananPage> {
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   bool _isLoading = true;
   bool _isError = false;

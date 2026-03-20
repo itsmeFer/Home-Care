@@ -21,7 +21,7 @@ class SystemMaintenancePage extends StatefulWidget {
 
 class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
   // ✅ CONFIG (sama dengan login page kamu)
-  static const String baseUrl = 'http://192.168.1.6:8000/api';
+  static const String baseUrl = 'http://147.93.81.243/api';
 
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;

@@ -8,8 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:home_care/users/layananPage.dart' show kApiBase;
-const String kBaseUrl = 'http://192.168.1.6:8000';
+const String kBaseUrl = 'http://147.93.81.243';
 const String kApiBase = '$kBaseUrl/api';
 
 class PaymentMethodPage extends StatefulWidget {
@@ -32,6 +31,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   bool _isSubmitting = false;
   bool _isChecking = false;
   bool _isLoadingDraft = true;
+  bool _isNavigatingToDetail = false;
 
   Timer? _pollTimer;
   bool _alreadyPaid = false;
@@ -39,7 +39,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   Map<String, dynamic>? _draftData;
   String? _draftError;
 
-  // Color scheme matching histori pemesanan
   static const primaryColor = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
   static const backgroundColor = Color(0xFFF5F7FA);
@@ -67,10 +66,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   }
 
   String _money(int v) => NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp ',
-    decimalDigits: 0,
-  ).format(v);
+        locale: 'id_ID',
+        symbol: 'Rp ',
+        decimalDigits: 0,
+      ).format(v);
 
   String _formatDate(String? raw) {
     if (raw == null || raw.isEmpty) return '-';
@@ -86,6 +85,35 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     if (raw == null || raw.isEmpty) return '-';
     if (raw.length >= 5) return raw.substring(0, 5);
     return raw;
+  }
+
+  int? _parseOrderId(dynamic rawOrderId) {
+    if (rawOrderId == null) return null;
+    return int.tryParse(rawOrderId.toString());
+  }
+
+  Future<void> _goToOrderDetail(dynamic rawOrderId) async {
+    if (!mounted || _isNavigatingToDetail) return;
+
+    final int? orderId = _parseOrderId(rawOrderId);
+    if (orderId == null) {
+      _toast('Order ID tidak valid');
+      return;
+    }
+
+    _isNavigatingToDetail = true;
+    _alreadyPaid = true;
+    _stopAutoPolling();
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => LihatDetailHistoriPemesananPage(orderId: orderId),
+      ),
+    );
   }
 
   @override
@@ -105,7 +133,9 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed &&
+        !_alreadyPaid &&
+        !_isNavigatingToDetail) {
       _checkStatus(auto: true);
     }
   }
@@ -113,7 +143,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   void _startAutoPolling() {
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
-      if (_alreadyPaid) return;
+      if (_alreadyPaid || _isNavigatingToDetail) return;
       await _checkStatus(auto: true);
     });
   }
@@ -143,7 +173,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
         return;
       }
 
-      debugPrint('🔵 [FETCH] Token: ${t.substring(0, 20)}...');
+      debugPrint('🔵 [FETCH] Token: ${t.substring(0, t.length > 20 ? 20 : t.length)}...');
 
       final uri = Uri.parse('$kApiBase/pasien/order-draft/${widget.draftId}');
       debugPrint('🔵 [FETCH] URI: $uri');
@@ -228,50 +258,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     }
   }
 
-  Future<Map<String, dynamic>?> _requestCod() async {
-    final t = await _token();
-    if (t == null || t.isEmpty) {
-      _toast('Sesi login habis, login ulang.');
-      return null;
-    }
-
-    final res = await http.post(
-      Uri.parse('$kApiBase/pasien/order-draft/${widget.draftId}/bayar'),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $t'},
-      body: {'method': _selectedMethod},
-    );
-
-    if (!mounted) return null;
-
-    if (res.statusCode != 200 && res.statusCode != 201) {
-      String msg = 'Gagal request pembayaran (${res.statusCode})';
-      try {
-        final j = json.decode(res.body);
-        if (j is Map && j['message'] != null) msg = j['message'].toString();
-      } catch (_) {}
-      _toast(msg);
-      return null;
-    }
-
-    final body = json.decode(res.body);
-    debugPrint('PAY RESP BODY: $body');
-
-    if (body is! Map) return null;
-
-    if (body['success'] != true) {
-      _toast(body['message']?.toString() ?? 'Gagal membuat pembayaran');
-      return null;
-    }
-
-    final data = (body['data'] is Map)
-        ? Map<String, dynamic>.from(body['data'] as Map)
-        : <String, dynamic>{};
-
-    return data;
-  }
-
   Future<void> _pay() async {
-    if (_isSubmitting) return;
+    if (_isSubmitting || _isNavigatingToDetail) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -279,6 +267,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     );
 
     if (confirmed != true) return;
+
+    _stopAutoPolling();
 
     setState(() => _isSubmitting = true);
 
@@ -297,7 +287,9 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
           'Accept': 'application/json',
           'Authorization': 'Bearer $t',
         },
-        body: {'method': 'cod'},
+        body: {
+          'method': _selectedMethod,
+        },
       );
 
       debugPrint('🔵 [PAY] Response Status: ${res.statusCode}');
@@ -309,34 +301,43 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
         String msg = 'Gagal request pembayaran (${res.statusCode})';
         try {
           final j = json.decode(res.body);
-          if (j is Map && j['message'] != null) msg = j['message'].toString();
+          if (j is Map && j['message'] != null) {
+            msg = j['message'].toString();
+          }
         } catch (_) {}
         _toast(msg);
+        _startAutoPolling();
         return;
       }
 
       final body = json.decode(res.body);
 
-      if (body['success'] != true) {
-        _toast(body['message']?.toString() ?? 'Gagal membuat pembayaran');
+      if (body is! Map || body['success'] != true) {
+        _toast(body is Map
+            ? body['message']?.toString() ?? 'Gagal membuat pembayaran'
+            : 'Gagal membuat pembayaran');
+        _startAutoPolling();
         return;
       }
 
-      final data = body['data'] as Map<String, dynamic>?;
-      if (data == null) {
-        _toast('Data response tidak valid');
-        return;
-      }
+      final data = body['data'] is Map<String, dynamic>
+          ? body['data'] as Map<String, dynamic>
+          : Map<String, dynamic>.from(body['data'] ?? {});
 
-      final orderId = data['order_id'];
+      final rawOrderId = data['order_id'];
+      final int? orderId = _parseOrderId(rawOrderId);
 
       if (orderId == null) {
-        debugPrint('❌ [PAY] Order ID tidak ditemukan di response');
+        debugPrint('❌ [PAY] Order ID tidak ditemukan / tidak valid');
         _toast('Pesanan berhasil, tapi tidak dapat menemukan ID order');
+        _startAutoPolling();
         return;
       }
 
       debugPrint('✅ [PAY] Order ID: $orderId');
+
+      _alreadyPaid = true;
+      _stopAutoPolling();
 
       _toast('Pesanan berhasil dikonfirmasi!');
 
@@ -352,18 +353,14 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
       if (!mounted) return;
 
-      debugPrint('🔵 [PAY] Navigasi ke detail order: $orderId');
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => LihatDetailHistoriPemesananPage(orderId: orderId),
-        ),
-      );
+      await _goToOrderDetail(orderId);
     } catch (e, stackTrace) {
       debugPrint('❌ [PAY] Error: $e');
       debugPrint('STACK TRACE: $stackTrace');
       _toast('Error: $e');
+      if (!_alreadyPaid && !_isNavigatingToDetail) {
+        _startAutoPolling();
+      }
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -372,7 +369,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   }
 
   Future<void> _checkStatus({bool auto = false}) async {
-    if (_isChecking) return;
+    if (_isChecking || _alreadyPaid || _isNavigatingToDetail) return;
+
     setState(() => _isChecking = true);
 
     try {
@@ -384,7 +382,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
       final res = await http.get(
         Uri.parse('$kApiBase/pasien/order-draft/${widget.draftId}/status'),
-        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $t'},
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $t',
+        },
       );
 
       if (!mounted) return;
@@ -415,13 +416,13 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
       payStatus ??= data['status']?.toString();
 
-      final isPaid =
-          (draftStatus == 'dibayar') ||
+      final isPaid = (draftStatus == 'dibayar') ||
           (payStatus == 'paid') ||
           (draftStatus == 'confirmed');
 
-      if (isPaid && !_alreadyPaid) {
-        final orderId = data['order_id'];
+      if (isPaid && !_alreadyPaid && !_isNavigatingToDetail) {
+        final rawOrderId = data['order_id'];
+        final int? orderId = _parseOrderId(rawOrderId);
 
         if (orderId == null) {
           if (!auto) _toast('Order ID belum tersedia');
@@ -441,8 +442,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
         if (!mounted) return;
 
-        Navigator.pop(context, orderId);
-
+        await _goToOrderDetail(orderId);
         return;
       }
 
@@ -667,7 +667,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
   @override
   Widget build(BuildContext context) {
-    // Loading State
     if (_isLoadingDraft) {
       return Scaffold(
         backgroundColor: backgroundColor,
@@ -679,7 +678,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
       );
     }
 
-    // Error State
     if (_draftError != null) {
       return Scaffold(
         backgroundColor: backgroundColor,
@@ -762,26 +760,24 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: _fetchDraftData,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [primaryColor, primaryDark],
                           ),
-                          elevation: 0,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [primaryColor, primaryDark],
+                        child: ElevatedButton(
+                          onPressed: _fetchDraftData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            borderRadius: BorderRadius.circular(10),
+                            elevation: 0,
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          alignment: Alignment.center,
                           child: const Text(
                             'Coba Lagi',
                             style: TextStyle(
@@ -802,7 +798,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
       );
     }
 
-    // Get Draft Data
     final namaLayanan = _draftData?['nama_layanan']?.toString() ?? 'Layanan';
     final tanggal = _formatDate(_draftData?['tanggal_mulai']?.toString());
     final jam = _formatTime(_draftData?['jam_mulai']?.toString());
@@ -843,7 +838,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Order Details Card
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -889,10 +883,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Total Payment Card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -921,10 +912,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Section Title
                   const Text(
                     'Metode Pembayaran',
                     style: TextStyle(
@@ -934,10 +922,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                       letterSpacing: -0.08,
                     ),
                   ),
-
                   const SizedBox(height: 12),
-
-                  // Payment Method Card
                   Container(
                     decoration: BoxDecoration(
                       color: cardColor,
@@ -993,10 +978,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Info Note
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -1029,8 +1011,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
               ),
             ),
           ),
-
-          // Bottom Button
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

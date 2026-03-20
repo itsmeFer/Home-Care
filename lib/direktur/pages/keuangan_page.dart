@@ -1,15 +1,11 @@
-// KeuanganPage.dart (FULL) ✅
+// KeuanganPage.dart (FIXED TOKEN) ✅
+// ✅ Token diambil dari 'auth_token' (sesuai login.dart)
 // ✅ KPI Rupiah (Rp + titik)
 // ✅ Table Rupiah
 // ✅ 3 Chart mode (Line/Pie/Bar)
 // ✅ Pie donut + legend responsif (rapih, tidak numpuk tulisan)
 // ✅ Animasi chart 0 -> nilai tiap buka tab / ganti tab / ganti range
 // ✅ Export CSV (Web & Mobile)
-// Dependencies:
-// - fl_chart, http, shared_preferences, universal_html, universal_io, path_provider
-//
-// Backend:
-// GET /api/direktur/dashboard/keuangan?range=...
 
 import 'dart:convert';
 import 'dart:math';
@@ -48,7 +44,7 @@ class KeuanganPage extends StatefulWidget {
 
 class _KeuanganPageState extends State<KeuanganPage>
     with SingleTickerProviderStateMixin {
-  static const String kBaseUrl = 'http://192.168.1.6:8000';
+  static const String kBaseUrl = 'http://147.93.81.243';
   String get kApiBase => '$kBaseUrl/api';
   String get _url =>
       '$kApiBase/direktur/dashboard/keuangan?range=${Uri.encodeComponent(widget.range)}';
@@ -128,7 +124,8 @@ class _KeuanganPageState extends State<KeuanganPage>
   // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token') ?? '';
+    // ✅ FIX: Cek auth_token dulu (sesuai login.dart), fallback ke token
+    return prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
   }
 
   Future<Map<String, dynamic>> _fetch() async {
@@ -575,7 +572,7 @@ class _KeuanganPageState extends State<KeuanganPage>
   }
 
   // =========================
-  // CHARTS
+  // CHARTS (Line, Pie, Bar - code tetap sama, tidak perlu diubah)
   // =========================
   Widget _lineRevenueChart(List<Map<String, dynamic>> trend) {
     if (trend.isEmpty) {
@@ -1045,7 +1042,6 @@ class _KeuanganPageState extends State<KeuanganPage>
               }).toList()
             : const <List<String>>[];
 
-        // ✅ kalau loading/error, tetap jangan animasi chart dulu
         if (isLoading) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
