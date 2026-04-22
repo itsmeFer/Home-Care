@@ -22,7 +22,7 @@ const Color kAddon = Color(0xFF7C3AED); // warna untuk addon
    CONFIG
 =========================================================== */
 
-const String kBaseUrl = 'http://147.93.81.243';
+const String kBaseUrl = 'http://192.168.1.5:8000';
 String get kApiBase => '$kBaseUrl/api';
 
 // Endpoints LAYANAN

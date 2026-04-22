@@ -18,7 +18,7 @@ class DetailLayananPage extends StatefulWidget {
 }
 
 class _DetailLayananPageState extends State<DetailLayananPage> {
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   bool _isLoading = true;
   bool _isError = false;

@@ -27,7 +27,7 @@ class FirebaseMessagingService {
       FlutterLocalNotificationsPlugin();
 
   // ✅ BASE URL - GANTI DENGAN URL BACKEND ANDA
-  static const String kBaseUrl = 'http://147.93.81.243';
+  static const String kBaseUrl = 'http://192.168.1.5:8000';
 
   // ✅ Channel harus sama dengan backend (Laravel) yang kirim channel_id
   static const String _channelId = 'high_importance_channel';

@@ -21,7 +21,7 @@ dependencies:
   vibration: ^3.1.4
   flutter_launcher_icons: ^0.14.4
   image_picker: ^1.2.1
-  image_picker_for_web: 3.1.0  
+  image_picker_for_web: 3.1.0
   fl_chart: ^0.68.0
   universal_io: ^2.2.2
   universal_html: ^2.2.4
@@ -29,11 +29,12 @@ dependencies:
   firebase_messaging: ^15.0.0
   flutter_local_notifications: ^17.2.2
   firebase_auth: ^5.1.0
-  device_preview: 1.2.0  
-  intl: ^0.19.0  
-  http: ^1.2.2  # ✅ TAMBAH INI UNTUK API CALLS
+  device_preview: 1.2.0
+  intl: ^0.20.2
+  http: ^1.2.2
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^10.0.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

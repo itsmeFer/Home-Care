@@ -17,7 +17,7 @@ class KelolaPerawatPage extends StatefulWidget {
 }
 
 class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   bool _isLoading = true;
   bool _isError = false;
@@ -901,7 +901,7 @@ class Perawat {
   }
 }
 
-const String kBaseUrl = 'http://147.93.81.243';
+const String kBaseUrl = 'http://192.168.1.5:8000';
 
 String? resolveMediaUrl(String? raw) {
   if (raw == null) return null;
@@ -917,7 +917,7 @@ String? resolveMediaUrl(String? raw) {
     return v;
   }
 
-  // Kalau full URL: http://147.93.81.243/storage/...
+  // Kalau full URL: http://192.168.1.5:8000/storage/...
   if (v.startsWith('http://') || v.startsWith('https://')) {
     final uri = Uri.parse(v);
     v = uri.path; // contoh: /storage/perawat/...

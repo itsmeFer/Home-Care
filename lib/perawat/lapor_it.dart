@@ -34,7 +34,7 @@ class _LaporITPagePerawatState extends State<LaporITPagePerawat> {
   static const Color kDanger = Color(0xFFEF4444);
 
   // ====== API CONFIG ======
-  static const String kBaseUrl = 'http://147.93.81.243';
+  static const String kBaseUrl = 'http://192.168.1.5:8000';
   String get kApiBase => '$kBaseUrl/api';
 
   final _formKey = GlobalKey<FormState>();
@@ -956,7 +956,7 @@ class _RiwayatLaporanITPagePerawatState
   static const Color kDanger = Color(0xFFEF4444);
 
   // ====== API CONFIG ======
-  static const String kBaseUrl = 'http://147.93.81.243';
+  static const String kBaseUrl = 'http://192.168.1.5:8000';
   String get kApiBase => '$kBaseUrl/api';
 
   bool _isLoading = true;

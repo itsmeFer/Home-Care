@@ -19,7 +19,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   int _cooldownSeconds = 0;
   Timer? _cooldownTimer;
 
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
   static const int cooldownDuration = 60;
 
   @override

@@ -159,7 +159,7 @@ String formatRupiah(dynamic value) {
 /// ========================================
 
 class BannerService {
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   static Future<List<BannerItem>> _fetchBannersByType(String tipeCard) async {
     final res = await http.get(
@@ -200,7 +200,7 @@ class BannerService {
 
 // ✅ SERVICE TESTIMONI BARU
 class TestimonialService {
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   static Future<List<Testimonial>> fetchTestimonials() async {
     try {
@@ -232,7 +232,7 @@ class TestimonialService {
 }
 
 class KategoriLayananService {
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   static Future<List<LayananCategory>> fetchKategori() async {
     final res = await http.get(
@@ -359,7 +359,7 @@ class _TopLocationBarState extends State<_TopLocationBar> {
   int _notifUnreadCount = 0;
   Timer? _notifTimer;
 
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   @override
   void initState() {
@@ -2337,7 +2337,7 @@ class HCBottomNav extends StatefulWidget {
 class _HCBottomNavState extends State<HCBottomNav> {
   static const Color activeColor = Color(0xFF0BA5A7);
   static const Color inactiveColor = Colors.black54;
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   int _chatUnreadCount = 0;
   Timer? _badgeTimer;

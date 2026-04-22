@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscure = true;
   bool _rememberMe = false;
 
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   @override
   void initState() {

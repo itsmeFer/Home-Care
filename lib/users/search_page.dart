@@ -30,7 +30,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoadingRecentViewed = false;
   bool _hasSearched = false;
 
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   @override
   void initState() {

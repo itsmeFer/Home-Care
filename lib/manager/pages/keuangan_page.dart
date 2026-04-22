@@ -50,7 +50,7 @@ class ManagerKeuanganPage extends StatefulWidget {
 
 class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     with SingleTickerProviderStateMixin {
-  static const String kBaseUrl = 'http://147.93.81.243';
+  static const String kBaseUrl = 'http://192.168.1.5:8000';
   String get kApiBase => '$kBaseUrl/api';
 
   // ✅ endpoint manager

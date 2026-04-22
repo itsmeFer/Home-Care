@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../chat.dart' show ChatRoomPage;
 
-const String kBaseUrl = 'http://147.93.81.243/api';
+const String kBaseUrl = 'http://192.168.1.5:8000/api';
 
 class PerawatChatListPage extends StatefulWidget {
   const PerawatChatListPage({super.key});

@@ -25,7 +25,7 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
   final _otpC = TextEditingController();
   bool _isLoading = false;
 
-  static const String baseUrl = 'http://147.93.81.243/api';
+  static const String baseUrl = 'http://192.168.1.5:8000/api';
 
   @override
   void dispose() {

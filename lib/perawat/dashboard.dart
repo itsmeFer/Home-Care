@@ -26,7 +26,7 @@ class PerawatDashboard extends StatefulWidget {
 }
 
 class _PerawatDashboardState extends State<PerawatDashboard> {
-  static const String kBaseUrl = 'http://147.93.81.243/api';
+  static const String kBaseUrl = 'http://192.168.1.5:8000/api';
 
   int _chatUnreadCount = 0;
   int _orderUnreadCount = 0;

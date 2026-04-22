@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Import halaman rating - sesuaikan dengan path project Anda
 // import 'lihat_rating_page.dart';
 
-const String kBaseUrl = 'http://147.93.81.243/api';
+const String kBaseUrl = 'http://192.168.1.5:8000/api';
 
 // ===== COLOR SCHEME =====
 class HCColors {

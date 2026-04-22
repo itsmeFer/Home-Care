@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/perawat/lihatDetailOrderanMasuk.dart';
 
-const String kBaseUrl = 'http://147.93.81.243/api';
+const String kBaseUrl = 'http://192.168.1.5:8000/api';
 
 class HCColor {
   static const primary = Color(0xFF0BA5A7);

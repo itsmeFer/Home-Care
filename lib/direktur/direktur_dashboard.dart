@@ -130,7 +130,7 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
 
     try {
       final res = await http.get(
-        Uri.parse('http://147.93.81.243/api/me'),
+        Uri.parse('http://192.168.1.5:8000/api/me'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',

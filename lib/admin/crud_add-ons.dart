@@ -20,7 +20,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   // =====================
   // CONFIG
   // =====================
-  final String baseUrl = "http://147.93.81.243/api";
+  final String baseUrl = "http://192.168.1.5:8000/api";
 
   // =====================
   // TAB

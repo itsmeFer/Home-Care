@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 // BASE URL API
-const String kBaseUrl = 'http://147.93.81.243/api';
+const String kBaseUrl = 'http://192.168.1.5:8000/api';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

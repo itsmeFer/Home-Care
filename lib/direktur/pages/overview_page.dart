@@ -43,7 +43,7 @@ class OverviewPage extends StatefulWidget {
 
 class _OverviewPageState extends State<OverviewPage>
     with SingleTickerProviderStateMixin {
-  static const String kBaseUrl = 'http://147.93.81.243';
+  static const String kBaseUrl = 'http://192.168.1.5:8000';
   String get kApiBase => '$kBaseUrl/api';
   String get _url =>
       '$kApiBase/direktur/dashboard/overview?range=${Uri.encodeComponent(widget.range)}';

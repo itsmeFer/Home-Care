@@ -55,7 +55,7 @@ class AuditPage extends StatefulWidget {
 }
 
 class _AuditPageState extends State<AuditPage> {
-  static const String kBaseUrl = 'http://147.93.81.243';
+  static const String kBaseUrl = 'http://192.168.1.5:8000';
   String get kApiBase => '$kBaseUrl/api';
 
   // ✅ sesuai route:list kamu: api/direktur/dashboard/audit

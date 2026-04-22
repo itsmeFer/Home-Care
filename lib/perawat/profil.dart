@@ -15,8 +15,8 @@ class PerawatProfilPage extends StatefulWidget {
 // KONFIG BASE URL + HELPER MEDIA
 // ===============================
 
-const String kApiBase = 'http://147.93.81.243/api';
-const String kBaseUrl = 'http://147.93.81.243';
+const String kApiBase = 'http://192.168.1.5:8000/api';
+const String kBaseUrl = 'http://192.168.1.5:8000';
 
 /// Ubah path dari DB menjadi URL yang aman CORS via /api/media
 String? resolveMediaUrl(String? raw) {
@@ -32,7 +32,7 @@ String? resolveMediaUrl(String? raw) {
     return v;
   }
 
-  // Kalau full URL: http://147.93.81.243/storage/...
+  // Kalau full URL: http://192.168.1.5:8000/storage/...
   if (v.startsWith('http://') || v.startsWith('https://')) {
     final uri = Uri.parse(v);
     v = uri.path; // contoh: /storage/perawat/...
