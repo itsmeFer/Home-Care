@@ -16,23 +16,70 @@ class KelolaLayananPage extends StatefulWidget {
 }
 
 class _KelolaLayananPageState extends State<KelolaLayananPage> {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   bool _isLoading = true;
   bool _isError = false;
   String? _errorMessage;
 
   List<Layanan> _layananList = [];
+  List<KategoriLayananItem> _kategoriList = [];
+  bool _isLoadingKategori = false;
 
   @override
   void initState() {
     super.initState();
+    _fetchKategori();
     _fetchLayanan();
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
+  }
+
+  Future<void> _fetchKategori() async {
+    try {
+      setState(() => _isLoadingKategori = true);
+
+      final token = await _getToken();
+      if (token == null) throw 'Token tidak ditemukan.';
+
+      final url = Uri.parse('$baseUrl/admin/kategori-layanan');
+      final res = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (res.statusCode != 200) {
+        throw 'Gagal mengambil kategori (${res.statusCode})';
+      }
+
+      final body = json.decode(res.body);
+      final List data = (body['data'] as List?) ?? [];
+
+      setState(() {
+        _kategoriList = data
+            .map((e) => KategoriLayananItem.fromJson(e))
+            .where((e) => e.slug.trim().isNotEmpty)
+            .toList();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengambil kategori: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingKategori = false);
+      }
+    }
   }
 
   Future<void> _fetchLayanan() async {
@@ -99,17 +146,14 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
     }
   }
 
-  /// Helper untuk ngegabung error validasi dari backend (422)
   String _extractValidationMessage(String rawBody, String defaultMsg) {
     try {
       final body = json.decode(rawBody);
       if (body is Map) {
-        // kalau ada message pakai dulu
         final msg = body['message'];
         if (msg is String && msg.isNotEmpty) {
           return msg;
         }
-        // kalau ada errors, gabung
         if (body['errors'] is Map) {
           final errors = body['errors'] as Map;
           final List<String> all = [];
@@ -129,6 +173,15 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
       }
     } catch (_) {}
     return defaultMsg;
+  }
+
+  String _kategoriLabel(String? slug) {
+    if (slug == null || slug.trim().isEmpty) return '-';
+
+    for (final item in _kategoriList) {
+      if (item.slug == slug) return item.namaKategori;
+    }
+    return slug;
   }
 
   Future<void> _createLayanan(Map<String, dynamic> payload) async {
@@ -151,7 +204,6 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
         String msg = 'Gagal membuat layanan (kode ${res.statusCode})';
 
         if (res.statusCode == 422) {
-          // tampilkan error validasi detail
           msg = _extractValidationMessage(res.body, msg);
         } else {
           try {
@@ -203,7 +255,6 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
         String msg = 'Gagal mengupdate layanan (kode ${res.statusCode})';
 
         if (res.statusCode == 422) {
-          // error validasi
           msg = _extractValidationMessage(res.body, msg);
         } else {
           try {
@@ -303,10 +354,23 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
   }
 
   Future<void> _openForm({Layanan? layanan}) async {
+    if (_isLoadingKategori) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kategori masih dimuat, coba sebentar lagi'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _LayananFormDialog(layanan: layanan),
+      builder: (_) => _LayananFormDialog(
+        layanan: layanan,
+        kategoriList: _kategoriList,
+      ),
     );
 
     if (result == null) return;
@@ -320,8 +384,6 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: HCColor.bg,
       appBar: AppBar(
@@ -332,7 +394,13 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(onPressed: _fetchLayanan, icon: const Icon(Icons.refresh)),
+          IconButton(
+            onPressed: () async {
+              await _fetchKategori();
+              await _fetchLayanan();
+            },
+            icon: const Icon(Icons.refresh),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -371,14 +439,15 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                             final changed = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    DetailLayananPage(layananId: l.id!),
+                                builder: (_) => DetailLayananPage(
+                                  layananId: l.id!,
+                                ),
                               ),
                             );
 
-                            // kalau dari detail ada edit/hapus → refresh list
                             if (changed == true) {
-                              _fetchLayanan();
+                              await _fetchKategori();
+                              await _fetchLayanan();
                             }
                           },
                           child: Card(
@@ -389,27 +458,25 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // LEADING
                                   CircleAvatar(
                                     radius: 22,
                                     backgroundColor:
                                         HCColor.primary.withOpacity(.1),
-                                    backgroundImage: (l.gambarUrl != null &&
-                                            l.gambarUrl!.isNotEmpty)
-                                        ? NetworkImage(l.gambarUrl!)
-                                        : null,
-                                    child: (l.gambarUrl == null ||
-                                            l.gambarUrl!.isEmpty)
-                                        ? Icon(
-                                            Icons.medical_services_outlined,
-                                            color: HCColor.primaryDark,
-                                          )
-                                        : null,
+                                    backgroundImage:
+                                        (l.gambarUrl != null &&
+                                                l.gambarUrl!.isNotEmpty)
+                                            ? NetworkImage(l.gambarUrl!)
+                                            : null,
+                                    child:
+                                        (l.gambarUrl == null ||
+                                                l.gambarUrl!.isEmpty)
+                                            ? Icon(
+                                                Icons.medical_services_outlined,
+                                                color: HCColor.primaryDark,
+                                              )
+                                            : null,
                                   ),
-
                                   const SizedBox(width: 12),
-
-                                  // TITLE + SUBTITLE (INFO LAYANAN)
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -427,7 +494,7 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                                         if (l.kategori != null &&
                                             l.kategori!.isNotEmpty)
                                           Text(
-                                            'Kategori: ${l.kategori}',
+                                            'Kategori: ${_kategoriLabel(l.kategori)}',
                                             style:
                                                 const TextStyle(fontSize: 12),
                                           ),
@@ -444,22 +511,19 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                                         if (l.hargaDasar != null)
                                           Text(
                                             'Harga: Rp ${l.hargaDasar!.toStringAsFixed(0)}',
-                                            style: const TextStyle(
-                                                fontSize: 12),
+                                            style:
+                                                const TextStyle(fontSize: 12),
                                           ),
                                         if (l.durasiMenit != null)
                                           Text(
                                             'Durasi: ${l.durasiMenit} menit',
-                                            style: const TextStyle(
-                                                fontSize: 12),
+                                            style:
+                                                const TextStyle(fontSize: 12),
                                           ),
                                       ],
                                     ),
                                   ),
-
                                   const SizedBox(width: 8),
-
-                                  // TRAILING (SWITCH + TOMBOL AKSI)
                                   Column(
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -470,7 +534,9 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                                           value: l.aktif ?? true,
                                           onChanged: (val) {
                                             _updateLayanan(
-                                                l.id!, {'aktif': val});
+                                              l.id!,
+                                              {'aktif': val},
+                                            );
                                           },
                                           activeColor: HCColor.primary,
                                         ),
@@ -480,8 +546,10 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           IconButton(
-                                            icon: const Icon(Icons.edit,
-                                                size: 20),
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              size: 20,
+                                            ),
                                             onPressed: () =>
                                                 _openForm(layanan: l),
                                           ),
@@ -491,8 +559,7 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                                               size: 20,
                                               color: Colors.red,
                                             ),
-                                            onPressed: () =>
-                                                _deleteLayanan(l),
+                                            onPressed: () => _deleteLayanan(l),
                                           ),
                                         ],
                                       ),
@@ -505,6 +572,55 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                         );
                       },
                     ),
+    );
+  }
+}
+
+class KategoriLayananItem {
+  final int id;
+  final String namaKategori;
+  final String slug;
+  final String? deskripsi;
+  final String? gambarUrl;
+  final String? icon;
+  final String? warna;
+  final int? urutan;
+  final bool? aktif;
+  final int? jumlahLayanan;
+
+  KategoriLayananItem({
+    required this.id,
+    required this.namaKategori,
+    required this.slug,
+    this.deskripsi,
+    this.gambarUrl,
+    this.icon,
+    this.warna,
+    this.urutan,
+    this.aktif,
+    this.jumlahLayanan,
+  });
+
+  factory KategoriLayananItem.fromJson(Map<String, dynamic> json) {
+    int? toInt(dynamic v) => v == null ? null : int.tryParse(v.toString());
+
+    bool? toBool(dynamic v) {
+      if (v == null) return null;
+      if (v is bool) return v;
+      return v.toString() == '1' || v.toString().toLowerCase() == 'true';
+    }
+
+    return KategoriLayananItem(
+      id: toInt(json['id']) ?? 0,
+      namaKategori: json['nama_kategori']?.toString() ?? '',
+      slug: json['slug']?.toString() ?? '',
+      deskripsi: json['deskripsi']?.toString(),
+      gambarUrl: json['gambar_url']?.toString(),
+      icon: json['icon']?.toString(),
+      warna: json['warna']?.toString(),
+      urutan: toInt(json['urutan']),
+      aktif: toBool(json['aktif']),
+      jumlahLayanan: toInt(json['jumlah_layanan']),
     );
   }
 }
@@ -542,11 +658,13 @@ class Layanan {
 
   factory Layanan.fromJson(Map<String, dynamic> json) {
     num? harga;
-    if (json['harga_dasar'] != null) {
-      if (json['harga_dasar'] is num) {
-        harga = json['harga_dasar'] as num;
+    final rawHarga = json['harga_fix'] ?? json['harga_dasar'];
+
+    if (rawHarga != null) {
+      if (rawHarga is num) {
+        harga = rawHarga;
       } else {
-        harga = num.tryParse(json['harga_dasar'].toString());
+        harga = num.tryParse(rawHarga.toString());
       }
     }
 
@@ -570,7 +688,8 @@ class Layanan {
           ? null
           : (json['aktif'] is bool
               ? json['aktif']
-              : json['aktif'].toString() == '1'),
+              : json['aktif'].toString() == '1' ||
+                  json['aktif'].toString().toLowerCase() == 'true'),
       gambarUrl: json['gambar_url']?.toString(),
     );
   }
@@ -618,8 +737,12 @@ class Layanan {
 
 class _LayananFormDialog extends StatefulWidget {
   final Layanan? layanan;
+  final List<KategoriLayananItem> kategoriList;
 
-  const _LayananFormDialog({this.layanan});
+  const _LayananFormDialog({
+    this.layanan,
+    required this.kategoriList,
+  });
 
   @override
   State<_LayananFormDialog> createState() => _LayananFormDialogState();
@@ -630,11 +753,11 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
 
   late TextEditingController _namaC;
   late TextEditingController _deskripsiC;
-  late TextEditingController _kategoriC;
   late TextEditingController _jumlahVisitC;
   late TextEditingController _hargaC;
   late TextEditingController _durasiC;
 
+  String? _selectedKategoriSlug;
   String _tipeLayanan = 'single';
   String _syaratPerawat = 'umum';
   String _lokasi = 'rumah';
@@ -644,9 +767,9 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
   void initState() {
     super.initState();
     final l = widget.layanan;
+
     _namaC = TextEditingController(text: l?.namaLayanan ?? '');
     _deskripsiC = TextEditingController(text: l?.deskripsi ?? '');
-    _kategoriC = TextEditingController(text: l?.kategori ?? '');
     _jumlahVisitC = TextEditingController(
       text: l?.jumlahVisit != null ? l!.jumlahVisit.toString() : '',
     );
@@ -661,13 +784,16 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
     _syaratPerawat = l?.syaratPerawat ?? 'umum';
     _lokasi = l?.lokasiTersedia ?? 'rumah';
     _aktif = l?.aktif ?? true;
+
+    final existingSlug = l?.kategori?.trim();
+    final exists = widget.kategoriList.any((e) => e.slug == existingSlug);
+    _selectedKategoriSlug = exists ? existingSlug : null;
   }
 
   @override
   void dispose() {
     _namaC.dispose();
     _deskripsiC.dispose();
-    _kategoriC.dispose();
     _jumlahVisitC.dispose();
     _hargaC.dispose();
     _durasiC.dispose();
@@ -688,13 +814,10 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
       'deskripsi': _deskripsiC.text.trim().isEmpty
           ? null
           : _deskripsiC.text.trim(),
-      'kategori': _kategoriC.text.trim().isEmpty
-          ? null
-          : _kategoriC.text.trim(),
+      'kategori': _selectedKategoriSlug,
       'tipe_layanan': _tipeLayanan,
       'jumlah_visit': _tipeLayanan == 'paket' ? jVisit : null,
       'harga_dasar': harga ?? 0,
-      // ✅ kirim durasi_menit dalam satuan menit (boleh null)
       'durasi_menit': durasi,
       'syarat_perawat': _syaratPerawat,
       'lokasi_tersedia': _lokasi,
@@ -732,16 +855,35 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                   },
                 ),
                 const SizedBox(height: 10),
-
-                TextFormField(
-                  controller: _kategoriC,
+                DropdownButtonFormField<String>(
+                  value: _selectedKategoriSlug,
+                  isExpanded: true,
                   decoration: const InputDecoration(
-                    labelText: 'Kategori (opsional)',
+                    labelText: 'Kategori Layanan',
                     border: OutlineInputBorder(),
                   ),
+                  items: widget.kategoriList
+                      .where((e) => e.slug.trim().isNotEmpty)
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e.slug,
+                          child: Text(e.namaKategori),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedKategoriSlug = val;
+                    });
+                  },
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Kategori wajib dipilih';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 10),
-
                 DropdownButtonFormField<String>(
                   value: _tipeLayanan,
                   decoration: const InputDecoration(
@@ -765,7 +907,6 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                   },
                 ),
                 const SizedBox(height: 10),
-
                 if (_tipeLayanan == 'paket')
                   TextFormField(
                     controller: _jumlahVisitC,
@@ -787,7 +928,6 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                     },
                   ),
                 if (_tipeLayanan == 'paket') const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _hargaC,
                   keyboardType: TextInputType.number,
@@ -806,8 +946,6 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                   },
                 ),
                 const SizedBox(height: 10),
-
-                // ✅ Validasi durasi menit (opsional, tapi kalau diisi minimal 1)
                 TextFormField(
                   controller: _durasiC,
                   keyboardType: TextInputType.number,
@@ -816,22 +954,14 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      // opsional → boleh kosong
-                      return null;
-                    }
+                    if (v == null || v.trim().isEmpty) return null;
                     final parsed = int.tryParse(v.trim());
-                    if (parsed == null) {
-                      return 'Durasi harus angka menit';
-                    }
-                    if (parsed < 1) {
-                      return 'Minimal 1 menit';
-                    }
+                    if (parsed == null) return 'Durasi harus angka menit';
+                    if (parsed < 1) return 'Minimal 1 menit';
                     return null;
                   },
                 ),
                 const SizedBox(height: 10),
-
                 DropdownButtonFormField<String>(
                   value: _syaratPerawat,
                   decoration: const InputDecoration(
@@ -853,16 +983,16 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                       value: 'anak',
                       child: Text('Perawat Anak'),
                     ),
-                    DropdownMenuItem(value: 'lainnya', child: Text('Lainnya')),
+                    DropdownMenuItem(
+                      value: 'lainnya',
+                      child: Text('Lainnya'),
+                    ),
                   ],
                   onChanged: (val) {
-                    setState(() {
-                      _syaratPerawat = val ?? 'umum';
-                    });
+                    setState(() => _syaratPerawat = val ?? 'umum');
                   },
                 ),
                 const SizedBox(height: 10),
-
                 DropdownButtonFormField<String>(
                   value: _lokasi,
                   decoration: const InputDecoration(
@@ -877,31 +1007,27 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                     ),
                     DropdownMenuItem(
                       value: 'keduanya',
-                      child: Text('Rumah & Rumah Sakit'),
+                      child: Text('Rumah & RS'),
                     ),
                   ],
                   onChanged: (val) {
-                    setState(() {
-                      _lokasi = val ?? 'rumah';
-                    });
+                    setState(() => _lokasi = val ?? 'rumah');
                   },
                 ),
                 const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _deskripsiC,
                   maxLines: 3,
                   decoration: const InputDecoration(
-                    labelText: 'Deskripsi (opsional)',
+                    labelText: 'Deskripsi',
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 SwitchListTile(
-                  value: _aktif,
-                  title: const Text('Aktif'),
                   contentPadding: EdgeInsets.zero,
+                  title: const Text('Aktif'),
+                  value: _aktif,
                   onChanged: (val) {
                     setState(() => _aktif = val);
                   },

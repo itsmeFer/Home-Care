@@ -22,7 +22,7 @@ class KelolaPerawatPage extends StatefulWidget {
 }
 
 class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
-  static const String kBaseUrl = 'http://192.168.1.5:8000';
+  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
   String get _perawatUrl => '$kApiBase/manager/perawat';

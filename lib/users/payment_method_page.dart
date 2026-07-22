@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-const String kBaseUrl = 'http://192.168.1.5:8000';
+const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
 const String kApiBase = '$kBaseUrl/api';
 
 class PaymentMethodPage extends StatefulWidget {

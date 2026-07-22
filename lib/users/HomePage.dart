@@ -76,27 +76,63 @@ class BannerItem {
       aktif: json['aktif'] == true,
       tipeDiskon: json['tipe_diskon']?.toString(),
       nilaiDiskon: parseNum(json['nilai_diskon']),
-      maxDiskon: json['max_diskon'] == null
-          ? null
-          : parseNum(json['max_diskon']),
+      maxDiskon:
+          json['max_diskon'] == null ? null : parseNum(json['max_diskon']),
       kodePromo: json['kode_promo']?.toString(),
       minTransaksi: parseNum(json['min_transaksi']),
       teksDiskon: json['teks_diskon']?.toString(),
-      layanan: json['layanan'] is Map<String, dynamic>
-          ? json['layanan'] as Map<String, dynamic>
-          : null,
+      layanan:
+          json['layanan'] is Map<String, dynamic>
+              ? json['layanan'] as Map<String, dynamic>
+              : null,
     );
   }
 }
 
 class LayananCategory {
-  final String nama;
-  final IconData icon;
+  final int id;
+  final String namaKategori;
+  final String slug;
+  final String? deskripsi;
+  final String? gambarUrl;
+  final String? iconName;
+  final String? warna;
+  final int urutan;
+  final int jumlahLayanan;
 
-  LayananCategory({required this.nama, required this.icon});
+  LayananCategory({
+    required this.id,
+    required this.namaKategori,
+    required this.slug,
+    required this.deskripsi,
+    required this.gambarUrl,
+    required this.iconName,
+    required this.warna,
+    required this.urutan,
+    required this.jumlahLayanan,
+  });
+
+  factory LayananCategory.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      return int.tryParse(value.toString()) ?? 0;
+    }
+
+    return LayananCategory(
+      id: parseInt(json['id']),
+      namaKategori: (json['nama_kategori'] ?? '').toString(),
+      slug: (json['slug'] ?? '').toString(),
+      deskripsi: json['deskripsi']?.toString(),
+      gambarUrl: json['gambar_url']?.toString(),
+      iconName: json['icon']?.toString(),
+      warna: json['warna']?.toString(),
+      urutan: parseInt(json['urutan']),
+      jumlahLayanan: parseInt(json['jumlah_layanan']),
+    );
+  }
 }
 
-// ✅ MODEL TESTIMONI BARU
 class Testimonial {
   final int id;
   final String nama;
@@ -119,15 +155,17 @@ class Testimonial {
   factory Testimonial.fromJson(Map<String, dynamic> json) {
     return Testimonial(
       id: json['id'] ?? 0,
-      nama: json['nama']?.toString() ?? 'Pengguna',
-      rating: json['rating'] is int
-          ? json['rating']
-          : int.tryParse(json['rating'].toString()) ?? 5,
+      nama: json['nama']?.toString() ?? 'Sahabat Care',
+      rating:
+          json['rating'] is int
+              ? json['rating']
+              : int.tryParse(json['rating'].toString()) ?? 5,
       komentar: json['komentar']?.toString() ?? '',
       layanan: json['layanan']?.toString(),
       tanggal: json['tanggal']?.toString() ?? '',
-      avatarUrl: json['avatar_url']?.toString() ??
-          'https://ui-avatars.com/api/?name=U&background=0BA5A7&color=fff',
+      avatarUrl:
+          json['avatar_url']?.toString() ??
+          'https://ui-avatars.com/api/?name=S&background=0BA5A7&color=fff',
     );
   }
 }
@@ -137,9 +175,10 @@ class Testimonial {
 /// ========================================
 
 String formatRupiah(dynamic value) {
-  final number = value is num
-      ? value.toDouble()
-      : double.tryParse(value?.toString() ?? '0') ?? 0;
+  final number =
+      value is num
+          ? value.toDouble()
+          : double.tryParse(value?.toString() ?? '0') ?? 0;
 
   final intValue = number.round();
   final reversed = intValue.toString().split('').reversed.join('');
@@ -159,7 +198,7 @@ String formatRupiah(dynamic value) {
 /// ========================================
 
 class BannerService {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   static Future<List<BannerItem>> _fetchBannersByType(String tipeCard) async {
     final res = await http.get(
@@ -168,13 +207,13 @@ class BannerService {
     );
 
     if (res.statusCode != 200) {
-      throw Exception('Gagal mengambil banner');
+      throw Exception('Belum bisa mengambil banner');
     }
 
     final body = json.decode(res.body);
 
     if (body is! Map || body['success'] != true) {
-      throw Exception('Response banner tidak valid');
+      throw Exception('Respons banner tidak valid');
     }
 
     final List data = body['data'] ?? [];
@@ -198,9 +237,8 @@ class BannerService {
   }
 }
 
-// ✅ SERVICE TESTIMONI BARU
 class TestimonialService {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   static Future<List<Testimonial>> fetchTestimonials() async {
     try {
@@ -210,13 +248,13 @@ class TestimonialService {
       );
 
       if (res.statusCode != 200) {
-        throw Exception('Gagal mengambil testimoni');
+        throw Exception('Belum bisa mengambil cerita pasien');
       }
 
       final body = json.decode(res.body);
 
       if (body is! Map || body['success'] != true) {
-        throw Exception('Response testimoni tidak valid');
+        throw Exception('Respons testimoni tidak valid');
       }
 
       final List data = body['data'] ?? [];
@@ -232,49 +270,92 @@ class TestimonialService {
 }
 
 class KategoriLayananService {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   static Future<List<LayananCategory>> fetchKategori() async {
     final res = await http.get(
-      Uri.parse('$baseUrl/layanan/kategori'),
+      Uri.parse('$baseUrl/kategori-layanan'),
       headers: {'Accept': 'application/json'},
     );
 
     if (res.statusCode != 200) {
-      throw Exception('Gagal mengambil kategori layanan');
+      throw Exception('Belum bisa mengambil kategori layanan');
     }
 
     final body = json.decode(res.body);
 
     if (body is! Map || body['success'] != true) {
-      throw Exception('Response kategori tidak valid');
+      throw Exception('Respons kategori tidak valid');
     }
 
-    final List rawKategori = body['kategori'] ?? [];
+    final List data = body['data'] ?? [];
 
-    return rawKategori
-        .map((e) => e.toString().trim())
-        .where((e) => e.isNotEmpty)
-        .map(
-          (nama) => LayananCategory(nama: nama, icon: _mapKategoriToIcon(nama)),
-        )
+    return data
+        .map((e) => LayananCategory.fromJson(e as Map<String, dynamic>))
+        .where((e) => e.namaKategori.trim().isNotEmpty)
         .toList();
   }
 
-  static IconData _mapKategoriToIcon(String kategori) {
-    final value = kategori.toLowerCase();
+  static IconData mapKategoriToIcon(LayananCategory category) {
+    final icon = (category.iconName ?? '').toLowerCase().trim();
+    final nama = category.namaKategori.toLowerCase().trim();
 
-    if (value.contains('umum')) {
+    switch (icon) {
+      case 'hospital':
+      case 'local_hospital':
+        return Icons.local_hospital_outlined;
+      case 'healing':
+        return Icons.healing_outlined;
+      case 'child_care':
+        return Icons.child_care_outlined;
+      case 'accessibility':
+      case 'accessibility_new':
+        return Icons.accessibility_new_outlined;
+      case 'medical_services':
+        return Icons.medical_services_outlined;
+      case 'favorite':
+        return Icons.favorite_border;
+      case 'vaccines':
+        return Icons.vaccines_outlined;
+      case 'monitor_heart':
+        return Icons.monitor_heart_outlined;
+      case 'medication':
+        return Icons.medication_outlined;
+      case 'elderly':
+        return Icons.elderly_outlined;
+    }
+
+    if (nama.contains('umum')) {
       return Icons.local_hospital_outlined;
-    } else if (value.contains('luka')) {
+    } else if (nama.contains('luka')) {
       return Icons.healing_outlined;
-    } else if (value.contains('fisio')) {
+    } else if (nama.contains('fisio')) {
       return Icons.accessibility_new_outlined;
-    } else if (value.contains('anak')) {
+    } else if (nama.contains('anak')) {
       return Icons.child_care_outlined;
+    } else if (nama.contains('jantung')) {
+      return Icons.monitor_heart_outlined;
+    } else if (nama.contains('obat')) {
+      return Icons.medication_outlined;
+    } else if (nama.contains('lansia')) {
+      return Icons.elderly_outlined;
     }
 
     return Icons.medical_services_outlined;
+  }
+
+  static Color mapKategoriColor(String? hexColor) {
+    if (hexColor == null || hexColor.trim().isEmpty) {
+      return const Color(0xFF0BA5A7);
+    }
+
+    String hex = hexColor.replaceAll('#', '').trim();
+
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+
+    return Color(int.tryParse(hex, radix: 16) ?? 0xFF0BA5A7);
   }
 }
 
@@ -294,43 +375,20 @@ class HomePage extends StatelessWidget {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: _TopLocationBar()),
-            
-            // ✅ SPACING: 8px setelah top bar
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
-            
             const SliverToBoxAdapter(child: _HeroImageBanner()),
-            
-            // ✅ SPACING: 20px setelah hero banner
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            
             const SliverToBoxAdapter(child: _CategoryIcons()),
-            
-            // ✅ SPACING: 28px sebelum square banner
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
-            
             const SliverToBoxAdapter(child: _SquareBannerSection()),
-            
-            // ✅ SPACING: 32px sebelum health tips
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            
             const SliverToBoxAdapter(child: _HealthTipsCarousel()),
-            
-            // ✅ SPACING: 32px sebelum landscape banner
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            
             const SliverToBoxAdapter(child: _LandscapeBannerSection()),
-            
-            // ✅ SPACING: 32px sebelum promo
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            
             const SliverToBoxAdapter(child: _PromoFullWidthSection()),
-            
-            // ✅ SPACING: 32px sebelum testimoni
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            
             const SliverToBoxAdapter(child: _TestimonialsSection()),
-            
-            // ✅ SPACING: 40px di akhir
             const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
           ],
         ),
@@ -359,7 +417,7 @@ class _TopLocationBarState extends State<_TopLocationBar> {
   int _notifUnreadCount = 0;
   Timer? _notifTimer;
 
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   @override
   void initState() {
@@ -380,6 +438,36 @@ class _TopLocationBarState extends State<_TopLocationBar> {
     _notifTimer = Timer.periodic(const Duration(seconds: 8), (_) {
       _loadNotifUnread();
     });
+  }
+
+  String? _resolveMediaUrl(String? raw) {
+    if (raw == null) return null;
+    String v = raw.trim();
+    if (v.isEmpty) return null;
+
+    if (v.startsWith('http://') || v.startsWith('https://')) {
+      final uri = Uri.parse(v);
+      String path = uri.path;
+      if (path.startsWith('/')) path = path.substring(1);
+      return '${uri.scheme}://${uri.host}:${uri.port}/api/media/$path';
+    }
+
+    String path = v;
+    if (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+
+    return '$baseUrl/media/$path';
+  }
+
+  Future<void> _openProfilePage() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfilePage()),
+    );
+
+    if (!mounted) return;
+    _loadProfileFoto();
   }
 
   Future<void> _loadNotifUnread() async {
@@ -408,7 +496,8 @@ class _TopLocationBarState extends State<_TopLocationBar> {
         unreadCount = raw is int ? raw : int.tryParse(raw.toString()) ?? 0;
       } else {
         final List data = (body['data'] ?? []) as List;
-        unreadCount = data.where((e) => e is Map && e['is_read'] != true).length;
+        unreadCount =
+            data.where((e) => e is Map && e['is_read'] != true).length;
       }
 
       if (!mounted) return;
@@ -452,9 +541,7 @@ class _TopLocationBarState extends State<_TopLocationBar> {
       }
 
       setState(() {
-        _fotoProfilUrl = (rawFoto is String && rawFoto.isNotEmpty)
-            ? rawFoto
-            : null;
+        _fotoProfilUrl = _resolveMediaUrl(rawFoto?.toString());
         _nama = (pasien?['nama_lengkap'] ?? user?['name'])?.toString();
         _lokasi = lokasi;
       });
@@ -466,24 +553,86 @@ class _TopLocationBarState extends State<_TopLocationBar> {
 
   @override
   Widget build(BuildContext context) {
+    final sapaanNama =
+        (_nama != null && _nama!.trim().isNotEmpty) ? _nama!.trim() : 'Sahabat';
+
     return Container(
       color: HCColor.bg,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       child: Row(
         children: [
-          const Icon(Icons.location_on, color: HCColor.primary, size: 18),
-          const SizedBox(width: 4),
+          InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: _openProfilePage,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child:
+                  (_fotoProfilUrl != null && _fotoProfilUrl!.isNotEmpty)
+                      ? CircleAvatar(
+                        radius: 18,
+                        backgroundColor: HCColor.primary.withOpacity(0.12),
+                        backgroundImage: NetworkImage(_fotoProfilUrl!),
+                      )
+                      : CircleAvatar(
+                        radius: 18,
+                        backgroundColor: HCColor.primary.withOpacity(0.12),
+                        child: const Icon(
+                          Icons.person_outline,
+                          color: HCColor.primary,
+                          size: 18,
+                        ),
+                      ),
+            ),
+          ),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              _isLoadingFoto
-                  ? 'Memuat lokasi...'
-                  : (_lokasi ?? 'Lokasi belum tersedia'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _openProfilePage,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isLoadingFoto
+                          ? 'Halo, sebentar ya...'
+                          : 'Halo, $sapaanNama',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          color: HCColor.primary,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            _isLoadingFoto
+                                ? 'Sedang memuat lokasi...'
+                                : (_lokasi ?? 'Lokasi belum tersedia'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -493,9 +642,7 @@ class _TopLocationBarState extends State<_TopLocationBar> {
             onTap: () async {
               await Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const NotifikasiPage(),
-                ),
+                MaterialPageRoute(builder: (_) => const NotifikasiPage()),
               );
               _loadNotifUnread();
             },
@@ -531,7 +678,10 @@ class _TopLocationBarState extends State<_TopLocationBar> {
                         minWidth: 18,
                         minHeight: 18,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(999),
@@ -567,11 +717,11 @@ class _HeroImageBanner extends StatefulWidget {
 
 class _HeroImageBannerState extends State<_HeroImageBanner> {
   final List<String> _searchTexts = [
-    'Cari layanan kesehatan...',
-    'Perawat profesional...',
-    'Fisioterapi di rumah...',
-    'Medical check-up...',
-    'Konsultasi dokter...',
+    'Lagi butuh layanan kesehatan apa hari ini?',
+    'Cari perawat yang siap datang ke rumah...',
+    'Butuh fisioterapi yang nyaman di rumah?',
+    'Cari medical check-up tanpa ribet...',
+    'Mau konsultasi dokter dengan lebih tenang?',
   ];
 
   int _currentTextIndex = 0;
@@ -699,29 +849,24 @@ class _HeroImageBannerState extends State<_HeroImageBanner> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Layanan Kesehatan Terbaik untuk Anda',
+                    'Kami hadir untuk merawat Anda dan keluarga dengan hangat, tenang, dan sepenuh hati.',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: screenWidth > 600 ? 22 : 18,
                       fontWeight: FontWeight.w600,
-                      height: 1.3,
+                      height: 1.4,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
               ),
-              
-              // ✅ SEARCH BAR YANG BISA DIKLIK
               Transform.translate(
                 offset: const Offset(0, -25),
                 child: GestureDetector(
                   onTap: () {
-                    // Navigate ke SearchPage
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const SearchPage(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const SearchPage()),
                     );
                   },
                   child: Container(
@@ -752,7 +897,11 @@ class _HeroImageBannerState extends State<_HeroImageBanner> {
                             ),
                           ),
                         ),
-                        const Icon(Icons.search, color: Colors.black38, size: 24),
+                        const Icon(
+                          Icons.search,
+                          color: Colors.black38,
+                          size: 24,
+                        ),
                       ],
                     ),
                   ),
@@ -792,36 +941,48 @@ class _CategoryIconsState extends State<_CategoryIcons> {
         }
 
         if (snapshot.hasError) {
-          return const SizedBox.shrink();
+          return Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
+            child: const Text(
+              'Kategori layanan belum bisa ditampilkan saat ini',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          );
         }
 
         final categories = snapshot.data ?? [];
-
         if (categories.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        final displayedCategories = categories.take(4).toList();
+        final displayedCategories = categories.take(8).toList();
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
+          padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "Kategori Layanan",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  const Expanded(
+                    child: Text(
+                      'Layanan untuk Anda',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF2E2323),
+                        height: 1.1,
+                      ),
+                    ),
                   ),
-                  TextButton(
-                    onPressed: () {
+                  GestureDetector(
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -829,25 +990,51 @@ class _CategoryIconsState extends State<_CategoryIcons> {
                         ),
                       );
                     },
-                    child: const Text(
-                      "Semua",
-                      style: TextStyle(
-                        color: Color(0xFF0BA5A7),
-                        fontWeight: FontWeight.w600,
+                    child: TextButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Fitur lihat semua tips akan segera hadir',
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Lihat semua',
+                        style: TextStyle(
+                          color: Color(0xFF0BA5A7),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: displayedCategories
-                    .map(
-                      (cat) => Expanded(
-                        child: _DynamicCategoryIconWidget(category: cat),
-                      ),
-                    )
-                    .toList(),
+              const SizedBox(height: 6),
+              Text(
+                'Pilih layanan yang paling cocok untuk kebutuhan Anda di rumah.',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: Colors.black.withOpacity(0.58),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 18),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children:
+                      displayedCategories
+                          .map(
+                            (cat) => Padding(
+                              padding: const EdgeInsets.only(right: 18),
+                              child: _DynamicCategoryIconWidget(category: cat),
+                            ),
+                          )
+                          .toList(),
+                ),
               ),
             ],
           ),
@@ -859,41 +1046,41 @@ class _CategoryIconsState extends State<_CategoryIcons> {
   Widget _buildLoading() {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
+              Expanded(
+                child: Text(
+                  'Layanan untuk Anda',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF2E2323),
+                  ),
+                ),
+              ),
               Text(
-                "Kategori Layanan",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                'Lihat semua',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFB7A9A9),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: List.generate(
-              4,
-              (_) => Expanded(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Color(0xFFF1F4F8),
-                        borderRadius: BorderRadius.all(Radius.circular(16)),
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Container(width: 50, height: 10, color: Color(0xFFF1F4F8)),
-                  ],
+          const SizedBox(height: 18),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(
+                4,
+                (_) => const Padding(
+                  padding: EdgeInsets.only(right: 18),
+                  child: _CategoryLoadingItem(),
                 ),
               ),
             ),
@@ -910,13 +1097,17 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
   const _DynamicCategoryIconWidget({required this.category});
 
   String _formatLabel(String text) {
-    if (text.length <= 14) return text;
+    if (text.trim().isEmpty) return '-';
 
-    final words = text.split(' ');
+    final words = text.trim().split(' ');
+    if (words.length == 1) return words.first;
+
+    if (text.length <= 12) return text;
+
     if (words.length >= 2) {
-      final firstLine = words.take(2).join(' ');
-      final secondLine = words.skip(2).join(' ');
-      return secondLine.isEmpty ? firstLine : '$firstLine\n$secondLine';
+      final first = words.first;
+      final second = words.skip(1).join(' ');
+      return '$first\n$second';
     }
 
     return text;
@@ -924,42 +1115,103 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
+    final iconData = KategoriLayananService.mapKategoriToIcon(category);
+
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => PilihLayananPage(kategori: category.nama),
+            builder: (_) => PilihLayananPage(kategori: category.namaKategori),
           ),
         );
       },
+      child: SizedBox(
+        width: 82,
+        child: Column(
+          children: [
+            Container(
+              width: 74,
+              height: 74,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFF1E6E6),
+              ),
+              child: ClipOval(
+                child:
+                    (category.gambarUrl != null &&
+                            category.gambarUrl!.trim().isNotEmpty)
+                        ? Image.network(
+                          category.gambarUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) {
+                            return Container(
+                              color: const Color(0xFFF1E6E6),
+                              alignment: Alignment.center,
+                              child: Icon(
+                                iconData,
+                                color: const Color(0xFF9C7B7B),
+                                size: 30,
+                              ),
+                            );
+                          },
+                        )
+                        : Container(
+                          color: const Color(0xFFF1E6E6),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            iconData,
+                            color: const Color(0xFF9C7B7B),
+                            size: 30,
+                          ),
+                        ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _formatLabel(category.namaKategori),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF2E2323),
+                height: 1.15,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryLoadingItem extends StatelessWidget {
+  const _CategoryLoadingItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 82,
       child: Column(
         children: [
           Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F4F8),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              category.icon,
-              color: const Color(0xFF0BA5A7),
-              size: 28,
+            width: 74,
+            height: 74,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFFF1E6E6),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _formatLabel(category.nama),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              height: 1.2,
+          const SizedBox(height: 10),
+          Container(
+            width: 56,
+            height: 12,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1E6E6),
+              borderRadius: BorderRadius.circular(6),
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -1013,23 +1265,48 @@ class _SquareBannerSectionState extends State<_SquareBannerSection> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Layanan Populer',
-                        style: TextStyle(
-                          fontSize: screenWidth > 600 ? 22 : 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pilihan favorit untuk Anda',
+                              style: TextStyle(
+                                fontSize: screenWidth > 600 ? 22 : 20,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Layanan yang paling sering dipilih untuk perawatan yang nyaman dan terpercaya.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black.withOpacity(0.6),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Pilihan layanan terbaik untuk kebutuhan Anda',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black.withOpacity(0.6),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PilihLayananPage(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Lihat semua',
+                          style: TextStyle(
+                            color: Color(0xFF0BA5A7),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -1043,11 +1320,12 @@ class _SquareBannerSectionState extends State<_SquareBannerSection> {
                     scrollDirection: Axis.horizontal,
                     itemCount: banners.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 16),
-                    itemBuilder: (_, i) => _SquareBannerCard(
-                      item: banners[i],
-                      width: cardWidth,
-                      height: cardHeight,
-                    ),
+                    itemBuilder:
+                        (_, i) => _SquareBannerCard(
+                          item: banners[i],
+                          width: cardWidth,
+                          height: cardHeight,
+                        ),
                   ),
                 ),
               ],
@@ -1072,9 +1350,10 @@ class _SquareBannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = (item.judul != null && item.judul!.trim().isNotEmpty)
-        ? item.judul!.trim()
-        : (item.layanan?['nama_layanan']?.toString() ?? 'Layanan');
+    final title =
+        (item.judul != null && item.judul!.trim().isNotEmpty)
+            ? item.judul!.trim()
+            : (item.layanan?['nama_layanan']?.toString() ?? 'Layanan');
 
     final subtitle = item.subtitle?.trim() ?? '';
     final teksDiskon = item.teksDiskon?.trim() ?? '';
@@ -1113,13 +1392,14 @@ class _SquareBannerCard extends StatelessWidget {
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                   ),
-                  child: (item.gambarUrl != null && item.gambarUrl!.isNotEmpty)
-                      ? Image.network(
-                          item.gambarUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _fallbackImage(),
-                        )
-                      : _fallbackImage(),
+                  child:
+                      (item.gambarUrl != null && item.gambarUrl!.isNotEmpty)
+                          ? Image.network(
+                            item.gambarUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _fallbackImage(),
+                          )
+                          : _fallbackImage(),
                 ),
               ),
               if (teksDiskon.isNotEmpty)
@@ -1221,7 +1501,7 @@ class _SquareBannerCard extends StatelessWidget {
                       (selisih is num ? selisih > 0 : true)) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Hemat ${formatRupiah(selisih)}',
+                      'Lebih hemat ${formatRupiah(selisih)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -1244,7 +1524,7 @@ class _SquareBannerCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Kode: $kodePromo',
+                        'Kode promo: $kodePromo',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -1257,7 +1537,7 @@ class _SquareBannerCard extends StatelessWidget {
                   if (item.minTransaksi > 0) ...[
                     const SizedBox(height: 5),
                     Text(
-                      'Min. ${formatRupiah(item.minTransaksi)}',
+                      'Minimal transaksi ${formatRupiah(item.minTransaksi)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -1299,7 +1579,7 @@ class _SquareBannerLoading extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Layanan Populer',
+                'Pilihan favorit untuk Anda',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -1308,7 +1588,7 @@ class _SquareBannerLoading extends StatelessWidget {
               ),
               SizedBox(height: 4),
               Text(
-                'Pilihan layanan terbaik untuk kebutuhan Anda',
+                'Layanan yang paling sering dipilih untuk perawatan yang nyaman dan terpercaya.',
                 style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
             ],
@@ -1322,13 +1602,14 @@ class _SquareBannerLoading extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder: (_, __) => Container(
-              width: 160,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
+            itemBuilder:
+                (_, __) => Container(
+                  width: 160,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
           ),
         ),
       ],
@@ -1349,62 +1630,62 @@ class _HealthTipsCarouselState extends State<_HealthTipsCarousel> {
 
   final tips = [
     _HealthTip(
-      '💧 Minum Air Putih',
-      'Konsumsi minimal 8 gelas air putih per hari untuk menjaga kesehatan',
+      '💧 Cukupi air putih',
+      'Minum air yang cukup bantu tubuh tetap segar dan tidak mudah lelah.',
       Colors.blue.shade50,
       Colors.blue.shade700,
     ),
     _HealthTip(
-      '🏃 Olahraga Rutin',
-      'Lakukan aktivitas fisik minimal 30 menit setiap hari',
+      '🏃 Bergerak tiap hari',
+      'Aktivitas ringan 30 menit sehari bisa bantu tubuh tetap bugar.',
       Colors.green.shade50,
       Colors.green.shade700,
     ),
     _HealthTip(
-      '🥗 Pola Makan Sehat',
-      'Konsumsi sayur dan buah untuk nutrisi seimbang',
+      '🥗 Makan lebih seimbang',
+      'Sayur, buah, dan makanan bergizi bantu tubuh pulih dan tetap kuat.',
       Colors.orange.shade50,
       Colors.orange.shade700,
     ),
     _HealthTip(
-      '😴 Tidur Cukup',
-      'Tidur 7-8 jam setiap malam untuk pemulihan tubuh optimal',
+      '😴 Istirahat yang cukup',
+      'Tidur yang cukup bantu tubuh lebih cepat pulih dan pikiran lebih tenang.',
       Colors.purple.shade50,
       Colors.purple.shade700,
     ),
     _HealthTip(
-      '🧘 Kelola Stress',
-      'Luangkan waktu untuk relaksasi dan meditasi setiap hari',
+      '🧘 Jaga pikiran tetap tenang',
+      'Luangkan waktu sebentar untuk relaksasi agar tubuh dan hati lebih nyaman.',
       Colors.teal.shade50,
       Colors.teal.shade700,
     ),
     _HealthTip(
-      '🚭 Hindari Rokok',
-      'Merokok dapat meningkatkan risiko berbagai penyakit serius',
+      '🚭 Kurangi rokok',
+      'Menghindari rokok bantu menjaga paru-paru dan kesehatan tubuh secara menyeluruh.',
       Colors.red.shade50,
       Colors.red.shade700,
     ),
     _HealthTip(
-      '🦷 Jaga Kebersihan',
-      'Sikat gigi 2x sehari dan cuci tangan secara teratur',
+      '🦷 Jaga kebersihan diri',
+      'Kebiasaan kecil seperti cuci tangan dan sikat gigi rutin sangat berarti.',
       Colors.cyan.shade50,
       Colors.cyan.shade700,
     ),
     _HealthTip(
-      '☀️ Berjemur Pagi',
-      'Dapatkan vitamin D alami dari sinar matahari pagi',
+      '☀️ Nikmati sinar pagi',
+      'Berjemur pagi secukupnya bantu tubuh mendapat vitamin D alami.',
       Colors.amber.shade50,
       Colors.amber.shade700,
     ),
     _HealthTip(
-      '📱 Batasi Screen Time',
-      'Kurangi penggunaan gadget, istirahatkan mata setiap 20 menit',
+      '📱 Istirahat dari layar',
+      'Berhenti sejenak dari gadget bantu mata lebih rileks dan kepala lebih ringan.',
       Colors.indigo.shade50,
       Colors.indigo.shade700,
     ),
     _HealthTip(
-      '🩺 Cek Kesehatan Rutin',
-      'Lakukan medical check-up minimal 1 tahun sekali',
+      '🩺 Cek kesehatan berkala',
+      'Pemeriksaan rutin bantu Anda merasa lebih tenang dan sigap menjaga kesehatan.',
       Colors.pink.shade50,
       Colors.pink.shade700,
     ),
@@ -1459,22 +1740,47 @@ class _HealthTipsCarouselState extends State<_HealthTipsCarousel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.tips_and_updates,
-                  color: Color(0xFF0BA5A7),
-                  size: 24,
+                const Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.tips_and_updates,
+                        color: Color.fromARGB(190, 253, 192, 23),
+                        size: 24,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Tips sehat untuk Anda',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(width: 8),
-                Text(
-                  'Tips Kesehatan',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                TextButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Fitur lihat semua tips akan segera hadir',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Lihat semua',
+                    style: TextStyle(
+                      color: Color(0xFF0BA5A7),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -1484,7 +1790,7 @@ class _HealthTipsCarouselState extends State<_HealthTipsCarousel> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Panduan praktis untuk hidup lebih sehat',
+              'Langkah kecil setiap hari bisa bantu tubuh terasa lebih baik.',
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.black.withOpacity(0.6),
@@ -1607,23 +1913,48 @@ class _LandscapeBannerSectionState extends State<_LandscapeBannerSection> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Paket Perawatan',
-                        style: TextStyle(
-                          fontSize: screenWidth > 600 ? 22 : 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Paket perawatan pilihan',
+                              style: TextStyle(
+                                fontSize: screenWidth > 600 ? 22 : 20,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Pilihan perawatan lengkap agar Anda dan keluarga merasa lebih tenang.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black.withOpacity(0.6),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Solusi perawatan lengkap untuk kesehatan optimal',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black.withOpacity(0.6),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PilihLayananPage(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Lihat semua',
+                          style: TextStyle(
+                            color: Color(0xFF0BA5A7),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -1637,10 +1968,11 @@ class _LandscapeBannerSectionState extends State<_LandscapeBannerSection> {
                     scrollDirection: Axis.horizontal,
                     itemCount: banners.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 16),
-                    itemBuilder: (_, i) => _LandscapeBannerCard(
-                      item: banners[i],
-                      width: cardWidth,
-                    ),
+                    itemBuilder:
+                        (_, i) => _LandscapeBannerCard(
+                          item: banners[i],
+                          width: cardWidth,
+                        ),
                   ),
                 ),
               ],
@@ -1660,9 +1992,10 @@ class _LandscapeBannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = item.judul?.trim().isNotEmpty == true
-        ? item.judul!.trim()
-        : (item.layanan?['nama_layanan']?.toString() ?? 'Banner');
+    final title =
+        item.judul?.trim().isNotEmpty == true
+            ? item.judul!.trim()
+            : (item.layanan?['nama_layanan']?.toString() ?? 'Paket Perawatan');
 
     return Container(
       width: width,
@@ -1742,7 +2075,7 @@ class _LandscapeBannerLoading extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Paket Perawatan',
+                'Paket perawatan pilihan',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -1751,7 +2084,7 @@ class _LandscapeBannerLoading extends StatelessWidget {
               ),
               SizedBox(height: 4),
               Text(
-                'Solusi perawatan lengkap untuk kesehatan optimal',
+                'Pilihan perawatan lengkap agar Anda dan keluarga merasa lebih tenang.',
                 style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
             ],
@@ -1765,13 +2098,14 @@ class _LandscapeBannerLoading extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder: (_, __) => Container(
-              width: 280,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
+            itemBuilder:
+                (_, __) => Container(
+                  width: 280,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
           ),
         ),
       ],
@@ -1831,7 +2165,7 @@ class _PromoFullWidthSectionState extends State<_PromoFullWidthSection> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Promo Spesial Hari Ini',
+                              'Promo spesial untuk Anda',
                               style: TextStyle(
                                 fontSize: screenWidth > 600 ? 20 : 18,
                                 fontWeight: FontWeight.w700,
@@ -1840,12 +2174,14 @@ class _PromoFullWidthSectionState extends State<_PromoFullWidthSection> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Dapatkan diskon untuk layanan kesehatan',
+                              'Biar perawatan tetap terasa nyaman, tenang, dan lebih hemat.',
                               style: TextStyle(
                                 fontSize: screenWidth > 600 ? 14 : 13,
                                 color: Colors.black.withOpacity(0.6),
+                                height: 1.4,
                               ),
                               overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                             ),
                           ],
                         ),
@@ -1853,7 +2189,7 @@ class _PromoFullWidthSectionState extends State<_PromoFullWidthSection> {
                       TextButton(
                         onPressed: () {},
                         child: const Text(
-                          'See all',
+                          'Lihat semua',
                           style: TextStyle(
                             color: Color(0xFF0BA5A7),
                             fontWeight: FontWeight.w600,
@@ -1871,8 +2207,11 @@ class _PromoFullWidthSectionState extends State<_PromoFullWidthSection> {
                     scrollDirection: Axis.horizontal,
                     itemCount: banners.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (_, i) =>
-                        _PromoFullWidthCard(item: banners[i], width: cardWidth),
+                    itemBuilder:
+                        (_, i) => _PromoFullWidthCard(
+                          item: banners[i],
+                          width: cardWidth,
+                        ),
                   ),
                 ),
               ],
@@ -1892,9 +2231,10 @@ class _PromoFullWidthCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = item.judul?.trim().isNotEmpty == true
-        ? item.judul!.trim()
-        : (item.layanan?['nama_layanan']?.toString() ?? 'Promo');
+    final title =
+        item.judul?.trim().isNotEmpty == true
+            ? item.judul!.trim()
+            : (item.layanan?['nama_layanan']?.toString() ?? 'Promo');
 
     final subtitle = item.subtitle?.trim() ?? '';
     final teksDiskon = item.teksDiskon?.trim() ?? '';
@@ -1924,15 +2264,16 @@ class _PromoFullWidthCard extends StatelessWidget {
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
-                child: (item.gambarUrl != null && item.gambarUrl!.isNotEmpty)
-                    ? Image.network(
-                        item.gambarUrl!,
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _fallback(),
-                      )
-                    : _fallback(),
+                child:
+                    (item.gambarUrl != null && item.gambarUrl!.isNotEmpty)
+                        ? Image.network(
+                          item.gambarUrl!,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _fallback(),
+                        )
+                        : _fallback(),
               ),
               if (teksDiskon.isNotEmpty)
                 Positioned(
@@ -1971,7 +2312,7 @@ class _PromoFullWidthCard extends StatelessWidget {
                     children: [
                       if (item.minTransaksi > 0)
                         Text(
-                          'Min. ${formatRupiah(item.minTransaksi)}',
+                          'Minimal transaksi ${formatRupiah(item.minTransaksi)}',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.black.withOpacity(0.5),
@@ -2067,7 +2408,7 @@ class _PromoFullWidthLoading extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Promo Spesial Hari Ini',
+            'Promo spesial untuk Anda',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -2083,13 +2424,14 @@ class _PromoFullWidthLoading extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: 2,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, __) => Container(
-              width: 320,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            itemBuilder:
+                (_, __) => Container(
+                  width: 320,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
           ),
         ),
       ],
@@ -2097,7 +2439,6 @@ class _PromoFullWidthLoading extends StatelessWidget {
   }
 }
 
-// ✅ TESTIMONI SECTION BARU DARI API
 class _TestimonialsSection extends StatefulWidget {
   const _TestimonialsSection();
 
@@ -2119,12 +2460,10 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
     return FutureBuilder<List<Testimonial>>(
       future: _futureTestimonials,
       builder: (context, snapshot) {
-        // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoading();
         }
 
-        // Error atau data kosong - tidak tampilkan section
         if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -2134,18 +2473,47 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.format_quote, color: Color(0xFF0BA5A7), size: 24),
-                  SizedBox(width: 8),
-                  Text(
-                    'Testimoni',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+                  const Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.format_quote,
+                          color: Color(0xFF0BA5A7),
+                          size: 24,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Cerita hangat dari pasien',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Fitur lihat semua testimoni akan segera hadir',
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Lihat semua',
+                      style: TextStyle(
+                        color: Color(0xFF0BA5A7),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -2155,10 +2523,11 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Kata Mereka Tentang Kami',
+                'Kepercayaan dan kenyamanan mereka adalah semangat kami untuk terus merawat dengan sepenuh hati.',
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.black.withOpacity(0.6),
+                  height: 1.4,
                 ),
               ),
             ),
@@ -2170,8 +2539,8 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
                 scrollDirection: Axis.horizontal,
                 itemCount: testimonials.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (_, i) =>
-                    _TestimonialCard(testimonial: testimonials[i]),
+                itemBuilder:
+                    (_, i) => _TestimonialCard(testimonial: testimonials[i]),
               ),
             ),
           ],
@@ -2191,7 +2560,7 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
               Icon(Icons.format_quote, color: Color(0xFF0BA5A7), size: 24),
               SizedBox(width: 8),
               Text(
-                'Testimoni',
+                'Cerita hangat dari pasien',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -2209,13 +2578,14 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
             scrollDirection: Axis.horizontal,
             itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, __) => Container(
-              width: 300,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
+            itemBuilder:
+                (_, __) => Container(
+                  width: 300,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
           ),
         ),
       ],
@@ -2325,7 +2695,6 @@ class _TestimonialCard extends StatelessWidget {
   }
 }
 
-// ✅ BOTTOM NAV
 class HCBottomNav extends StatefulWidget {
   final int currentIndex;
   const HCBottomNav({super.key, this.currentIndex = 0});
@@ -2337,7 +2706,7 @@ class HCBottomNav extends StatefulWidget {
 class _HCBottomNavState extends State<HCBottomNav> {
   static const Color activeColor = Color(0xFF0BA5A7);
   static const Color inactiveColor = Colors.black54;
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   int _chatUnreadCount = 0;
   Timer? _badgeTimer;
@@ -2404,19 +2773,16 @@ class _HCBottomNavState extends State<HCBottomNav> {
     final icon = AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       padding: EdgeInsets.all(active ? 8 : 0),
-      decoration: active
-          ? const BoxDecoration(
-              color: Color(0x220BA5A7),
-              shape: BoxShape.circle,
-            )
-          : null,
+      decoration:
+          active
+              ? const BoxDecoration(
+                color: Color(0x220BA5A7),
+                shape: BoxShape.circle,
+              )
+              : null,
       child: Transform.translate(
         offset: Offset(0, active ? -4 : 0),
-        child: Image.asset(
-          path,
-          width: 24,
-          height: 24,
-        ),
+        child: Image.asset(path, width: 24, height: 24),
       ),
     );
 
@@ -2431,10 +2797,7 @@ class _HCBottomNavState extends State<HCBottomNav> {
           top: -2,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-            constraints: const BoxConstraints(
-              minWidth: 18,
-              minHeight: 18,
-            ),
+            constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
             decoration: BoxDecoration(
               color: Colors.red,
               borderRadius: BorderRadius.circular(999),
@@ -2480,18 +2843,14 @@ class _HCBottomNavState extends State<HCBottomNav> {
         if (i == 1) {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const PilihLayananPage(),
-            ),
+            MaterialPageRoute(builder: (_) => const PilihLayananPage()),
           );
         }
 
         if (i == 2) {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const PasienChatListPage(),
-            ),
+            MaterialPageRoute(builder: (_) => const PasienChatListPage()),
           ).then((_) {
             _loadChatUnread();
           });
@@ -2509,25 +2868,17 @@ class _HCBottomNavState extends State<HCBottomNav> {
         if (i == 4) {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const ProfilePage(),
-            ),
+            MaterialPageRoute(builder: (_) => const ProfilePage()),
           );
         }
       },
       items: [
         BottomNavigationBarItem(
-          icon: _navIcon(
-            'assets/Icons/Navbar/Homepage.png',
-            currentIndex == 0,
-          ),
+          icon: _navIcon('assets/Icons/Navbar/Homepage.png', currentIndex == 0),
           label: 'Beranda',
         ),
         BottomNavigationBarItem(
-          icon: _navIcon(
-            'assets/Icons/Navbar/Layanan.png',
-            currentIndex == 1,
-          ),
+          icon: _navIcon('assets/Icons/Navbar/Layanan.png', currentIndex == 1),
           label: 'Layanan',
         ),
         BottomNavigationBarItem(
@@ -2539,17 +2890,11 @@ class _HCBottomNavState extends State<HCBottomNav> {
           label: 'Chat',
         ),
         BottomNavigationBarItem(
-          icon: _navIcon(
-            'assets/Icons/Navbar/Riwayat.png',
-            currentIndex == 3,
-          ),
+          icon: _navIcon('assets/Icons/Navbar/Riwayat.png', currentIndex == 3),
           label: 'Riwayat',
         ),
         BottomNavigationBarItem(
-          icon: _navIcon(
-            'assets/Icons/Navbar/Profil.png',
-            currentIndex == 4,
-          ),
+          icon: _navIcon('assets/Icons/Navbar/Profil.png', currentIndex == 4),
           label: 'Profil',
         ),
       ],

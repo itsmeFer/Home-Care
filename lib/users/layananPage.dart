@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
-const String kBaseUrl = 'http://192.168.1.5:8000/api';
+const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
 /// Palet warna home care (teal/medical)
 class HCColor {
@@ -75,6 +75,41 @@ class Layanan {
   }
 }
 
+class KategoriLayananItem {
+  final int id;
+  final String namaKategori;
+  final String slug;
+  final String? warna;
+  final String? icon;
+  final String? gambarUrl;
+
+  KategoriLayananItem({
+    required this.id,
+    required this.namaKategori,
+    required this.slug,
+    this.warna,
+    this.icon,
+    this.gambarUrl,
+  });
+
+  factory KategoriLayananItem.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      return int.tryParse(value.toString()) ?? 0;
+    }
+
+    return KategoriLayananItem(
+      id: parseInt(json['id']),
+      namaKategori: (json['nama_kategori'] ?? '').toString(),
+      slug: (json['slug'] ?? '').toString(),
+      warna: json['warna']?.toString(),
+      icon: json['icon']?.toString(),
+      gambarUrl: json['gambar_url']?.toString(),
+    );
+  }
+}
+
 class PilihLayananPage extends StatefulWidget {
   final String? kategori;
 
@@ -90,8 +125,8 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
   String? _error;
   List<Layanan> _layananList = [];
   List<Layanan> _filteredList = [];
-  List<String> _kategoriList = [];
-  String? _selectedKategori;
+  List<KategoriLayananItem> _kategoriList = [];
+  KategoriLayananItem? _selectedKategori;
   final List<String> _searchHints = [
     'Cari layanan kesehatan...',
     'Perawat profesional...',
@@ -112,7 +147,13 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
   @override
   void initState() {
     super.initState();
-    _selectedKategori = widget.kategori;
+    if (widget.kategori != null && widget.kategori!.trim().isNotEmpty) {
+      _selectedKategori = KategoriLayananItem(
+        id: 0,
+        namaKategori: widget.kategori!,
+        slug: widget.kategori!,
+      );
+    }
     _fetchKategori();
     _fetchLayanan();
     _fetchProfileData();
@@ -284,20 +325,21 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     final keyword = _searchController.text.trim().toLowerCase();
 
     setState(() {
-      _filteredList = _layananList.where((layanan) {
-        final searchMatch =
-            keyword.isEmpty ||
-            layanan.namaLayanan.toLowerCase().contains(keyword) ||
-            (layanan.deskripsi ?? '').toLowerCase().contains(keyword) ||
-            (layanan.kategori ?? '').toLowerCase().contains(keyword);
+      _filteredList =
+          _layananList.where((layanan) {
+            final searchMatch =
+                keyword.isEmpty ||
+                layanan.namaLayanan.toLowerCase().contains(keyword) ||
+                (layanan.deskripsi ?? '').toLowerCase().contains(keyword) ||
+                (layanan.kategori ?? '').toLowerCase().contains(keyword);
 
-        final kategoriMatch =
-            _selectedKategori == null ||
-            _selectedKategori == 'Semua' ||
-            layanan.kategori == _selectedKategori;
+            final kategoriMatch =
+                _selectedKategori == null ||
+                (layanan.kategori ?? '').toLowerCase() ==
+                    _selectedKategori!.namaKategori.toLowerCase();
 
-        return searchMatch && kategoriMatch;
-      }).toList();
+            return searchMatch && kategoriMatch;
+          }).toList();
     });
   }
 
@@ -399,129 +441,138 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.warning_rounded,
-                color: Colors.orange[700],
-                size: 28,
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                'Profil Belum Lengkap',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Untuk memesan layanan, Anda harus melengkapi profil terlebih dahulu.',
-              style: TextStyle(fontSize: 14, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: HCColor.lightTeal,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: HCColor.primary.withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 16,
-                        color: HCColor.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Data yang belum diisi:',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: HCColor.primary,
-                        ),
-                      ),
-                    ],
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 8),
-                  ...missingFields.map(
-                    (field) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
+                  child: Icon(
+                    Icons.warning_rounded,
+                    color: Colors.orange[700],
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Profil Belum Lengkap',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Untuk memesan layanan, Anda harus melengkapi profil terlebih dahulu.',
+                  style: TextStyle(fontSize: 14, height: 1.4),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: HCColor.lightTeal,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: HCColor.primary.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
                           Icon(
-                            Icons.circle,
-                            size: 6,
-                            color: HCColor.primaryDark,
+                            Icons.info_outline,
+                            size: 16,
+                            color: HCColor.primary,
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            field,
-                            style: const TextStyle(
+                          const SizedBox(width: 6),
+                          const Text(
+                            'Data yang belum diisi:',
+                            style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
+                              color: HCColor.primary,
                             ),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      ...missingFields.map(
+                        (field) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 6,
+                                color: HCColor.primaryDark,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                field,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Nanti',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Nanti',
-              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              // ✅ Navigate ke ProfilePage
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfilePage()),
-              ).then((_) {
-                // Refresh profile setelah kembali dari ProfilePage
-                _fetchProfileData();
-              });
-            },
-            icon: const Icon(Icons.edit, size: 18),
-            label: const Text('Lengkapi Profil'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: HCColor.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // ✅ Navigate ke ProfilePage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfilePage()),
+                  ).then((_) {
+                    // Refresh profile setelah kembali dari ProfilePage
+                    _fetchProfileData();
+                  });
+                },
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text('Lengkapi Profil'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HCColor.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -548,36 +599,55 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     setState(() => _isLoadingKategori = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-
-      if (token == null) return;
-
-      final uri = Uri.parse('$kBaseUrl/layanan/kategori');
+      final uri = Uri.parse('$kBaseUrl/kategori-layanan');
 
       final response = await http.get(
         uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Accept': 'application/json'},
       );
 
       if (!mounted) return;
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
+
         if (body['success'] == true) {
-          final List<dynamic> data = body['kategori'] ?? [];
+          final List<dynamic> data = body['data'] ?? [];
+
+          final kategori =
+              data
+                  .map(
+                    (e) =>
+                        KategoriLayananItem.fromJson(e as Map<String, dynamic>),
+                  )
+                  .toList();
+
+          KategoriLayananItem? selected = _selectedKategori;
+
+          if (_selectedKategori != null) {
+            try {
+              selected = kategori.firstWhere(
+                (k) =>
+                    k.namaKategori.toLowerCase() ==
+                        _selectedKategori!.namaKategori.toLowerCase() ||
+                    k.slug.toLowerCase() ==
+                        _selectedKategori!.slug.toLowerCase(),
+              );
+            } catch (_) {}
+          }
+
           setState(() {
-            _kategoriList = ['Semua', ...data.map((e) => e.toString())];
+            _kategoriList = kategori;
+            _selectedKategori = selected;
             _isLoadingKategori = false;
           });
+        } else {
+          setState(() => _isLoadingKategori = false);
         }
+      } else {
+        setState(() => _isLoadingKategori = false);
       }
     } catch (e) {
-      print('Error fetching kategori: $e');
-    } finally {
       if (mounted) {
         setState(() => _isLoadingKategori = false);
       }
@@ -605,9 +675,8 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
       final queryParams = <String, String>{'aktif': '1'};
 
       if (_selectedKategori != null &&
-          _selectedKategori != 'Semua' &&
-          _selectedKategori!.trim().isNotEmpty) {
-        queryParams['kategori'] = _selectedKategori!.trim();
+          _selectedKategori!.namaKategori.trim().isNotEmpty) {
+        queryParams['kategori'] = _selectedKategori!.namaKategori.trim();
       }
 
       final uri = Uri.parse(
@@ -710,15 +779,20 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                   hintText: 'Cari layanan kesehatan...',
                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                   prefixIcon: Icon(Icons.search, color: HCColor.primary),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(Icons.clear, size: 20, color: Colors.grey),
-                          onPressed: () {
-                            _searchController.clear();
-                            _applyFilters();
-                          },
-                        )
-                      : null,
+                  suffixIcon:
+                      _searchController.text.isNotEmpty
+                          ? IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              size: 20,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              _applyFilters();
+                            },
+                          )
+                          : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -730,27 +804,51 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
           ),
 
           // ===== KATEGORI HORIZONTAL SCROLL =====
-          if (!_isLoadingKategori && _kategoriList.isNotEmpty)
+          if (!_isLoadingKategori)
             Container(
               color: Colors.white,
               padding: const EdgeInsets.only(bottom: 12),
               child: SizedBox(
                 height: 42,
-                child: ListView.builder(
+                child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _kategoriList.length,
-                  itemBuilder: (context, index) {
-                    final kategori = _kategoriList[index];
-                    final isSelected =
-                        _selectedKategori == kategori ||
-                        (_selectedKategori == null && kategori == 'Semua');
-
-                    return Padding(
+                  children: [
+                    Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: _buildKategoriChip(kategori, isSelected),
-                    );
-                  },
+                      child: _buildKategoriChip(
+                        label: 'Semua',
+                        isSelected: _selectedKategori == null,
+                        onTap: () {
+                          setState(() {
+                            _selectedKategori = null;
+                          });
+                          _fetchLayanan();
+                        },
+                      ),
+                    ),
+                    ..._kategoriList.map((kategori) {
+                      final isSelected =
+                          _selectedKategori?.id == kategori.id ||
+                          (_selectedKategori != null &&
+                              _selectedKategori!.namaKategori.toLowerCase() ==
+                                  kategori.namaKategori.toLowerCase());
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: _buildKategoriChip(
+                          label: kategori.namaKategori,
+                          isSelected: isSelected,
+                          onTap: () {
+                            setState(() {
+                              _selectedKategori = kategori;
+                            });
+                            _fetchLayanan();
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ],
                 ),
               ),
             ),
@@ -783,14 +881,13 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     );
   }
 
-  Widget _buildKategoriChip(String kategori, bool isSelected) {
+  Widget _buildKategoriChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedKategori = kategori == 'Semua' ? null : kategori;
-        });
-        _fetchLayanan();
-      },
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
@@ -802,7 +899,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
           ),
         ),
         child: Text(
-          kategori,
+          label,
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.black87,
             fontWeight: FontWeight.w600,
@@ -1064,9 +1161,10 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
-                              onTap: () => _handleLayananTap(
-                                layanan,
-                              ), // ✅ GUNAKAN METHOD BARU
+                              onTap:
+                                  () => _handleLayananTap(
+                                    layanan,
+                                  ), // ✅ GUNAKAN METHOD BARU
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24,
@@ -1169,10 +1267,11 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
             ),
             child: Center(
               child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                    : null,
+                value:
+                    loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
                 color: HCColor.primary,
               ),
             ),

@@ -37,7 +37,7 @@ class PasienPage extends StatefulWidget {
 
 class _PasienPageState extends State<PasienPage>
     with SingleTickerProviderStateMixin {
-  static const String kBaseUrl = 'http://192.168.1.5:8000';
+  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
   // ✅ MANAGER endpoint

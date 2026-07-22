@@ -78,7 +78,7 @@ class RootAuthGate extends StatefulWidget {
 }
 
 class _RootAuthGateState extends State<RootAuthGate> {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   @override
   void initState() {

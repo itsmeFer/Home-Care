@@ -22,7 +22,7 @@ const Color kAddon = Color(0xFF7C3AED); // warna untuk addon
    CONFIG
 =========================================================== */
 
-const String kBaseUrl = 'http://192.168.1.5:8000';
+const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
 String get kApiBase => '$kBaseUrl/api';
 
 // Endpoints LAYANAN

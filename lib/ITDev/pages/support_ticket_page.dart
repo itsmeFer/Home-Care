@@ -28,7 +28,7 @@ class SupportTicketPage extends StatefulWidget {
 
 class _SupportTicketPageState extends State<SupportTicketPage> {
   // ===== BASE URL PATTERN (SAMA PERSIS SEPERTI AUDIT) =====
-  static const String kBaseUrl = 'http://192.168.1.5:8000';
+  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
   // ===== Filters =====

@@ -10,7 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String kBaseUrl = 'http://192.168.1.5:8000/api';
+const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
 class HCColor {
   static const primary = Color(0xFF0BA5A7);

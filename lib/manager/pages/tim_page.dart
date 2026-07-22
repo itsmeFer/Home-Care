@@ -49,7 +49,7 @@ class TimPage extends StatefulWidget {
 }
 
 class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
-  static const String kBaseUrl = 'http://192.168.1.5:8000';
+  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
   // ✅ MANAGER endpoint

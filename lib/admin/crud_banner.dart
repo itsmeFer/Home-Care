@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // ─── KONSTANTA ────────────────────────────────────────────────────────────────
 class _Cfg {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
   static const String bannerUrl = '$baseUrl/admin/banners';
   static const String layananUrl = '$baseUrl/admin/layanan-list';
   static const String tokenKey = 'auth_token';

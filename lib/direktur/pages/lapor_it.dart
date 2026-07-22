@@ -27,7 +27,7 @@ class _LaporITPageState extends State<LaporITPage> {
   static const Color kDanger = Color(0xFFEF4444);
 
   // ====== API CONFIG ======
-  static const String kBaseUrl = 'http://192.168.1.5:8000';
+  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
   final _formKey = GlobalKey<FormState>();
@@ -936,7 +936,7 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
   static const Color kDanger = Color(0xFFEF4444);
 
   // ====== API CONFIG ======
-  static const String kBaseUrl = 'http://192.168.1.5:8000';
+  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
   bool _isLoading = true;

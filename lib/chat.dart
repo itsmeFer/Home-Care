@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'chat/chat_models.dart';
 import 'users/buat_order_dari_chat_page.dart';
 
-const String kBaseUrl = 'http://192.168.1.5:8000/api';
+const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
 class ChatRoomPage extends StatefulWidget {
   final int roomId;

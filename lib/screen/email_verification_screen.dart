@@ -25,7 +25,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Timer? _cooldownTimer;
   Timer? _pollingTimer; // ✅ Timer untuk polling
 
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
   static const int cooldownDuration = 60;
 
   @override

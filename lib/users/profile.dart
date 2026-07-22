@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -19,7 +19,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _isLoading = true;
   String? _error;
-
+  static const int _maxPhotoBytes = 2 * 1024 * 1024; // 2MB
   String? _fotoProfilUrl;
   File? _localFotoFile;
   bool _isUploadingFoto = false;
@@ -28,10 +28,11 @@ class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _user;
   Map<String, dynamic>? _pasien;
 
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   bool _isEditing = false;
   bool _isSaving = false;
+  bool _isPreparingEditForm = false;
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _namaC;
@@ -169,6 +170,36 @@ class _ProfilePageState extends State<ProfilePage> {
     return const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
   }
 
+  Future<Uint8List> _compressImageUntilFit(Uint8List originalBytes) async {
+    if (originalBytes.lengthInBytes <= _maxPhotoBytes) {
+      return originalBytes;
+    }
+
+    Uint8List currentBytes = originalBytes;
+
+    const qualities = [80, 70, 60, 50, 40, 30, 20];
+
+    for (final quality in qualities) {
+      final compressed = await FlutterImageCompress.compressWithList(
+        currentBytes,
+        quality: quality,
+        minWidth: 1080,
+        minHeight: 1080,
+        format: CompressFormat.jpeg,
+      );
+
+      if (compressed.isNotEmpty) {
+        currentBytes = Uint8List.fromList(compressed);
+      }
+
+      if (currentBytes.lengthInBytes <= _maxPhotoBytes) {
+        return currentBytes;
+      }
+    }
+
+    return currentBytes;
+  }
+
   InputDecoration _inputDecoration({
     required String label,
     String? hint,
@@ -237,7 +268,7 @@ class _ProfilePageState extends State<ProfilePage> {
       path = path.substring(1);
     }
 
-    const String baseApi = 'http://192.168.1.5:8000/api';
+    const String baseApi = 'https://homecare.primamadanitalenta.my.id/api';
     return '$baseApi/media/$path';
   }
 
@@ -351,26 +382,87 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickAndUploadPhoto() async {
-    final picked = await _imagePicker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 75,
-    );
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1600,
+        maxHeight: 1600,
+      );
 
-    if (picked == null) return;
+      if (picked == null) return;
+      if (!mounted) return;
 
-    if (!kIsWeb) {
-      final file = File(picked.path);
       setState(() {
-        _localFotoFile = file;
+        _isUploadingFoto = true;
       });
-    }
 
-    await _uploadFotoProfil(picked);
+      Uint8List uploadBytes;
+
+      if (kIsWeb) {
+        uploadBytes = await picked.readAsBytes();
+      } else {
+        uploadBytes = await File(picked.path).readAsBytes();
+      }
+
+      uploadBytes = await _compressImageUntilFit(uploadBytes);
+
+      if (uploadBytes.lengthInBytes > _maxPhotoBytes) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ukuran foto masih terlalu besar. Coba pilih foto lain yang lebih kecil.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _isUploadingFoto = false);
+        return;
+      }
+
+      if (!kIsWeb) {
+        final file = File(picked.path);
+        setState(() {
+          _localFotoFile = file;
+        });
+      }
+
+      await _uploadFotoProfilBytes(bytes: uploadBytes, fileName: picked.name);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isUploadingFoto = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memilih foto: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
-  Future<void> _uploadFotoProfil(XFile picked) async {
+  String _friendlyUploadMessage(String message) {
+    final msg = message.toLowerCase();
+
+    if (msg.contains('must not be greater than 2048 kilobytes')) {
+      return 'Ukuran foto terlalu besar. Maksimal 2 MB ya.';
+    }
+
+    if (msg.contains('validation failed')) {
+      return 'Foto belum bisa diupload. Coba periksa ukuran atau format file.';
+    }
+
+    return message;
+  }
+
+  Future<void> _uploadFotoProfilBytes({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
     final pasienId = _pasien?['id'];
     if (pasienId == null) {
+      if (!mounted) return;
+      setState(() => _isUploadingFoto = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('ID pasien tidak ditemukan'),
@@ -385,6 +477,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (token == null) {
       if (!mounted) return;
+      setState(() => _isUploadingFoto = false);
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -393,53 +486,66 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    setState(() => _isUploadingFoto = true);
-
     try {
       final uri = Uri.parse('$baseUrl/pasien/$pasienId/foto-profil');
 
-      final request = http.MultipartRequest('POST', uri)
-        ..headers['Accept'] = 'application/json'
-        ..headers['Authorization'] = 'Bearer $token';
+      final request =
+          http.MultipartRequest('POST', uri)
+            ..headers['Accept'] = 'application/json'
+            ..headers['Authorization'] = 'Bearer $token';
 
-      if (kIsWeb) {
-        final bytes = await picked.readAsBytes();
-        request.files.add(
-          http.MultipartFile.fromBytes(
-            'foto_profil',
-            bytes,
-            filename: picked.name,
-          ),
-        );
-      } else {
-        request.files.add(
-          await http.MultipartFile.fromPath('foto_profil', picked.path),
-        );
-      }
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'foto_profil',
+          bytes,
+          filename: fileName.isEmpty ? 'foto_profil.jpg' : fileName,
+        ),
+      );
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
       if (!mounted) return;
 
+      dynamic body;
+      try {
+        body = json.decode(response.body);
+      } catch (_) {
+        body = null;
+      }
+
       if (response.statusCode != 200) {
+        String msg = 'Gagal upload foto (kode ${response.statusCode})';
+
+        if (body is Map) {
+          if (body['message'] != null) {
+            msg = body['message'].toString();
+          }
+
+          if (body['errors'] is Map) {
+            final errors = body['errors'] as Map<String, dynamic>;
+            if (errors['foto_profil'] is List &&
+                (errors['foto_profil'] as List).isNotEmpty) {
+              msg = (errors['foto_profil'] as List).first.toString();
+            }
+          }
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Gagal mengupload foto (kode ${response.statusCode})',
-            ),
+            content: Text(_friendlyUploadMessage(msg)),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
 
-      final body = json.decode(response.body);
       if (body is Map && body['success'] == true && body['data'] != null) {
         setState(() {
           _pasien = (body['data'] as Map).cast<String, dynamic>();
           final rawFoto =
               _pasien?['foto_profil_url'] ?? _pasien?['foto_profil'];
+
           if (rawFoto is String && rawFoto.isNotEmpty) {
             _fotoProfilUrl = _resolveMediaUrl(rawFoto);
           } else {
@@ -458,7 +564,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Terjadi kesalahan: $e'),
+          content: Text('Terjadi kesalahan saat upload: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -511,20 +617,31 @@ class _ProfilePageState extends State<ProfilePage> {
       _seedWilayahDropdownFromPasien();
     }
 
-    setState(() => _isEditing = true);
+    setState(() {
+      _isPreparingEditForm = true;
+      _isEditing = true;
+    });
 
-    await _loadProvinsi();
+    try {
+      await _loadProvinsi();
 
-    if ((_selectedProvinsiId ?? '').isNotEmpty) {
-      await _loadKota(_selectedProvinsiId!);
-    }
+      if ((_selectedProvinsiId ?? '').isNotEmpty) {
+        await _loadKota(_selectedProvinsiId!);
+      }
 
-    if ((_selectedKotaId ?? '').isNotEmpty) {
-      await _loadKecamatan(_selectedKotaId!);
-    }
+      if ((_selectedKotaId ?? '').isNotEmpty) {
+        await _loadKecamatan(_selectedKotaId!);
+      }
 
-    if ((_selectedKecamatanId ?? '').isNotEmpty) {
-      await _loadKelurahan(_selectedKecamatanId!);
+      if ((_selectedKecamatanId ?? '').isNotEmpty) {
+        await _loadKelurahan(_selectedKecamatanId!);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPreparingEditForm = false;
+        });
+      }
     }
   }
 
@@ -532,6 +649,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _initControllersFromPasien();
     setState(() {
       _isEditing = false;
+      _isPreparingEditForm = false;
     });
   }
 
@@ -617,22 +735,23 @@ class _ProfilePageState extends State<ProfilePage> {
         final body = json.decode(res.body);
         if (body is Map && body['success'] == true && body['data'] is List) {
           setState(() {
-            _provinsiList = (body['data'] as List)
-                .map<Map<String, String>>((e) {
-                  final m = Map<String, dynamic>.from(e as Map);
-                  return {
-                    'id': (m['id'] ?? '').toString().trim(),
-                    'name': (m['name'] ?? '').toString().trim(),
-                  };
-                })
-                .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
-                .toList();
+            _provinsiList =
+                (body['data'] as List)
+                    .map<Map<String, String>>((e) {
+                      final m = Map<String, dynamic>.from(e as Map);
+                      return {
+                        'id': (m['id'] ?? '').toString().trim(),
+                        'name': (m['name'] ?? '').toString().trim(),
+                      };
+                    })
+                    .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
+                    .toList();
           });
         }
       }
     } catch (e) {
       debugPrint('Error loading provinsi: $e');
-      if (mounted) {
+      if (mounted && !_isPreparingEditForm) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memuat data provinsi: $e'),
@@ -671,16 +790,17 @@ class _ProfilePageState extends State<ProfilePage> {
         final body = json.decode(res.body);
         if (body is Map && body['success'] == true && body['data'] is List) {
           setState(() {
-            _kotaList = (body['data'] as List)
-                .map<Map<String, String>>((e) {
-                  final m = Map<String, dynamic>.from(e as Map);
-                  return {
-                    'id': (m['id'] ?? '').toString().trim(),
-                    'name': (m['name'] ?? '').toString().trim(),
-                  };
-                })
-                .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
-                .toList();
+            _kotaList =
+                (body['data'] as List)
+                    .map<Map<String, String>>((e) {
+                      final m = Map<String, dynamic>.from(e as Map);
+                      return {
+                        'id': (m['id'] ?? '').toString().trim(),
+                        'name': (m['name'] ?? '').toString().trim(),
+                      };
+                    })
+                    .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
+                    .toList();
 
             if (existingKotaId != null && existingKotaId.isNotEmpty) {
               final exists = _kotaList.any((e) => e['id'] == existingKotaId);
@@ -694,7 +814,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       debugPrint('Error loading kota: $e');
-      if (mounted) {
+      if (mounted && !_isPreparingEditForm) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memuat data kota: $e'),
@@ -730,16 +850,17 @@ class _ProfilePageState extends State<ProfilePage> {
         final body = json.decode(res.body);
         if (body is Map && body['success'] == true && body['data'] is List) {
           setState(() {
-            _kecamatanList = (body['data'] as List)
-                .map<Map<String, String>>((e) {
-                  final m = Map<String, dynamic>.from(e as Map);
-                  return {
-                    'id': (m['id'] ?? '').toString().trim(),
-                    'name': (m['name'] ?? '').toString().trim(),
-                  };
-                })
-                .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
-                .toList();
+            _kecamatanList =
+                (body['data'] as List)
+                    .map<Map<String, String>>((e) {
+                      final m = Map<String, dynamic>.from(e as Map);
+                      return {
+                        'id': (m['id'] ?? '').toString().trim(),
+                        'name': (m['name'] ?? '').toString().trim(),
+                      };
+                    })
+                    .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
+                    .toList();
 
             if (existingKecamatanId != null && existingKecamatanId.isNotEmpty) {
               final exists = _kecamatanList.any(
@@ -755,7 +876,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       debugPrint('Error loading kecamatan: $e');
-      if (mounted) {
+      if (mounted && !_isPreparingEditForm) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memuat data kecamatan: $e'),
@@ -788,16 +909,17 @@ class _ProfilePageState extends State<ProfilePage> {
         final body = json.decode(res.body);
         if (body is Map && body['success'] == true && body['data'] is List) {
           setState(() {
-            _kelurahanList = (body['data'] as List)
-                .map<Map<String, String>>((e) {
-                  final m = Map<String, dynamic>.from(e as Map);
-                  return {
-                    'id': (m['id'] ?? '').toString().trim(),
-                    'name': (m['name'] ?? '').toString().trim(),
-                  };
-                })
-                .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
-                .toList();
+            _kelurahanList =
+                (body['data'] as List)
+                    .map<Map<String, String>>((e) {
+                      final m = Map<String, dynamic>.from(e as Map);
+                      return {
+                        'id': (m['id'] ?? '').toString().trim(),
+                        'name': (m['name'] ?? '').toString().trim(),
+                      };
+                    })
+                    .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
+                    .toList();
 
             if (existingKelurahanId != null && existingKelurahanId.isNotEmpty) {
               final exists = _kelurahanList.any(
@@ -813,7 +935,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       debugPrint('Error loading kelurahan: $e');
-      if (mounted) {
+      if (mounted && !_isPreparingEditForm) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memuat data kelurahan: $e'),
@@ -936,13 +1058,15 @@ class _ProfilePageState extends State<ProfilePage> {
         'jenis_kelamin': _jenisKelamin,
         'tanggal_lahir':
             '${_tanggalLahir!.year}-${_tanggalLahir!.month.toString().padLeft(2, '0')}-${_tanggalLahir!.day.toString().padLeft(2, '0')}',
-        'golongan_darah': _golonganDarahC.text.trim().isEmpty
-            ? null
-            : _golonganDarahC.text.trim(),
+        'golongan_darah':
+            _golonganDarahC.text.trim().isEmpty
+                ? null
+                : _golonganDarahC.text.trim(),
         'alergi': _alergiC.text.trim().isEmpty ? null : _alergiC.text.trim(),
-        'penyakit_menahun': _penyakitMenahunC.text.trim().isEmpty
-            ? null
-            : _penyakitMenahunC.text.trim(),
+        'penyakit_menahun':
+            _penyakitMenahunC.text.trim().isEmpty
+                ? null
+                : _penyakitMenahunC.text.trim(),
       };
 
       final res = await http.put(
@@ -1065,8 +1189,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final nama = (_pasien?['nama_lengkap'] ?? _user?['name'] ?? 'Pasien')
-        .toString();
+    final nama =
+        (_pasien?['nama_lengkap'] ?? _user?['name'] ?? 'Pasien').toString();
     final noRm = (_pasien?['no_rekam_medis'] ?? '-').toString();
     final noHp = (_pasien?['no_hp'] ?? '-').toString();
     final email = (_user?['email'] ?? _pasien?['email'] ?? '-').toString();
@@ -1104,84 +1228,86 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
       body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                          color: Colors.black.withOpacity(0.06),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline_rounded,
-                          size: 44,
-                          color: Colors.redAccent,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _error!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: _fetchProfile,
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Coba lagi'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            : LayoutBuilder(
-                builder: (context, constraints) {
-                  final maxWidth = _maxContentWidth(constraints.maxWidth);
-                  final padding = _pagePadding(constraints.maxWidth);
-
-                  return Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxWidth),
-                      child: Padding(
-                        padding: padding,
-                        child: _isEditing
-                            ? _buildEditMode(theme, nama, noRm)
-                            : _buildViewMode(
-                                theme,
-                                nama,
-                                noRm,
-                                noHp,
-                                email,
-                                jk,
-                                tglLahir,
-                                nik,
-                                alamat,
-                                kodePos,
-                                provinsi,
-                                kota,
-                                kecamatan,
-                                kelurahan,
-                              ),
+        child:
+            _isLoading
+                ? const _ProfilePageSkeleton()
+                : _error != null
+                ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                            color: Colors.black.withOpacity(0.06),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            size: 44,
+                            color: Colors.redAccent,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          const SizedBox(height: 16),
+                          OutlinedButton.icon(
+                            onPressed: _fetchProfile,
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Coba lagi'),
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                )
+                : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final maxWidth = _maxContentWidth(constraints.maxWidth);
+                    final padding = _pagePadding(constraints.maxWidth);
+
+                    return Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        child: Padding(
+                          padding: padding,
+                          child:
+                              _isEditing
+                                  ? _buildEditMode(theme, nama, noRm)
+                                  : _buildViewMode(
+                                    theme,
+                                    nama,
+                                    noRm,
+                                    noHp,
+                                    email,
+                                    jk,
+                                    tglLahir,
+                                    nik,
+                                    alamat,
+                                    kodePos,
+                                    provinsi,
+                                    kota,
+                                    kecamatan,
+                                    kelurahan,
+                                  ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
       ),
     );
   }
@@ -1324,6 +1450,10 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildEditMode(ThemeData theme, String nama, String noRm) {
+    if (_isPreparingEditForm) {
+      return const _EditProfileSkeleton();
+    }
+
     final width = MediaQuery.of(context).size.width;
     final bool twoColumn = width >= 700;
 
@@ -1371,19 +1501,20 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ],
                           ),
-                          child: _isUploadingFoto
-                              ? const SizedBox(
-                                  width: 15,
-                                  height: 15,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                          child:
+                              _isUploadingFoto
+                                  ? const SizedBox(
+                                    width: 15,
+                                    height: 15,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 16,
+                                    color: _primary,
                                   ),
-                                )
-                              : const Icon(
-                                  Icons.camera_alt_rounded,
-                                  size: 16,
-                                  color: _primary,
-                                ),
                         ),
                       ),
                     ),
@@ -1415,6 +1546,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         'Lengkapi data profil Anda dengan informasi terbaru.',
                         style: TextStyle(color: Colors.white70, fontSize: 12.8),
                       ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Gunakan foto JPG/PNG dengan ukuran maksimal 2 MB.',
+                        style: TextStyle(color: Colors.white70, fontSize: 11.8),
+                      ),
                     ],
                   ),
                 ),
@@ -1422,36 +1558,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 16),
-          if (_isAnyWilayahLoading)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 14),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE6F7F7),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFBCECEC)),
-              ),
-              child: Row(
-                children: const [
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Sedang memuat data lokasi, mohon tunggu sebentar...',
-                      style: TextStyle(
-                        color: _primaryDark,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(18),
@@ -1596,22 +1702,23 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                           onPressed: _isSaving ? null : _saveProfile,
-                          child: _isSaving
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    color: Colors.white,
+                          child:
+                              _isSaving
+                                  ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                  : const Text(
+                                    'Simpan Perubahan',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                    ),
                                   ),
-                                )
-                              : const Text(
-                                  'Simpan Perubahan',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15,
-                                  ),
-                                ),
                         ),
                       ),
                     ],
@@ -1730,25 +1837,27 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildProvinsiField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: _provinsiList.any((e) => e['id'] == _selectedProvinsiId)
-          ? _selectedProvinsiId
-          : null,
+      value:
+          _provinsiList.any((e) => e['id'] == _selectedProvinsiId)
+              ? _selectedProvinsiId
+              : null,
       decoration: _inputDecoration(
         label: 'Provinsi',
         suffixIcon: _isLoadingProvinsi ? _buildFieldLoading() : null,
       ),
-      items: _provinsiList
-          .map(
-            (e) => DropdownMenuItem<String>(
-              value: e['id'],
-              child: Text(
-                e['name'] ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          )
-          .toList(),
+      items:
+          _provinsiList
+              .map(
+                (e) => DropdownMenuItem<String>(
+                  value: e['id'],
+                  child: Text(
+                    e['name'] ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
       onChanged: (val) {
         if (val == null) return;
 
@@ -1780,48 +1889,51 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildKotaField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: _kotaList.any((e) => e['id'] == _selectedKotaId)
-          ? _selectedKotaId
-          : null,
+      value:
+          _kotaList.any((e) => e['id'] == _selectedKotaId)
+              ? _selectedKotaId
+              : null,
       decoration: _inputDecoration(
         label: 'Kota/Kabupaten',
         suffixIcon: _isLoadingKota ? _buildFieldLoading() : null,
       ),
-      items: _kotaList
-          .map(
-            (e) => DropdownMenuItem<String>(
-              value: e['id'],
-              child: Text(
-                e['name'] ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          )
-          .toList(),
-      onChanged: _kotaList.isEmpty
-          ? null
-          : (val) {
-              if (val == null) return;
+      items:
+          _kotaList
+              .map(
+                (e) => DropdownMenuItem<String>(
+                  value: e['id'],
+                  child: Text(
+                    e['name'] ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+      onChanged:
+          _kotaList.isEmpty
+              ? null
+              : (val) {
+                if (val == null) return;
 
-              final kota = _kotaList.firstWhere(
-                (e) => e['id'] == val,
-                orElse: () => {'id': '', 'name': ''},
-              );
+                final kota = _kotaList.firstWhere(
+                  (e) => e['id'] == val,
+                  orElse: () => {'id': '', 'name': ''},
+                );
 
-              setState(() {
-                _selectedKotaId = val;
-                _selectedKotaNama = kota['name'];
-                _kecamatanList = [];
-                _kelurahanList = [];
-                _selectedKecamatanId = null;
-                _selectedKelurahanId = null;
-                _selectedKecamatanNama = null;
-                _selectedKelurahanNama = null;
-              });
+                setState(() {
+                  _selectedKotaId = val;
+                  _selectedKotaNama = kota['name'];
+                  _kecamatanList = [];
+                  _kelurahanList = [];
+                  _selectedKecamatanId = null;
+                  _selectedKelurahanId = null;
+                  _selectedKecamatanNama = null;
+                  _selectedKelurahanNama = null;
+                });
 
-              _loadKecamatan(val);
-            },
+                _loadKecamatan(val);
+              },
       validator: (v) => v == null ? 'Pilih kota' : null,
     );
   }
@@ -1829,45 +1941,48 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildKecamatanField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: _kecamatanList.any((e) => e['id'] == _selectedKecamatanId)
-          ? _selectedKecamatanId
-          : null,
+      value:
+          _kecamatanList.any((e) => e['id'] == _selectedKecamatanId)
+              ? _selectedKecamatanId
+              : null,
       decoration: _inputDecoration(
         label: 'Kecamatan',
         suffixIcon: _isLoadingKecamatan ? _buildFieldLoading() : null,
       ),
-      items: _kecamatanList
-          .map(
-            (e) => DropdownMenuItem<String>(
-              value: e['id'],
-              child: Text(
-                e['name'] ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          )
-          .toList(),
-      onChanged: _kecamatanList.isEmpty
-          ? null
-          : (val) {
-              if (val == null) return;
+      items:
+          _kecamatanList
+              .map(
+                (e) => DropdownMenuItem<String>(
+                  value: e['id'],
+                  child: Text(
+                    e['name'] ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+      onChanged:
+          _kecamatanList.isEmpty
+              ? null
+              : (val) {
+                if (val == null) return;
 
-              final kec = _kecamatanList.firstWhere(
-                (e) => e['id'] == val,
-                orElse: () => {'id': '', 'name': ''},
-              );
+                final kec = _kecamatanList.firstWhere(
+                  (e) => e['id'] == val,
+                  orElse: () => {'id': '', 'name': ''},
+                );
 
-              setState(() {
-                _selectedKecamatanId = val;
-                _selectedKecamatanNama = kec['name'];
-                _kelurahanList = [];
-                _selectedKelurahanId = null;
-                _selectedKelurahanNama = null;
-              });
+                setState(() {
+                  _selectedKecamatanId = val;
+                  _selectedKecamatanNama = kec['name'];
+                  _kelurahanList = [];
+                  _selectedKelurahanId = null;
+                  _selectedKelurahanNama = null;
+                });
 
-              _loadKelurahan(val);
-            },
+                _loadKelurahan(val);
+              },
       validator: (v) => v == null ? 'Pilih kecamatan' : null,
     );
   }
@@ -1875,46 +1990,49 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildKelurahanField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: _kelurahanList.any((e) => e['id'] == _selectedKelurahanId)
-          ? _selectedKelurahanId
-          : null,
+      value:
+          _kelurahanList.any((e) => e['id'] == _selectedKelurahanId)
+              ? _selectedKelurahanId
+              : null,
       decoration: _inputDecoration(
         label: 'Kelurahan/Desa (opsional)',
         suffixIcon: _isLoadingKelurahan ? _buildFieldLoading() : null,
       ),
-      items: _kelurahanList
-          .map(
-            (e) => DropdownMenuItem<String>(
-              value: e['id'],
-              child: Text(
-                e['name'] ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          )
-          .toList(),
-      onChanged: _kelurahanList.isEmpty
-          ? null
-          : (val) {
-              if (val == null) {
+      items:
+          _kelurahanList
+              .map(
+                (e) => DropdownMenuItem<String>(
+                  value: e['id'],
+                  child: Text(
+                    e['name'] ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+      onChanged:
+          _kelurahanList.isEmpty
+              ? null
+              : (val) {
+                if (val == null) {
+                  setState(() {
+                    _selectedKelurahanId = null;
+                    _selectedKelurahanNama = null;
+                  });
+                  return;
+                }
+
+                final kel = _kelurahanList.firstWhere(
+                  (e) => e['id'] == val,
+                  orElse: () => {'id': '', 'name': ''},
+                );
+
                 setState(() {
-                  _selectedKelurahanId = null;
-                  _selectedKelurahanNama = null;
+                  _selectedKelurahanId = val;
+                  _selectedKelurahanNama = kel['name'];
                 });
-                return;
-              }
-
-              final kel = _kelurahanList.firstWhere(
-                (e) => e['id'] == val,
-                orElse: () => {'id': '', 'name': ''},
-              );
-
-              setState(() {
-                _selectedKelurahanId = val;
-                _selectedKelurahanNama = kel['name'];
-              });
-            },
+              },
     );
   }
 
@@ -1954,6 +2072,319 @@ class _ProfilePageState extends State<ProfilePage> {
       controller: _penyakitMenahunC,
       maxLines: 2,
       decoration: _inputDecoration(label: 'Penyakit Menahun (opsional)'),
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  final double height;
+  final double width;
+  final double radius;
+
+  const _SkeletonBox({
+    required this.height,
+    required this.width,
+    this.radius = 12,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE9EEF5),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+}
+
+class _ProfilePageSkeleton extends StatelessWidget {
+  const _ProfilePageSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxWidth =
+            constraints.maxWidth >= 1200
+                ? 900
+                : constraints.maxWidth >= 900
+                ? 760
+                : constraints.maxWidth >= 600
+                ? 620
+                : constraints.maxWidth;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: Column(
+                      children: const [
+                        _SkeletonBox(height: 72, width: 72, radius: 36),
+                        SizedBox(height: 14),
+                        _SkeletonBox(height: 20, width: 180),
+                        SizedBox(height: 8),
+                        _SkeletonBox(height: 14, width: 140),
+                        SizedBox(height: 8),
+                        _SkeletonBox(height: 14, width: 200),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const _SkeletonSectionCard(lines: 3),
+                  const SizedBox(height: 14),
+                  const _SkeletonSectionCard(lines: 6),
+                  const SizedBox(height: 14),
+                  const _SkeletonSectionCard(lines: 3),
+                  const SizedBox(height: 24),
+                  const _SkeletonBox(
+                    height: 52,
+                    width: double.infinity,
+                    radius: 18,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _EditProfileSkeleton extends StatelessWidget {
+  const _EditProfileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final bool twoColumn = width >= 700;
+
+    Widget field() =>
+        const _SkeletonBox(height: 58, width: double.infinity, radius: 16);
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Row(
+              children: const [
+                _SkeletonBox(height: 56, width: 56, radius: 28),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SkeletonBox(height: 18, width: 160),
+                      SizedBox(height: 8),
+                      _SkeletonBox(height: 14, width: 120),
+                      SizedBox(height: 8),
+                      _SkeletonBox(height: 12, width: 220),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                  color: Color(0x14000000),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                if (twoColumn)
+                  Row(
+                    children: [
+                      Expanded(child: field()),
+                      const SizedBox(width: 12),
+                      Expanded(child: field()),
+                    ],
+                  )
+                else ...[
+                  field(),
+                  const SizedBox(height: 12),
+                  field(),
+                ],
+                const SizedBox(height: 12),
+                if (twoColumn)
+                  Row(
+                    children: [
+                      Expanded(child: field()),
+                      const SizedBox(width: 12),
+                      Expanded(child: field()),
+                    ],
+                  )
+                else ...[
+                  field(),
+                  const SizedBox(height: 12),
+                  field(),
+                ],
+                const SizedBox(height: 12),
+                if (twoColumn)
+                  Row(
+                    children: [
+                      Expanded(child: field()),
+                      const SizedBox(width: 12),
+                      Expanded(child: field()),
+                    ],
+                  )
+                else ...[
+                  field(),
+                  const SizedBox(height: 12),
+                  field(),
+                ],
+                const SizedBox(height: 12),
+                const _SkeletonBox(
+                  height: 88,
+                  width: double.infinity,
+                  radius: 16,
+                ),
+                const SizedBox(height: 12),
+                if (twoColumn)
+                  Row(
+                    children: [
+                      Expanded(child: field()),
+                      const SizedBox(width: 12),
+                      Expanded(child: field()),
+                    ],
+                  )
+                else ...[
+                  field(),
+                  const SizedBox(height: 12),
+                  field(),
+                ],
+                const SizedBox(height: 12),
+                if (twoColumn)
+                  Row(
+                    children: [
+                      Expanded(child: field()),
+                      const SizedBox(width: 12),
+                      Expanded(child: field()),
+                    ],
+                  )
+                else ...[
+                  field(),
+                  const SizedBox(height: 12),
+                  field(),
+                ],
+                const SizedBox(height: 12),
+                if (twoColumn)
+                  Row(
+                    children: [
+                      Expanded(child: field()),
+                      const SizedBox(width: 12),
+                      Expanded(child: field()),
+                    ],
+                  )
+                else ...[
+                  field(),
+                  const SizedBox(height: 12),
+                  field(),
+                ],
+                const SizedBox(height: 12),
+                const _SkeletonBox(
+                  height: 76,
+                  width: double.infinity,
+                  radius: 16,
+                ),
+                const SizedBox(height: 12),
+                const _SkeletonBox(
+                  height: 76,
+                  width: double.infinity,
+                  radius: 16,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: const [
+                    Expanded(
+                      child: _SkeletonBox(
+                        height: 52,
+                        width: double.infinity,
+                        radius: 18,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: _SkeletonBox(
+                        height: 52,
+                        width: double.infinity,
+                        radius: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonSectionCard extends StatelessWidget {
+  final int lines;
+
+  const _SkeletonSectionCard({required this.lines});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SkeletonBox(height: 18, width: 160),
+          const SizedBox(height: 10),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          ...List.generate(
+            lines,
+            (index) => const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: _SkeletonBox(
+                height: 16,
+                width: double.infinity,
+                radius: 10,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

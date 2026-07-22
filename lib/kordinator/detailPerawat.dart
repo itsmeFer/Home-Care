@@ -20,7 +20,7 @@ class DetailPerawatPage extends StatefulWidget {
 }
 
 class _DetailPerawatPageState extends State<DetailPerawatPage> {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   final TextEditingController _passwordC = TextEditingController();
   bool _obscurePwd = true;
@@ -61,7 +61,7 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
     }
 
     // Base API (bukan root web)
-    const String baseApi = 'http://192.168.1.5:8000/api';
+    const String baseApi = 'https://homecare.primamadanitalenta.my.id/api';
 
     // Route Laravel: /api/media/{path}
     // Di backend sudah handle kalau path diawali "storage/..."

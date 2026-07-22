@@ -22,7 +22,7 @@ const Color kSuccess = Color(0xFF16A34A);
 =========================================================== */
 
 /// Base URL tanpa /api
-const String kBaseUrl = 'http://192.168.1.5:8000';
+const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
 
 String get apiBaseUrl => '$kBaseUrl/api';
 
