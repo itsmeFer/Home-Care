@@ -4,12 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Warna HCColor
 import 'package:home_care/users/HomePage.dart';
-
-// ======================================
-// KONFIG
-// ======================================
 
 const String kApiBase = 'https://homecare.primamadanitalenta.my.id/api';
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
@@ -19,7 +14,6 @@ String? resolveMediaUrl(String? raw) {
   var v = raw.trim();
   if (v.isEmpty) return null;
 
-  // Kalau sudah bentuk api/media → langsung pakai
   if (v.contains('/api/media/')) {
     if (!v.startsWith('http')) {
       return '$kBaseUrl$v';
@@ -27,27 +21,19 @@ String? resolveMediaUrl(String? raw) {
     return v;
   }
 
-  // Kalau full URL: https://homecare.primamadanitalenta.my.id/storage/...
   if (v.startsWith('http://') || v.startsWith('https://')) {
     final uri = Uri.parse(v);
-    v = uri.path; // contoh: /storage/perawat/...
+    v = uri.path;
   }
 
-  // Hilangkan slash di depan
   if (v.startsWith('/')) v = v.substring(1);
 
-  // Hilangkan "storage/" di depan kalau ada
   if (v.startsWith('storage/')) {
-    v = v.substring('storage/'.length); // jadi: perawat/foto/xxx.jpg
+    v = v.substring('storage/'.length);
   }
 
-  // Sekarang v bentuknya perawat/... → gabung ke api/media
   return '$kBaseUrl/api/media/$v';
 }
-
-// ======================================
-// MODEL UNTUK LIST DI ADMIN
-// ======================================
 
 class PerawatAdmin {
   final int? id;
@@ -61,7 +47,7 @@ class PerawatAdmin {
   final String? statusVerifikasi;
   final String? verifiedAt;
   final String? catatanVerifikasi;
-  final String? verifikator; // nama_verifikator
+  final String? verifikator;
 
   PerawatAdmin({
     this.id,
@@ -91,7 +77,7 @@ class PerawatAdmin {
       id: json['id'] as int?,
       kodePerawat: json['kode_perawat']?.toString(),
       namaPerawat:
-          (json['nama_perawat'] ?? json['nama_lengkap'])?.toString(), // <-- ini
+          (json['nama_perawat'] ?? json['nama_lengkap'])?.toString(),
       namaKoordinator: json['nama_koordinator']?.toString(),
       noHp: json['no_hp']?.toString(),
       isActive: parseBool(json['is_active']),
@@ -135,10 +121,6 @@ class PerawatAdmin {
     return (parts.first[0] + parts.last[0]).toUpperCase();
   }
 }
-
-// ======================================
-// HALAMAN LIST PERAWAT UNTUK ADMIN
-// ======================================
 
 class LihatPerawatPage extends StatefulWidget {
   const LihatPerawatPage({super.key});
@@ -256,7 +238,7 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
       ),
       body: Column(
         children: [
-          // SEARCH BAR
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
@@ -331,7 +313,7 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // FOTO / INISIAL
+
                                 CircleAvatar(
                                   radius: 22,
                                   backgroundColor: HCColor.primary.withOpacity(
@@ -353,7 +335,7 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                                           ),
                                 ),
                                 const SizedBox(width: 12),
-                                // DETAIL
+
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -385,7 +367,7 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                                       const SizedBox(height: 6),
                                       Row(
                                         children: [
-                                          // CHIP STATUS VERIFIKASI
+
                                           Container(
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 10,
@@ -407,7 +389,7 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          // CHIP STATUS AKTIF
+
                                           Container(
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 10,
@@ -441,7 +423,6 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                                         ],
                                       ),
 
-                                      // TGL VERIFIKASI
                                       if (p.verifiedAt != null &&
                                           p.verifiedAt!.isNotEmpty) ...[
                                         const SizedBox(height: 6),
@@ -454,7 +435,6 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                                         ),
                                       ],
 
-                                      // CATATAN VERIFIKASI
                                       if (p.catatanVerifikasi != null &&
                                           p.catatanVerifikasi!.isNotEmpty) ...[
                                         const SizedBox(height: 2),
@@ -467,7 +447,6 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                                         ),
                                       ],
 
-                                      // NAMA VERIFIKATOR
                                       if (p.verifikator != null &&
                                           p.verifikator!.isNotEmpty) ...[
                                         const SizedBox(height: 2),

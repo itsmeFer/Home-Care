@@ -12,9 +12,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/users/lihatHistoriPemesanan.dart';
 
-/// ========================================
-/// COLOR SCHEME
-/// ========================================
 class HCColor {
   static const primary = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
@@ -22,10 +19,6 @@ class HCColor {
   static const card = Colors.white;
   static const textMuted = Colors.black54;
 }
-
-/// ========================================
-/// MODELS
-/// ========================================
 
 class BannerItem {
   final int id;
@@ -170,10 +163,6 @@ class Testimonial {
   }
 }
 
-/// ========================================
-/// HELPER FUNCTIONS
-/// ========================================
-
 String formatRupiah(dynamic value) {
   final number =
       value is num
@@ -192,10 +181,6 @@ String formatRupiah(dynamic value) {
 
   return 'Rp ${chunks.join('.').split('').reversed.join('')}';
 }
-
-/// ========================================
-/// SERVICES
-/// ========================================
 
 class BannerService {
   static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
@@ -359,10 +344,6 @@ class KategoriLayananService {
   }
 }
 
-/// ========================================
-/// MAIN HOMEPAGE
-/// ========================================
-
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -396,10 +377,6 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
-/// ========================================
-/// WIDGETS
-/// ========================================
 
 class _TopLocationBar extends StatefulWidget {
   const _TopLocationBar();
@@ -1617,197 +1594,114 @@ class _SquareBannerLoading extends StatelessWidget {
   }
 }
 
-class _HealthTipsCarousel extends StatefulWidget {
+class _HealthTipsCarousel extends StatelessWidget {
   const _HealthTipsCarousel();
 
   @override
-  State<_HealthTipsCarousel> createState() => _HealthTipsCarouselState();
-}
-
-class _HealthTipsCarouselState extends State<_HealthTipsCarousel> {
-  late ScrollController _scrollController;
-  Timer? _autoScrollTimer;
-
-  final tips = [
-    _HealthTip(
-      '💧 Cukupi air putih',
-      'Minum air yang cukup bantu tubuh tetap segar dan tidak mudah lelah.',
-      Colors.blue.shade50,
-      Colors.blue.shade700,
-    ),
-    _HealthTip(
-      '🏃 Bergerak tiap hari',
-      'Aktivitas ringan 30 menit sehari bisa bantu tubuh tetap bugar.',
-      Colors.green.shade50,
-      Colors.green.shade700,
-    ),
-    _HealthTip(
-      '🥗 Makan lebih seimbang',
-      'Sayur, buah, dan makanan bergizi bantu tubuh pulih dan tetap kuat.',
-      Colors.orange.shade50,
-      Colors.orange.shade700,
-    ),
-    _HealthTip(
-      '😴 Istirahat yang cukup',
-      'Tidur yang cukup bantu tubuh lebih cepat pulih dan pikiran lebih tenang.',
-      Colors.purple.shade50,
-      Colors.purple.shade700,
-    ),
-    _HealthTip(
-      '🧘 Jaga pikiran tetap tenang',
-      'Luangkan waktu sebentar untuk relaksasi agar tubuh dan hati lebih nyaman.',
-      Colors.teal.shade50,
-      Colors.teal.shade700,
-    ),
-    _HealthTip(
-      '🚭 Kurangi rokok',
-      'Menghindari rokok bantu menjaga paru-paru dan kesehatan tubuh secara menyeluruh.',
-      Colors.red.shade50,
-      Colors.red.shade700,
-    ),
-    _HealthTip(
-      '🦷 Jaga kebersihan diri',
-      'Kebiasaan kecil seperti cuci tangan dan sikat gigi rutin sangat berarti.',
-      Colors.cyan.shade50,
-      Colors.cyan.shade700,
-    ),
-    _HealthTip(
-      '☀️ Nikmati sinar pagi',
-      'Berjemur pagi secukupnya bantu tubuh mendapat vitamin D alami.',
-      Colors.amber.shade50,
-      Colors.amber.shade700,
-    ),
-    _HealthTip(
-      '📱 Istirahat dari layar',
-      'Berhenti sejenak dari gadget bantu mata lebih rileks dan kepala lebih ringan.',
-      Colors.indigo.shade50,
-      Colors.indigo.shade700,
-    ),
-    _HealthTip(
-      '🩺 Cek kesehatan berkala',
-      'Pemeriksaan rutin bantu Anda merasa lebih tenang dan sigap menjaga kesehatan.',
-      Colors.pink.shade50,
-      Colors.pink.shade700,
-    ),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController();
-    _startAutoScroll();
-  }
-
-  @override
-  void dispose() {
-    _autoScrollTimer?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (
-      timer,
-    ) {
-      if (!mounted || !_scrollController.hasClients) return;
-
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      final currentScroll = _scrollController.offset;
-      const scrollSpeed = 1.0;
-
-      if (currentScroll >= maxScroll) {
-        _scrollController.jumpTo(0);
-      } else {
-        _scrollController.jumpTo(currentScroll + scrollSpeed);
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final tips = [
+      _HealthTip(
+        icon: Icons.water_drop_outlined,
+        title: 'Cukupi air putih',
+        description: 'Minum air yang cukup bantu tubuh tetap segar dan tidak mudah lelah.',
+        color: Colors.blue.shade400,
+      ),
+      _HealthTip(
+        icon: Icons.directions_run_outlined,
+        title: 'Bergerak tiap hari',
+        description: 'Aktivitas ringan 30 menit sehari bisa bantu tubuh tetap bugar.',
+        color: Colors.green.shade400,
+      ),
+      _HealthTip(
+        icon: Icons.restaurant_outlined,
+        title: 'Makan lebih seimbang',
+        description: 'Sayur, buah, dan makanan bergizi bantu tubuh pulih dan tetap kuat.',
+        color: Colors.orange.shade400,
+      ),
+      _HealthTip(
+        icon: Icons.nightlight_round_outlined,
+        title: 'Istirahat yang cukup',
+        description: 'Tidur yang cukup bantu tubuh lebih cepat pulih dan pikiran lebih tenang.',
+        color: Colors.purple.shade400,
+      ),
+      _HealthTip(
+        icon: Icons.self_improvement_outlined,
+        title: 'Jaga pikiran tetap tenang',
+        description: 'Luangkan waktu sebentar untuk relaksasi agar tubuh dan hati lebih nyaman.',
+        color: Colors.teal.shade400,
+      ),
+      _HealthTip(
+        icon: Icons.clean_hands_outlined,
+        title: 'Jaga kebersihan diri',
+        description: 'Kebiasaan kecil seperti cuci tangan rutin sangat berarti untuk kesehatan.',
+        color: Colors.cyan.shade400,
+      ),
+    ];
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF0BA5A7).withOpacity(0.05),
-            const Color(0xFF088088).withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Expanded(
-                  child: Row(
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: HCColor.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.auto_awesome_outlined,
+                    color: HCColor.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.tips_and_updates,
-                        color: Color.fromARGB(190, 253, 192, 23),
-                        size: 24,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Tips sehat untuk Anda',
+                      const Text(
+                        'Jurnal Sehat',
                         style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
                           color: Colors.black87,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Langkah kecil untuk hidup lebih baik',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Fitur lihat semua tips akan segera hadir',
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    'Lihat semua',
-                    style: TextStyle(
-                      color: Color(0xFF0BA5A7),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Langkah kecil setiap hari bisa bantu tubuh terasa lebih baik.',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.black.withOpacity(0.6),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SizedBox(
-            height: 100,
+            height: 154,
             child: ListView.separated(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: tips.length * 100,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (_, i) => _HealthTipCard(tip: tips[i % tips.length]),
+              physics: const BouncingScrollPhysics(),
+              itemCount: tips.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 16),
+              itemBuilder: (_, i) => _HealthTipCard(tip: tips[i]),
             ),
           ),
         ],
@@ -1817,12 +1711,17 @@ class _HealthTipsCarouselState extends State<_HealthTipsCarousel> {
 }
 
 class _HealthTip {
+  final IconData icon;
   final String title;
   final String description;
-  final Color bgColor;
-  final Color textColor;
+  final Color color;
 
-  _HealthTip(this.title, this.description, this.bgColor, this.textColor);
+  _HealthTip({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.color,
+  });
 }
 
 class _HealthTipCard extends StatelessWidget {
@@ -1832,34 +1731,59 @@ class _HealthTipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 280,
-      padding: const EdgeInsets.all(16),
+      width: 290,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: tip.bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: tip.textColor.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            tip.title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: tip.textColor,
-            ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: tip.color.withOpacity(0.15), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: tip.color.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          const SizedBox(height: 4),
-          Text(
-            tip.description,
-            style: TextStyle(
-              fontSize: 13,
-              color: tip.textColor.withOpacity(0.8),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: tip.color.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            child: Icon(tip.icon, color: tip.color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  tip.title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  tip.description,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    height: 1.35,
+                    color: Colors.black54,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

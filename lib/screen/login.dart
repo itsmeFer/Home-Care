@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-// ROUTING SESUAI ROLE
 import 'package:home_care/admin/dashboard.dart';
 import 'package:home_care/kordinator/dashboard.dart';
 import 'package:home_care/manager/manager_dashboard.dart';
@@ -102,7 +101,6 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // SIMPAN TOKEN KE SHARED PREFERENCES
       await prefs.setString('auth_token', token);
 
       String role = 'pasien';
@@ -221,7 +219,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: IntrinsicHeight(
                   child: Column(
                     children: [
-                      // Top Section (Logo)
+
                       Expanded(
                         child: Center(
                           child: Padding(
@@ -248,7 +246,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      // Bottom Section (Form)
+
                       Container(
                         width: double.infinity,
                         decoration: const BoxDecoration(

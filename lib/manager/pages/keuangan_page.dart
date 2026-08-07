@@ -1,18 +1,3 @@
-// laporan_keuangan_page.dart (FULL) ✅ (MANAGER VERSION - MIRIP DIREKTUR)
-//
-// ✅ KPI Rupiah (Rp + titik)
-// ✅ Table Rupiah
-// ✅ 3 Chart mode (Line/Pie/Bar)
-// ✅ Pie donut + legend responsif (rapih, tidak numpuk tulisan)
-// ✅ Animasi chart 0 -> nilai tiap buka tab / ganti tab / ganti range
-// ✅ Export CSV (Web & Mobile)
-//
-// Dependencies:
-// - fl_chart, http, shared_preferences, universal_html, universal_io, path_provider
-//
-// Backend:
-// GET /api/manager/dashboard/keuangan?range=...
-
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -25,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart' as uio;
-// ignore: avoid_web_libraries_in_flutter
+
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/ui_components.dart';
@@ -53,7 +38,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ✅ endpoint manager
   String get _url =>
       '$kApiBase/manager/dashboard/keuangan?range=${Uri.encodeComponent(widget.range)}';
 
@@ -61,11 +45,9 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
 
   KeuanganChartMode _mode = KeuanganChartMode.lineRevenue;
 
-  // ✅ animasi nilai chart 0 -> nilai
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
 
-  // ✅ animasi masuk (fade/slide) saat ganti chart/range
   Key _chartAnimKey = UniqueKey();
 
   @override
@@ -127,9 +109,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     );
   }
 
-  // =========================
-  // AUTH + FETCH (COMPAT)
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final t1 = (prefs.getString('auth_token') ?? '').trim();
@@ -163,9 +142,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================================================
-  // ✅ FORMAT RUPIAH PINTAR (tanpa intl)
-  // =========================================================
   double _toDouble(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
@@ -231,9 +207,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     return n.length > 14 ? '${n.substring(0, 14)}…' : n;
   }
 
-  // =========================
-  // EXPORT CSV
-  // =========================
   Uint8List _utf8WithBom(String s) {
     final b = utf8.encode(s);
     return Uint8List.fromList([0xEF, 0xBB, 0xBF, ...b]);
@@ -272,7 +245,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
       final trend = _extractTrend(data);
       final feePie = _extractFeeComposition(data);
 
-      // KPI compat
       final incomeVal = kpi['income'] ?? kpi['revenue'] ?? kpi['omset'] ?? 0;
       final feeVal = kpi['fee'] ?? kpi['fee_total'] ?? 0;
       final profitVal = kpi['profit'] ?? 0;
@@ -338,15 +310,11 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
         final m =
             (e is Map) ? Map<String, dynamic>.from(e) : <String, dynamic>{};
 
-        // compat: top_layanan biasanya punya {nama, omset, total_order}
         final nama = (m['nama'] ?? m['nama_layanan'] ?? '-').toString();
         final omset = m['omset'] ?? m['revenue'] ?? m['income'] ?? 0;
 
-        // ✅ fee compat (penting!)
         final feeX = m['fee'] ?? m['fee_total'] ?? m['total_fee'] ?? 0;
 
-        // ✅ profit: kalau backend sudah kasih profit, pakai itu.
-        // kalau belum, hitung omset - fee
         final profitX =
             m['profit'] ?? max(0, _toDouble(omset) - _toDouble(feeX));
 
@@ -364,7 +332,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
       final safeRange = widget.range.replaceAll(' ', '_');
       final safeTime = DateTime.now().toIso8601String().replaceAll(':', '-');
 
-      // ✅ beda nama file biar jelas: manager
       final fileName = 'keuangan_manager_${safeRange}_$safeTime.csv';
 
       if (kIsWeb) {
@@ -387,9 +354,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     }
   }
 
-  // =========================
-  // DATA EXTRACT (FLEKSIBEL)
-  // =========================
   List<Map<String, dynamic>> _extractTrend(Map<String, dynamic> data) {
     final keys = [
       'trend',
@@ -397,7 +361,7 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
       'revenue_trend',
       'chart_trend',
       'tren',
-      // ✅ dari controller overview kamu ada "cashflow" {date,income,fee,profit}
+
       'cashflow',
       'cashflow_trend',
       'cashflow_series',
@@ -445,7 +409,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     for (var i = 0; i < trend.length; i++) {
       final m = trend[i];
 
-      // label compat
       final label =
           (m['label'] ??
                   m['period'] ??
@@ -456,9 +419,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
               .toString();
       labels.add(label.isEmpty ? '${i + 1}' : label);
 
-      // value compat
-      // - chart manager keuangan bisa pakai income/revenue/value/omset
-      // - kalau dari cashflow: gunakan income
       final val = _toDouble(
         m['value'] ?? m['income'] ?? m['revenue'] ?? m['omset'] ?? 0,
       );
@@ -473,9 +433,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     return (spots: spots, labels: labels);
   }
 
-  // =========================
-  // UI: SWITCHER
-  // =========================
   Widget _chartSwitcher() {
     String label(KeuanganChartMode m) {
       switch (m) {
@@ -563,9 +520,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     );
   }
 
-  // =========================
-  // UI: PIE LEGEND
-  // =========================
   Widget _pieLegend(List<Map<String, dynamic>> data, {required bool isWide}) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -634,9 +588,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     );
   }
 
-  // =========================
-  // CHARTS
-  // =========================
   Widget _lineRevenueChart(List<Map<String, dynamic>> trend) {
     if (trend.isEmpty) {
       return const XCard(
@@ -931,7 +882,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
             )
             .toList();
 
-    // compat: kalau profit null tapi omset ada, hitung omset - fee
     for (final m in items) {
       if (m['profit'] == null) {
         final omset = _toDouble(m['omset'] ?? m['revenue'] ?? m['income'] ?? 0);
@@ -1067,7 +1017,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     final trend = _extractTrend(data);
     final feePie = _extractFeeComposition(data);
 
-    // profit_per_layanan compat (fallback top_layanan)
     final perLayanan =
         (data['profit_per_layanan'] is List)
             ? (data['profit_per_layanan'] as List)
@@ -1099,9 +1048,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
     }
   }
 
-  // =========================
-  // BUILD (MIRIP DIREKTUR)
-  // =========================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 3 : 2;
@@ -1120,7 +1066,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
                 ? Map<String, dynamic>.from(data['kpi'])
                 : <String, dynamic>{};
 
-        // KPI compat (income/revenue/fee_total)
         final incomeVal = kpi['income'] ?? kpi['revenue'] ?? kpi['omset'] ?? 0;
         final feeVal = kpi['fee'] ?? kpi['fee_total'] ?? 0;
         final profitVal =
@@ -1146,7 +1091,6 @@ class _ManagerKeuanganPageState extends State<ManagerKeuanganPage>
                     ? data['top_layanan']
                     : const []);
 
-        // rows compat
         final rows =
             perLayanan.isNotEmpty
                 ? perLayanan.take(10).map((e) {

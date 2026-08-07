@@ -20,7 +20,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _isLoading = true;
   String? _error;
-  static const int _maxPhotoBytes = 2 * 1024 * 1024; // 2MB
+  static const int _maxPhotoBytes = 2 * 1024 * 1024;
   String? _fotoProfilUrl;
   File? _localFotoFile;
   bool _isUploadingFoto = false;
@@ -1425,15 +1425,83 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          // Logout Button
+          const SizedBox(height: 14),
+          _SectionCard(
+            title: 'Pengaturan & Keamanan',
+            icon: Icons.settings_outlined,
+            children: [
+              ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFF0BA5A7)),
+                title: const Text('Kebijakan Privasi (Privacy Policy)', style: TextStyle(fontFamily: 'Poppins', fontSize: 13.8, fontWeight: FontWeight.w500, color: Color(0xFF1F2937))),
+                trailing: const Icon(Icons.open_in_new, size: 16, color: Colors.black54),
+                onTap: () async {
+                  final url = Uri.parse('https://royal-klinik.cloud/privacy-homecare.html');
+                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Tidak dapat membuka link Kebijakan Privasi')),
+                      );
+                    }
+                  }
+                },
+              ),
+              const Divider(height: 1, color: Color(0xFFE5E7EB)),
+              ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                leading: const Icon(Icons.delete_forever_outlined, color: Colors.redAccent),
+                title: const Text('Hapus Akun', style: TextStyle(fontFamily: 'Poppins', fontSize: 13.8, fontWeight: FontWeight.w600, color: Colors.redAccent)),
+                trailing: const Icon(Icons.chevron_right, size: 16, color: Colors.black54),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Hapus Akun', style: TextStyle(fontWeight: FontWeight.bold)),
+                      content: const Text(
+                        'Apakah Anda yakin ingin menghapus akun secara permanen? Semua data medis, riwayat pemesanan, dan profil Anda akan dihapus dan tidak dapat dipulihkan kembali.',
+                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Batal', style: TextStyle(color: Colors.black54)),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            Navigator.pop(ctx);
+                            final Uri url = Uri.parse('https://homecare.primamadanitalenta.my.id/delete-account');
+                            if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Tidak dapat membuka halaman penghapusan akun')),
+                                );
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Ya, Hapus'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+
           SizedBox(
             width: double.infinity,
             height: 52,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.logout_rounded, color: Color(0xFFE53935)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFEBEE), // Sangat soft red
+                backgroundColor: const Color(0xFFFFEBEE),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -1447,37 +1515,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   fontSize: 16, 
                   color: Color(0xFFE53935),
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Hapus Akun Link (Lebih subtle)
-          TextButton.icon(
-            icon: Icon(Icons.warning_amber_rounded, size: 16, color: Colors.grey.shade500),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey.shade600,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            onPressed: () async {
-              final Uri url = Uri.parse('https://homecare.primamadanitalenta.my.id/delete-account');
-              if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Tidak dapat membuka link penghapusan akun')),
-                  );
-                }
-              }
-            },
-            label: Text(
-              'Ajukan Penghapusan Akun',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade500,
-                decoration: TextDecoration.underline,
-                decorationColor: Colors.grey.shade400,
               ),
             ),
           ),

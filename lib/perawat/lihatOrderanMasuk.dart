@@ -18,7 +18,6 @@ class HCColor {
   static const lightTeal = Color(0xFFE0F7F7);
 }
 
-/// Model order untuk perawat
 class OrderLayananPerawat {
   final int id;
   final String kodeOrder;
@@ -75,7 +74,6 @@ class _LihatOrderanMasukPerawatPageState
   DateTime? _tanggalDari;
   DateTime? _tanggalSampai;
 
-  // ✅ Debounce timer untuk realtime search
   Timer? _debounceTimer;
 
   final List<String> _statusOptions = const [
@@ -94,7 +92,6 @@ class _LihatOrderanMasukPerawatPageState
     super.initState();
     _fetchOrders();
 
-    // ✅ Listen to search input changes
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -106,15 +103,12 @@ class _LihatOrderanMasukPerawatPageState
     super.dispose();
   }
 
-  // ✅ Realtime search dengan debouncing
   void _onSearchChanged() {
-    // Update UI untuk show/hide clear button
+
     setState(() {});
 
-    // Cancel previous timer
     _debounceTimer?.cancel();
 
-    // Set new timer - fetch after 500ms of no typing
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
         _fetchOrders();
@@ -172,7 +166,6 @@ class _LihatOrderanMasukPerawatPageState
         '$kBaseUrl/perawat/order-layanan',
       ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
 
-      // 🔍 Debug: Print URL dan query params
       debugPrint('🔍 Fetching orders with URL: $uri');
       debugPrint('🔍 Search keyword: "$keyword"');
       debugPrint('🔍 Query params: $queryParams');
@@ -371,7 +364,7 @@ class _LihatOrderanMasukPerawatPageState
 
   void _clearSearch() {
     _searchController.clear();
-    // No need to call _fetchOrders() - listener will handle it
+
   }
 
   int get _totalAktif =>
@@ -641,7 +634,6 @@ class _LihatOrderanMasukPerawatPageState
             );
           }
 
-          // Mobile layout
           return Column(
             children: [
               searchField,

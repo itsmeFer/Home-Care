@@ -1,27 +1,3 @@
-// AuditPage.dart (FULL) ✅ FIXED + RESPONSIVE
-// ✅ TOKEN FIX: cek 'auth_token' dulu (sesuai login.dart), fallback 'token'
-// ✅ RESPONSIVE FULL: Desktop (3 cols) / Tablet (2 cols) / Mobile (1 col)
-// ✅ Audit KPI + Logs
-// ✅ Export CSV (Web & Mobile) kolom rapi (sep=; + BOM)
-// ✅ Freeze/Unfreeze SEMUA USER (tanpa filter role)
-// ✅ Popup Freeze: search + debounce + pagination data list (ambil "data.data" kalau paginate)
-// ✅ Kelola Admin (DYNAMIC) : list user (paginate) + search + ubah role + simpan (API) + preview log lokal
-//
-// Dependencies:
-// - http, shared_preferences, path_provider, universal_io, universal_html
-// - ui_components.dart (SectionHeader, LoadingCard, ErrorCard, ResponsiveGrid, KpiCard, XCard, OutlineButtonX)
-//
-// Backend:
-// GET  /api/direktur/dashboard/audit?range=...
-// GET  /api/direktur/freeze/users?q=...
-// POST /api/direktur/freeze/users/{id}           body: {"reason": "..."} optional
-// POST /api/direktur/freeze/users/{id}/unfreeze  body: null
-//
-// ✅ Kelola Admin / Role (DIRECTOR)
-// GET  /api/direktur/kelola-admin/users?q=...&page=...&per_page=...
-// GET  /api/direktur/kelola-admin/roles
-// POST /api/direktur/kelola-admin/users/{id}/role body: {role_slug, reason?, revoke_tokens?}
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -33,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart' as uio;
-// ignore: avoid_web_libraries_in_flutter
+
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/ui_components.dart';
@@ -58,17 +34,14 @@ class _AuditPageState extends State<AuditPage> {
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ✅ sesuai route:list kamu: api/direktur/dashboard/audit
   String get _url =>
       '$kApiBase/direktur/dashboard/audit?range=${Uri.encodeComponent(widget.range)}';
 
-  // ✅ Freeze API (SEMUA USER)
   String get _freezeListUrl => '$kApiBase/direktur/freeze/users';
   String _freezeUrl(int userId) => '$kApiBase/direktur/freeze/users/$userId';
   String _unfreezeUrl(int userId) =>
       '$kApiBase/direktur/freeze/users/$userId/unfreeze';
 
-  // ✅ Kelola Admin / Role (DIRECTOR)
   String get _adminUsersUrl => '$kApiBase/direktur/kelola-admin/users';
   String get _adminRolesUrl => '$kApiBase/direktur/kelola-admin/roles';
   String _updateUserRoleUrl(int userId) =>
@@ -90,13 +63,9 @@ class _AuditPageState extends State<AuditPage> {
     }
   }
 
-  // =========================
-  // AUTH + FETCH
-  // =========================
   Future<Map<String, dynamic>> _fetch() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // ✅ Cek auth_token dulu (sesuai login.dart), fallback ke token
     final token =
         prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
@@ -109,7 +78,6 @@ class _AuditPageState extends State<AuditPage> {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       final body = jsonDecode(res.body);
 
-      // format kamu: { success:true, data:{ ... } }
       if (body is Map && body['data'] is Map) {
         return Map<String, dynamic>.from(body['data']);
       }
@@ -121,15 +89,12 @@ class _AuditPageState extends State<AuditPage> {
 
   Future<String> _token() async {
     final prefs = await SharedPreferences.getInstance();
-    // ✅ Cek auth_token dulu (sesuai login.dart), fallback ke token
+
     final t = prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
     if (t.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
     return t;
   }
 
-  // =========================
-  // HELPERS
-  // =========================
   void _toast(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -150,7 +115,6 @@ class _AuditPageState extends State<AuditPage> {
     return double.tryParse(v.toString()) ?? 0;
   }
 
-  // ✅ Normalisasi rating ke 0..5
   double? _normalizeRating(dynamic raw) {
     if (raw == null) return null;
 
@@ -189,9 +153,6 @@ class _AuditPageState extends State<AuditPage> {
     return '"$escaped"';
   }
 
-  // =========================
-  // ✅ EXPORT CSV (LOCAL) - kolom selalu rapi
-  // =========================
   Future<void> _exportAudit(Map<String, dynamic> data) async {
     try {
       final kpi =
@@ -273,10 +234,6 @@ class _AuditPageState extends State<AuditPage> {
     }
   }
 
-  // =========================
-  // ✅ FREEZE POPUP (DIRECTOR) - SEMUA ROLE
-  // =========================
-
   Future<List<Map<String, dynamic>>> _fetchFreezeUsers({
     required String token,
     String q = '',
@@ -297,7 +254,6 @@ class _AuditPageState extends State<AuditPage> {
     final body = jsonDecode(res.body);
     final data = (body is Map) ? body['data'] : null;
 
-    // Laravel paginate: data: { data: [...], ... }
     final List list =
         (data is Map && data['data'] is List)
             ? data['data']
@@ -313,7 +269,7 @@ class _AuditPageState extends State<AuditPage> {
 
   Future<void> _doFreezeAction({
     required int userId,
-    required bool freeze, // true=freeze, false=unfreeze
+    required bool freeze,
     String reason = '',
   }) async {
     final token = await _token();
@@ -344,11 +300,9 @@ class _AuditPageState extends State<AuditPage> {
     }
   }
 
-  // ✅ FIX LOOP: pakai StatefulBuilder + didInit + setStateSB
   Future<void> _openFreezePopup() async {
     final token = await _token();
 
-    // theme (samain dengan UI page kamu)
     const kCard = Colors.white;
     const kBorder = Color(0xFFE2E8F0);
     const kText = Color(0xFF0F172A);
@@ -362,7 +316,7 @@ class _AuditPageState extends State<AuditPage> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
-        // STATE dialog
+
         String q = '';
         bool loading = true;
         bool busyAction = false;
@@ -408,7 +362,6 @@ class _AuditPageState extends State<AuditPage> {
           final roleName = (roleMap?['name'] ?? '-').toString();
           final roleSlug = (roleMap?['slug'] ?? '-').toString();
 
-          // ✅ Freeze API kamu mengirim is_active (kalau tidak ada, anggap true)
           final ia = u['is_active'];
           final bool isActive =
               (ia is bool) ? ia : (ia == null ? true : ia.toString() == '1');
@@ -763,7 +716,7 @@ class _AuditPageState extends State<AuditPage> {
 
         return StatefulBuilder(
           builder: (context, setStateSB) {
-            // ✅ init load sekali
+
             if (!didInit) {
               didInit = true;
               Future.microtask(() => load(setStateSB));
@@ -795,7 +748,7 @@ class _AuditPageState extends State<AuditPage> {
                 ),
                 child: Column(
                   children: [
-                    // header
+
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 14, 12, 10),
                       child: Row(
@@ -858,7 +811,6 @@ class _AuditPageState extends State<AuditPage> {
                       ),
                     ),
 
-                    // controls
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: Column(
@@ -926,7 +878,6 @@ class _AuditPageState extends State<AuditPage> {
                           ),
                           const SizedBox(height: 10),
 
-                          // ✅ tanpa filter role, cuma badge "Semua Role" + total
                           Row(
                             children: [
                               Container(
@@ -974,7 +925,6 @@ class _AuditPageState extends State<AuditPage> {
                       ),
                     ),
 
-                    // content
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -1008,7 +958,6 @@ class _AuditPageState extends State<AuditPage> {
                       ),
                     ),
 
-                    // footer
                     Container(
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
                       decoration: const BoxDecoration(
@@ -1052,10 +1001,6 @@ class _AuditPageState extends State<AuditPage> {
       },
     );
   }
-
-  // =========================
-  // ✅ KELOLA ADMIN (DYNAMIC)
-  // =========================
 
   Future<List<Map<String, dynamic>>> _fetchRoles({
     required String token,
@@ -1105,7 +1050,7 @@ class _AuditPageState extends State<AuditPage> {
     }
 
     final body = jsonDecode(res.body);
-    final data = (body is Map) ? body['data'] : null; // paginate object
+    final data = (body is Map) ? body['data'] : null;
     if (data is Map) return Map<String, dynamic>.from(data);
     return <String, dynamic>{};
   }
@@ -1148,7 +1093,7 @@ class _AuditPageState extends State<AuditPage> {
   }
 
   Future<void> _openKelolaAdminPopup() async {
-    // theme (samain dengan UI page kamu)
+
     const kCard = Colors.white;
     const kBorder = Color(0xFFE2E8F0);
     const kText = Color(0xFF0F172A);
@@ -1163,7 +1108,7 @@ class _AuditPageState extends State<AuditPage> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
-        // STATE dialog
+
         String q = '';
         bool loading = true;
         bool busy = false;
@@ -1176,16 +1121,14 @@ class _AuditPageState extends State<AuditPage> {
         int total = 0;
 
         final searchCtrl = TextEditingController();
-        final reasonCtrl = TextEditingController(); // opsional
+        final reasonCtrl = TextEditingController();
         Timer? debounce;
 
         List<Map<String, dynamic>> items = [];
         List<Map<String, dynamic>> roleOptions = [];
 
-        // ✅ tracking perubahan: userId -> roleSlug baru
         final Map<int, String> pendingRoleById = {};
 
-        // ✅ log preview (lokal)
         final List<Map<String, String>> logPreview = [];
 
         String roleNameFromSlug(String slug) {
@@ -1279,7 +1222,6 @@ class _AuditPageState extends State<AuditPage> {
           final currentSlug = (roleMap?['slug'] ?? '-').toString();
           final currentName = (roleMap?['name'] ?? '-').toString();
 
-          // ✅ role yang tampil = pending kalau ada, else current
           final pendingSlug = pendingRoleById[id];
           final displaySlug = pendingSlug ?? currentSlug;
           final displayName =
@@ -1355,7 +1297,6 @@ class _AuditPageState extends State<AuditPage> {
                       ),
                       const SizedBox(height: 10),
 
-                      // ✅ Role dropdown (dynamic)
                       Row(
                         children: [
                           Expanded(
@@ -1461,7 +1402,6 @@ class _AuditPageState extends State<AuditPage> {
           try {
             final token = await _token();
 
-            // ✅ Counter untuk tracking success
             int successCount = 0;
             int failCount = 0;
             final List<String> errors = [];
@@ -1470,7 +1410,6 @@ class _AuditPageState extends State<AuditPage> {
               final userId = entry.key;
               final newSlug = entry.value;
 
-              // ambil sebelum utk preview (opsional)
               final idx = items.indexWhere((u) => _toInt(u['id']) == userId);
               final beforeRole =
                   (idx >= 0 && items[idx]['role'] is Map)
@@ -1492,7 +1431,6 @@ class _AuditPageState extends State<AuditPage> {
                   revokeTokens: true,
                 );
 
-                // ✅ Success
                 successCount++;
 
                 logPreview.insert(0, {
@@ -1501,7 +1439,7 @@ class _AuditPageState extends State<AuditPage> {
                       '$userName: $oldName ($oldSlug) → ${roleNameFromSlug(newSlug)} ($newSlug)',
                 });
               } catch (e) {
-                // ✅ Track error per user
+
                 failCount++;
                 errors.add('$userName: ${e.toString()}');
               }
@@ -1510,14 +1448,12 @@ class _AuditPageState extends State<AuditPage> {
             pendingRoleById.clear();
             reasonCtrl.clear();
 
-            // reload agar data fresh dari server
             await load(setStateSB);
 
             setStateSB(() => busy = false);
 
-            // ✅ NOTIFIKASI LENGKAP
             if (failCount == 0) {
-              // Semua berhasil
+
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -1562,7 +1498,7 @@ class _AuditPageState extends State<AuditPage> {
                 ),
               );
             } else if (successCount > 0) {
-              // Sebagian berhasil
+
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -1647,7 +1583,7 @@ class _AuditPageState extends State<AuditPage> {
                 ),
               );
             } else {
-              // Semua gagal
+
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -1735,7 +1671,6 @@ class _AuditPageState extends State<AuditPage> {
           } catch (e) {
             setStateSB(() => busy = false);
 
-            // ✅ Error umum (di luar loop)
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -1783,7 +1718,7 @@ class _AuditPageState extends State<AuditPage> {
 
         return StatefulBuilder(
           builder: (context, setStateSB) {
-            // init load sekali
+
             if (!didInit) {
               didInit = true;
               Future.microtask(() => load(setStateSB));
@@ -1815,7 +1750,7 @@ class _AuditPageState extends State<AuditPage> {
                 ),
                 child: Column(
                   children: [
-                    // header
+
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 14, 12, 10),
                       child: Row(
@@ -1878,7 +1813,6 @@ class _AuditPageState extends State<AuditPage> {
                       ),
                     ),
 
-                    // controls
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: Column(
@@ -1966,7 +1900,6 @@ class _AuditPageState extends State<AuditPage> {
                           ),
                           const SizedBox(height: 10),
 
-                          // alasan opsional (sekali untuk batch save)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
@@ -2060,7 +1993,6 @@ class _AuditPageState extends State<AuditPage> {
 
                           const SizedBox(height: 10),
 
-                          // pagination
                           Row(
                             children: [
                               Container(
@@ -2126,7 +2058,6 @@ class _AuditPageState extends State<AuditPage> {
                       ),
                     ),
 
-                    // content
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -2156,7 +2087,6 @@ class _AuditPageState extends State<AuditPage> {
                                     ...items.map((u) => userRow(u, setStateSB)),
                                     const SizedBox(height: 12),
 
-                                    // ✅ log preview
                                     Container(
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
@@ -2279,7 +2209,6 @@ class _AuditPageState extends State<AuditPage> {
                       ),
                     ),
 
-                    // footer
                     Container(
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
                       decoration: const BoxDecoration(
@@ -2324,12 +2253,9 @@ class _AuditPageState extends State<AuditPage> {
     );
   }
 
-  // =========================
-  // BUILD
-  // =========================
   @override
   Widget build(BuildContext context) {
-    // ✅ RESPONSIVE: Desktop (3 cols) / Tablet (2 cols) / Mobile (1 col)
+
     final cols = widget.isDesktop ? 3 : (widget.isTablet ? 2 : 1);
 
     return FutureBuilder<Map<String, dynamic>>(
@@ -2500,10 +2426,6 @@ class _AuditPageState extends State<AuditPage> {
     }
   }
 }
-
-// =========================
-// UI kecil untuk dialog
-// =========================
 
 class _DialogEmpty extends StatelessWidget {
   final String title;

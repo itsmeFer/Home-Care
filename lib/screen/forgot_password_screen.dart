@@ -124,7 +124,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               height: size.height - MediaQuery.of(context).padding.top,
               child: Column(
                 children: [
-                  // Header dengan Back Button
+
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
@@ -143,7 +143,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
 
-                  // Content Area
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.symmetric(
@@ -154,7 +153,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Icon
+
                             Container(
                               height: 100,
                               width: 100,
@@ -182,7 +181,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                             const SizedBox(height: 30),
 
-                            // Title
                             Text(
                               _emailSent
                                   ? 'Email Terkirim! 📧'
@@ -198,7 +196,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                             const SizedBox(height: 16),
 
-                            // Description
                             Text(
                               _emailSent
                                   ? 'Kami telah mengirim link reset password ke email Anda. Silakan cek inbox atau folder spam.'
@@ -214,7 +211,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             const SizedBox(height: 40),
 
                             if (!_emailSent) ...[
-                              // Email Input
+
                               Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -267,7 +264,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                               const SizedBox(height: 24),
 
-                              // Send Button
                               SizedBox(
                                 width: double.infinity,
                                 height: 56,
@@ -307,7 +303,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 ),
                               ),
                             ] else ...[
-                              // Success Info Box
+
                               Container(
                                 padding: const EdgeInsets.all(24),
                                 decoration: BoxDecoration(
@@ -379,7 +375,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                               const SizedBox(height: 24),
 
-                              // Resend Button
                               SizedBox(
                                 width: double.infinity,
                                 height: 56,
@@ -418,7 +413,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                             const SizedBox(height: 24),
 
-                            // Back to Login
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               style: TextButton.styleFrom(

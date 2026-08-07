@@ -1,4 +1,3 @@
-// lib/firebase_messaging_service.dart
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,10 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// ========================================
-/// HANDLE BACKGROUND MESSAGES
-/// Fungsi ini HARUS top-level function
-/// ========================================
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Background Message: ${message.messageId}');
@@ -27,27 +22,19 @@ class FirebaseMessagingService {
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  // ✅ BASE URL - GANTI DENGAN URL BACKEND ANDA
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
 
-  // ✅ Channel harus sama dengan backend (Laravel) yang kirim channel_id
   static const String _channelId = 'high_importance_channel';
   static const String _channelName = 'High Importance Notifications';
   static const String _channelDesc =
       'This channel is used for important notifications.';
 
-  // ✅ Icon Android small notification (resource di android/app/src/main/res/drawable/)
-  // File: android/app/src/main/res/drawable/ic_stat_notification.png
   static const String _androidSmallIcon = 'ic_stat_notification';
 
-  /// ========================================
-  /// INITIALIZE FCM
-  /// ========================================
   static Future<void> initialize() async {
     try {
       print('🔥 Initializing Firebase Messaging...');
 
-      // 1️⃣ Request Permission
       final NotificationSettings settings = await _firebaseMessaging
           .requestPermission(
             alert: true,
@@ -66,10 +53,8 @@ class FirebaseMessagingService {
         return;
       }
 
-      // 2️⃣ Setup Local Notifications
       await _setupLocalNotifications();
 
-      // 3️⃣ Get FCM Token
       final String? token = await getToken();
       if (token != null && token.length >= 30) {
         print('🔑 FCM Token: ${token.substring(0, 30)}...');
@@ -77,23 +62,18 @@ class FirebaseMessagingService {
         print('🔑 FCM Token: $token');
       }
 
-      // 4️⃣ Foreground messages -> tampilkan local notif
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
-      // 5️⃣ Background handler (WAJIB top-level) - dipasang sekali di sini
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      // 6️⃣ Tap notif saat app background -> buka app
       FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
 
-      // 7️⃣ App dibuka dari terminated state
       final RemoteMessage? initialMessage =
           await _firebaseMessaging.getInitialMessage();
       if (initialMessage != null) {
         _handleMessageOpenedApp(initialMessage);
       }
 
-      // 8️⃣ Token refresh
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         if (newToken.length >= 30) {
           print('🔄 FCM Token Refreshed: ${newToken.substring(0, 30)}...');
@@ -106,15 +86,12 @@ class FirebaseMessagingService {
       print('✅ Firebase Messaging Initialized!');
     } catch (e) {
       print('❌ Error initializing Firebase Messaging: $e');
-      // biarkan app tetap jalan
+
     }
   }
 
-  /// ========================================
-  /// SETUP LOCAL NOTIFICATIONS
-  /// ========================================
   static Future<void> _setupLocalNotifications() async {
-    // ✅ PENTING: jangan pakai @mipmap/ic_launcher di sini
+
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings(_androidSmallIcon);
 
@@ -135,7 +112,6 @@ class FirebaseMessagingService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-    // ✅ Create Android Notification Channel
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       _channelId,
       _channelName,
@@ -152,9 +128,6 @@ class FirebaseMessagingService {
         ?.createNotificationChannel(channel);
   }
 
-  /// ========================================
-  /// GET FCM TOKEN
-  /// ========================================
   static Future<String?> getToken() async {
     try {
       final String? token = await _firebaseMessaging.getToken();
@@ -171,9 +144,6 @@ class FirebaseMessagingService {
     }
   }
 
-  /// ========================================
-  /// GET DEVICE INFO
-  /// ========================================
   static Future<Map<String, String>> _getDeviceInfo() async {
     final deviceInfo = DeviceInfoPlugin();
 
@@ -217,9 +187,6 @@ class FirebaseMessagingService {
     };
   }
 
-  /// ========================================
-  /// 📱 SAVE FCM TOKEN - UNVERIFIED USER (AFTER REGISTER)
-  /// ========================================
   static Future<void> saveTokenToBackendUnverified(String email) async {
     try {
       print('📤 Saving FCM token for unverified user: $email');
@@ -262,9 +229,6 @@ class FirebaseMessagingService {
     }
   }
 
-  /// ========================================
-  /// 📱 SAVE FCM TOKEN - AFTER LOGIN (AUTHENTICATED USER)
-  /// ========================================
   static Future<bool> saveTokenToBackendAfterLogin() async {
     try {
       print('📤 Saving FCM token after login...');
@@ -319,9 +283,6 @@ class FirebaseMessagingService {
     }
   }
 
-  /// ========================================
-  /// SAVE FCM TOKEN TO BACKEND (GENERIC)
-  /// ========================================
   static Future<void> saveTokenToBackend(String token) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -355,9 +316,6 @@ class FirebaseMessagingService {
     }
   }
 
-  /// ========================================
-  /// DELETE FCM TOKEN FROM BACKEND (LOGOUT)
-  /// ========================================
   static Future<void> deleteTokenFromBackend() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -386,9 +344,6 @@ class FirebaseMessagingService {
     }
   }
 
-  /// ========================================
-  /// HANDLE FOREGROUND MESSAGES
-  /// ========================================
   static void _handleForegroundMessage(RemoteMessage message) {
     print('📨 Foreground Message Received!');
     print('Title: ${message.notification?.title}');
@@ -398,9 +353,6 @@ class FirebaseMessagingService {
     _showLocalNotification(message);
   }
 
-  /// ========================================
-  /// SHOW LOCAL NOTIFICATION (ONLY ON FOREGROUND)
-  /// ========================================
   static Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
 
@@ -431,9 +383,6 @@ class FirebaseMessagingService {
     );
   }
 
-  /// ========================================
-  /// HANDLE NOTIFICATION TAP (LOCAL NOTIF)
-  /// ========================================
   static void _onNotificationTapped(NotificationResponse response) {
     print('🔔 Notification Tapped!');
     print('Payload: ${response.payload}');
@@ -444,9 +393,6 @@ class FirebaseMessagingService {
     _handleNavigationFromNotification(data);
   }
 
-  /// ========================================
-  /// HANDLE MESSAGE OPENED APP (FCM TAP)
-  /// ========================================
   static void _handleMessageOpenedApp(RemoteMessage message) {
     print('🚀 App Opened from Notification!');
     print('Data: ${message.data}');
@@ -454,9 +400,6 @@ class FirebaseMessagingService {
     _handleNavigationFromNotification(message.data);
   }
 
-  /// ========================================
-  /// HANDLE NAVIGATION FROM NOTIFICATION
-  /// ========================================
   static void _handleNavigationFromNotification(Map<String, dynamic> data) {
     final notificationType = data['type'];
 
@@ -478,9 +421,6 @@ class FirebaseMessagingService {
     }
   }
 
-  /// ========================================
-  /// DELETE TOKEN (LOGOUT - LOCAL)
-  /// ========================================
   static Future<void> deleteToken() async {
     try {
       await _firebaseMessaging.deleteToken();

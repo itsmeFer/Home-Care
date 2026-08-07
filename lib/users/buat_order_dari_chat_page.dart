@@ -7,12 +7,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../chat.dart'
-    show kBaseUrl; // atau pindahkan kBaseUrl ke file lain yg global
+    show kBaseUrl;
 
 class BuatOrderDariChatPage extends StatefulWidget {
   final int layananId;
   final int roomId;
-  final int kesepakatanHarga; // dalam rupiah
+  final int kesepakatanHarga;
 
   const BuatOrderDariChatPage({
     Key? key,
@@ -133,10 +133,8 @@ final request = http.MultipartRequest('POST', uri)
   ..fields['catatan_pasien'] = _catatanController.text.trim()
   ..fields['qty'] = '1'
   ..fields['kesepakatan_harga'] = widget.kesepakatanHarga.toString()
-  ..fields['chat_room_id'] = widget.roomId.toString(); // ⬅️ WAJIB
+  ..fields['chat_room_id'] = widget.roomId.toString();
 
-
-    // ⬇️ FIX: pakai bytes, bukan fromPath
     final bytes = await _kondisiFile!.readAsBytes();
     final fileName = _kondisiFile!.name;
 
@@ -176,11 +174,10 @@ final request = http.MultipartRequest('POST', uri)
   }
 }
 
-
   @override
   Widget build(BuildContext context) {
     final hargaDisplay =
-        "Rp ${widget.kesepakatanHarga.toString()}"; // bisa diformat lebih bagus pakai NumberFormat
+        "Rp ${widget.kesepakatanHarga.toString()}";
 
     return Scaffold(
       appBar: AppBar(title: const Text('Konfirmasi Order Layanan')),
@@ -190,7 +187,7 @@ final request = http.MultipartRequest('POST', uri)
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Ringkasan harga
+
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),

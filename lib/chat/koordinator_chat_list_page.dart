@@ -1,11 +1,10 @@
-// lib/chat/koordinator_chat_list_page.dart
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/chat.dart';
 import 'package:home_care/chat/chat_models.dart';
-import 'package:home_care/chat/chat_unread_counter.dart'; // sesuaikan path
+import 'package:home_care/chat/chat_unread_counter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -80,7 +79,6 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
               .map((e) => ChatRoom.fromJson(e as Map<String, dynamic>))
               .toList();
 
-      // total unread global
       final totalUnread = rooms.fold<int>(
         0,
         (sum, room) => sum + room.unreadCount,

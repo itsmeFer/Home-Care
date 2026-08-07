@@ -54,7 +54,7 @@ class _DetailOrderanMasukPerawatPageState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this); // ✅ 5 tabs sekarang
+    _tabController = TabController(length: 5, vsync: this);
     _fetchDetail();
   }
 
@@ -68,8 +68,6 @@ class _DetailOrderanMasukPerawatPageState
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
   }
-
-  // ===== API CALLS =====
 
   Future<void> _fetchDetail() async {
     setState(() {
@@ -118,7 +116,6 @@ class _DetailOrderanMasukPerawatPageState
           _isLoading = false;
         });
 
-        // ✅ Debug print untuk cek addons
         print('📦 Order Addons: ${_order?['order_addons']}');
       } else {
         setState(() {
@@ -255,8 +252,6 @@ class _DetailOrderanMasukPerawatPageState
       setUploadingFlag: (val) => setState(() => _isUploadingBuktiBayar = val),
     );
   }
-
-  // ===== HELPER METHODS =====
 
   Future<bool?> _showConfirmDialog({
     required String title,
@@ -470,21 +465,19 @@ class _DetailOrderanMasukPerawatPageState
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
 
-        // ✅ DEBUG: Print response untuk lihat struktur
         print('📦 Upload Response: ${response.body}');
 
         if (decoded['success'] == true) {
           setState(() {
             var data = decoded['data'];
 
-            // ✅ PERBAIKAN: Cek struktur response
             if (data is Map<String, dynamic>) {
-              // Jika data punya key 'order', ambil itu (format upload-bukti-bayar)
+
               if (data.containsKey('order')) {
                 _order = data['order'] as Map<String, dynamic>;
                 print('✅ Using data.order');
               }
-              // Jika tidak, data langsung adalah order (format sampai/selesai)
+
               else {
                 _order = data;
                 print('✅ Using data directly');
@@ -494,7 +487,6 @@ class _DetailOrderanMasukPerawatPageState
 
           _showSnackBar('Berhasil');
 
-          // ✅ PENTING: Refresh data untuk sync dengan backend
           await _fetchDetail();
         }
       }
@@ -564,8 +556,6 @@ class _DetailOrderanMasukPerawatPageState
       ),
     );
   }
-
-  // ===== FORMATTING =====
 
   String _fmtTanggal(String? iso) {
     if (iso == null || iso.isEmpty) return '-';
@@ -661,8 +651,6 @@ class _DetailOrderanMasukPerawatPageState
     var cleanPath = path.startsWith('/') ? path.substring(1) : path;
     return '$kBaseUrl/media/$cleanPath';
   }
-
-  // ===== UI BUILDERS =====
 
   @override
   Widget build(BuildContext context) {
@@ -941,7 +929,7 @@ class _DetailOrderanMasukPerawatPageState
               Tab(text: 'Detail'),
               Tab(text: 'Lokasi'),
               Tab(text: 'Pembayaran'),
-              Tab(text: 'Addons'), // ✅ Tab baru
+              Tab(text: 'Addons'),
               Tab(text: 'Foto'),
             ],
           ),
@@ -953,7 +941,7 @@ class _DetailOrderanMasukPerawatPageState
                 _buildDetailTab(),
                 _buildLokasiTab(),
                 _buildPembayaranTab(),
-                _buildAddonsTab(), // ✅ Tab baru
+                _buildAddonsTab(),
                 _buildFotoTab(),
               ],
             ),
@@ -1028,7 +1016,6 @@ class _DetailOrderanMasukPerawatPageState
         _infoRow('Diskon', _fmtUang(o['diskon'])),
         _infoRow('Biaya Tambahan', _fmtUang(o['biaya_tambahan'])),
 
-        // ✅ Addons Total (jika ada)
         if (o['addons_total'] != null && o['addons_total'] != 0)
           _infoRow('Total Addons', _fmtUang(o['addons_total'])),
 
@@ -1061,7 +1048,6 @@ class _DetailOrderanMasukPerawatPageState
     );
   }
 
-  // ✅ TAB ADDONS BARU
   Widget _buildAddonsTab() {
     final addons = _order?['order_addons'] as List?;
 
@@ -1115,7 +1101,7 @@ class _DetailOrderanMasukPerawatPageState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+
               Row(
                 children: [
                   Container(
@@ -1164,7 +1150,6 @@ class _DetailOrderanMasukPerawatPageState
               const Divider(height: 1),
               const SizedBox(height: 12),
 
-              // Details
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

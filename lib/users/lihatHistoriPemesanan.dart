@@ -10,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
-// ===== COLOR SCHEME =====
 class HCColors {
   static const primary = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);

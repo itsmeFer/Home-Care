@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -12,7 +13,6 @@ class MenuPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            // === Grid yang sama seperti di HomePage (7 + More) ===
             _ServicesGridMenu(),
             SizedBox(height: 16),
             _MenuGroup(
@@ -29,6 +29,8 @@ class MenuPage extends StatelessWidget {
                 'Edukasi Kesehatan',
               ],
             ),
+            const SizedBox(height: 16),
+            const _SettingsGroup(),
           ],
         ),
       ),
@@ -36,7 +38,6 @@ class MenuPage extends StatelessWidget {
   }
 }
 
-/// ========== Services Grid (clone dari HomePage: 7 + More) ==========
 class _ServicesGridMenu extends StatelessWidget {
   const _ServicesGridMenu();
 
@@ -50,7 +51,7 @@ class _ServicesGridMenu extends StatelessWidget {
       _Svc('Care Plan', Icons.checklist),
       _Svc('Obat & Reminder', Icons.medication),
       _Svc('Hasil Lab/Radio', Icons.science),
-      _Svc.more('More', Icons.apps), // item ke-8
+      _Svc.more('More', Icons.apps),
     ];
 
     return Container(
@@ -72,9 +73,9 @@ class _ServicesGridMenu extends StatelessWidget {
         itemCount: items.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 4,
-          mainAxisExtent: 88,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+          mainAxisExtent: 100,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 12,
         ),
         itemBuilder: (_, i) => _SvcItem(item: items[i]),
       ),
@@ -99,18 +100,17 @@ class _SvcItem extends StatelessWidget {
     return InkWell(
       onTap: () {
         if (item.isMore) {
-          // Sudah di halaman More; kasih info saja
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Kamu sudah di halaman More')),
           );
         } else {
-          // TODO: ganti dengan navigasi ke screen fitur terkait
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Buka: ${item.title}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Buka: ${item.title}')));
         }
       },
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             height: 48,
@@ -121,13 +121,19 @@ class _SvcItem extends StatelessWidget {
             ),
             child: Icon(item.icon, color: const Color(0xFF088088)),
           ),
-          const SizedBox(height: 6),
-          Text(
-            item.title,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 8),
+          Expanded(
+            child: Text(
+              item.title,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -135,7 +141,6 @@ class _SvcItem extends StatelessWidget {
   }
 }
 
-/// ========== List group deskriptif ==========
 class _MenuGroup extends StatelessWidget {
   final String title;
   final List<String> items;
@@ -151,9 +156,10 @@ class _MenuGroup extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700, fontSize: 16)),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            ),
             const SizedBox(height: 6),
             ...items.map(
               (e) => ListTile(
@@ -162,10 +168,116 @@ class _MenuGroup extends StatelessWidget {
                 leading: const Icon(Icons.chevron_right),
                 title: Text(e),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Buka: $e')));
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Buka: $e')));
                 },
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsGroup extends StatelessWidget {
+  const _SettingsGroup();
+
+  Future<void> _openPrivacyPolicy() async {
+    final url = Uri.parse('https://royal-klinik.cloud/privacy-homecare.html');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text(
+              'Hapus Akun',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text(
+              'Apakah Anda yakin ingin menghapus akun secara permanen? Semua data medis, riwayat pemesanan, dan profil Anda akan dihapus dan tidak dapat dipulihkan kembali.',
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Batal',
+                  style: TextStyle(color: Colors.black54),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Permintaan hapus akun telah dikirim ke sistem. Tim kami akan memprosesnya dalam 2x24 jam.',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Ya, Hapus'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 24),
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Informasi & Pengaturan',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            ),
+            const SizedBox(height: 6),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.privacy_tip_outlined,
+                color: Color(0xFF088088),
+              ),
+              title: const Text('Kebijakan Privasi (Privacy Policy)'),
+              trailing: const Icon(Icons.open_in_new, size: 16),
+              onTap: _openPrivacyPolicy,
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.delete_forever_outlined,
+                color: Colors.red,
+              ),
+              title: const Text(
+                'Hapus Akun',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onTap: () => _showDeleteAccountDialog(context),
             ),
           ],
         ),

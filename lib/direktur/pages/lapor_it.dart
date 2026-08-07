@@ -15,7 +15,7 @@ class LaporITPage extends StatefulWidget {
 }
 
 class _LaporITPageState extends State<LaporITPage> {
-  // ====== DESIGN SYSTEM (SAMA DENGAN DASHBOARD) ======
+
   static const Color kBg = Color(0xFFF8FAFC);
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
@@ -26,7 +26,6 @@ class _LaporITPageState extends State<LaporITPage> {
   static const Color kWarning = Color(0xFFF59E0B);
   static const Color kDanger = Color(0xFFEF4444);
 
-  // ====== API CONFIG ======
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
@@ -102,9 +101,6 @@ class _LaporITPageState extends State<LaporITPage> {
     super.dispose();
   }
 
-  // ===============================
-  // Helpers
-  // ===============================
   String _platform() {
     if (kIsWeb) return 'web';
     switch (defaultTargetPlatform) {
@@ -156,9 +152,6 @@ class _LaporITPageState extends State<LaporITPage> {
     );
   }
 
-  // ===============================
-  // SUBMIT
-  // ===============================
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -219,7 +212,6 @@ class _LaporITPageState extends State<LaporITPage> {
 
         _showToast('✅ Laporan berhasil dikirim ke tim IT');
 
-        // Clear form
         _subjectController.clear();
         _descriptionController.clear();
         setState(() {
@@ -227,7 +219,6 @@ class _LaporITPageState extends State<LaporITPage> {
           _selectedPriority = 'medium';
         });
 
-        // Delay sedikit untuk user baca toast, lalu balik
         await Future.delayed(const Duration(milliseconds: 1500));
         if (mounted) Navigator.pop(context, true);
       } else {
@@ -262,9 +253,6 @@ class _LaporITPageState extends State<LaporITPage> {
     }
   }
 
-  // ===============================
-  // NAVIGATE TO HISTORY
-  // ===============================
   void _goToHistory() {
     Navigator.push(
       context,
@@ -272,9 +260,6 @@ class _LaporITPageState extends State<LaporITPage> {
     );
   }
 
-  // ===============================
-  // UI BUILD
-  // ===============================
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -316,11 +301,10 @@ class _LaporITPageState extends State<LaporITPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Card
+
                   _HeaderCard(),
                   const SizedBox(height: 24),
 
-                  // Form Card
                   Container(
                     decoration: BoxDecoration(
                       color: kCard,
@@ -344,7 +328,7 @@ class _LaporITPageState extends State<LaporITPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Category Section
+
                                 _buildSectionTitle(
                                   'Kategori Masalah',
                                   'Pilih jenis masalah yang dialami',
@@ -354,7 +338,6 @@ class _LaporITPageState extends State<LaporITPage> {
 
                                 const SizedBox(height: 32),
 
-                                // Priority Section
                                 _buildSectionTitle(
                                   'Tingkat Prioritas',
                                   'Seberapa mendesak masalah ini',
@@ -364,7 +347,6 @@ class _LaporITPageState extends State<LaporITPage> {
 
                                 const SizedBox(height: 32),
 
-                                // Subject Section
                                 _buildSectionTitle(
                                   'Judul Masalah',
                                   'Ringkasan singkat dari masalah',
@@ -374,7 +356,6 @@ class _LaporITPageState extends State<LaporITPage> {
 
                                 const SizedBox(height: 32),
 
-                                // Description Section
                                 _buildSectionTitle(
                                   'Deskripsi Lengkap',
                                   'Jelaskan masalah secara detail',
@@ -384,16 +365,13 @@ class _LaporITPageState extends State<LaporITPage> {
 
                                 const SizedBox(height: 28),
 
-                                // Info Box
                                 _buildInfoBox(),
                               ],
                             ),
                           ),
 
-                          // Divider
                           Container(height: 1, color: kBorder),
 
-                          // Actions
                           Padding(
                             padding: EdgeInsets.all(isMobile ? 20 : 28),
                             child: Column(
@@ -418,10 +396,6 @@ class _LaporITPageState extends State<LaporITPage> {
       ),
     );
   }
-
-  // ===============================
-  // UI COMPONENTS
-  // ===============================
 
   Widget _buildSectionTitle(String title, String subtitle) {
     return Column(
@@ -451,7 +425,7 @@ class _LaporITPageState extends State<LaporITPage> {
 
   Widget _buildCategorySelector(bool isMobile) {
     if (isMobile) {
-      // Mobile: Grid 2 kolom
+
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -468,7 +442,7 @@ class _LaporITPageState extends State<LaporITPage> {
         },
       );
     } else {
-      // Desktop/Tablet: Wrap horizontal
+
       return Wrap(
         spacing: 12,
         runSpacing: 12,
@@ -839,9 +813,6 @@ class _LaporITPageState extends State<LaporITPage> {
   }
 }
 
-// ===============================
-// HEADER CARD
-// ===============================
 class _HeaderCard extends StatelessWidget {
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
@@ -910,9 +881,6 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
-// ===============================
-// RIWAYAT LAPORAN IT PAGE
-// ===============================
 class RiwayatLaporanITPage extends StatefulWidget {
   const RiwayatLaporanITPage({Key? key}) : super(key: key);
 
@@ -921,7 +889,7 @@ class RiwayatLaporanITPage extends StatefulWidget {
 }
 
 class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
-  // ====== DESIGN SYSTEM ======
+
   static const Color kBg = Color(0xFFF8FAFC);
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
@@ -932,7 +900,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
   static const Color kWarning = Color(0xFFF59E0B);
   static const Color kDanger = Color(0xFFEF4444);
 
-  // ====== API CONFIG ======
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
@@ -940,7 +907,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
   List<Map<String, dynamic>> _tickets = [];
   String? _errorMessage;
 
-  // Filter
   String? _filterStatus;
   String? _filterPriority;
 
@@ -950,9 +916,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
     _loadTickets();
   }
 
-  // ===============================
-  // LOAD TICKETS
-  // ===============================
   Future<void> _loadTickets() async {
     setState(() {
       _isLoading = true;
@@ -969,7 +932,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
         throw Exception('Token kosong. Silakan login ulang.');
       }
 
-      // Build query params
       final queryParams = <String, String>{};
       if (_filterStatus != null) queryParams['status'] = _filterStatus!;
       if (_filterPriority != null) queryParams['priority'] = _filterPriority!;
@@ -1014,9 +976,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
     }
   }
 
-  // ===============================
-  // HELPERS
-  // ===============================
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return '-';
     try {
@@ -1098,9 +1057,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
     }
   }
 
-  // ===============================
-  // UI BUILD
-  // ===============================
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -1269,7 +1225,7 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header: Category Icon + Status Badge
+
                 Row(
                   children: [
                     Container(
@@ -1318,7 +1274,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
 
                 const SizedBox(height: 12),
 
-                // Priority Badge
                 Row(
                   children: [
                     _buildPriorityBadge(priority),
@@ -1391,9 +1346,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
     );
   }
 
-  // ===============================
-  // FILTER DIALOG
-  // ===============================
   void _showFilterDialog() {
     showDialog(
       context: context,
@@ -1513,9 +1465,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
     );
   }
 
-  // ===============================
-  // DETAIL DIALOG
-  // ===============================
   void _showTicketDetail(Map<String, dynamic> ticket) {
     final status = ticket['status']?.toString() ?? 'open';
     final priority = ticket['priority']?.toString() ?? 'medium';
@@ -1539,7 +1488,7 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
             ),
             child: Column(
               children: [
-                // Handle
+
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 12),
                   width: 40,
@@ -1550,7 +1499,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
                   ),
                 ),
 
-                // Header
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -1575,14 +1523,13 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
 
                 const Divider(height: 1),
 
-                // Content
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Status & Priority
+
                         Row(
                           children: [
                             _buildStatusBadge(status),
@@ -1593,7 +1540,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
 
                         const SizedBox(height: 20),
 
-                        // Subject
                         const Text(
                           'Judul',
                           style: TextStyle(
@@ -1614,7 +1560,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
 
                         const SizedBox(height: 16),
 
-                        // Description
                         const Text(
                           'Deskripsi',
                           style: TextStyle(
@@ -1636,7 +1581,6 @@ class _RiwayatLaporanITPageState extends State<RiwayatLaporanITPage> {
 
                         const SizedBox(height: 16),
 
-                        // Created At
                         _buildInfoRow('Dibuat', _formatDate(createdAt)),
 
                         if (solvedAt != null && solvedAt.isNotEmpty)

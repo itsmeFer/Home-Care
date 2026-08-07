@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Global unread counter untuk badge icon chat (bottom nav)
 class ChatUnreadCounter {
   static final ValueNotifier<int> totalUnread = ValueNotifier<int>(0);
 

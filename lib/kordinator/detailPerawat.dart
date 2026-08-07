@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Warna (HCColor) dari HomePage
 import 'package:home_care/users/HomePage.dart';
 
-// Model Perawat dari kelolaPerawat.dart
 import 'package:home_care/kordinator/kelolaPerawat.dart';
 
 class DetailPerawatPage extends StatefulWidget {
@@ -43,28 +41,21 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
     return v.toString();
   }
 
-  /// Ubah path dari API (biasanya "/storage/perawat/....jpg")
-  /// menjadi URL yang lewat proxy CORS: /api/media/...
   String? _resolveMediaUrl(String? raw) {
     if (raw == null) return null;
     String path = raw.trim();
     if (path.isEmpty) return null;
 
-    // Kalau sudah full URL, biarin saja (buat jaga-jaga)
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
 
-    // Buang leading slash, mis: "/storage/perawat/foto/xxx.jpg" -> "storage/perawat/foto/xxx.jpg"
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
 
-    // Base API (bukan root web)
     const String baseApi = 'https://homecare.primamadanitalenta.my.id/api';
 
-    // Route Laravel: /api/media/{path}
-    // Di backend sudah handle kalau path diawali "storage/..."
     return '$baseApi/media/$path';
   }
 
@@ -96,7 +87,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
         return;
       }
 
-      // Endpoint: PUT /api/koordinator/perawat/{id}/password
       final url = Uri.parse(
         '$baseUrl/koordinator/perawat/${widget.perawat.id}/password',
       );
@@ -152,7 +142,7 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // ================== HEADER ==================
+
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -243,7 +233,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
 
             const SizedBox(height: 16),
 
-            // ================== FOTO & DOKUMEN ==================
             _SectionCard(
               title: 'Foto & Dokumen',
               children: [
@@ -284,7 +273,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
 
             const SizedBox(height: 12),
 
-            // ================== DATA PRIBADI ==================
             _SectionCard(
               title: 'Data Pribadi',
               children: [
@@ -310,7 +298,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
 
             const SizedBox(height: 12),
 
-            // ================== KONTAK ==================
             _SectionCard(
               title: 'Kontak',
               children: [
@@ -321,7 +308,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
 
             const SizedBox(height: 12),
 
-            // ================== PROFESIONAL ==================
             _SectionCard(
               title: 'Profesional',
               children: [
@@ -334,7 +320,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
 
             const SizedBox(height: 12),
 
-            // ================== PENGALAMAN & AREA ==================
             _SectionCard(
               title: 'Pengalaman & Area Kerja',
               children: [
@@ -360,7 +345,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
 
             const SizedBox(height: 12),
 
-            // ================== KONTAK DARURAT ==================
             _SectionCard(
               title: 'Kontak Darurat',
               children: [
@@ -381,7 +365,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
 
             const SizedBox(height: 16),
 
-            // ================== AKUN LOGIN (PASSWORD) ==================
             _SectionCard(
               title: 'Akun Login Perawat',
               children: [
@@ -444,10 +427,6 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
     );
   }
 }
-
-// ===================================================
-//  WIDGET BANTUAN
-// ===================================================
 
 class _SectionCard extends StatelessWidget {
   final String title;

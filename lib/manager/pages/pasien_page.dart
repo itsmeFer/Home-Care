@@ -1,14 +1,3 @@
-// manager/pages/pasien_page.dart (FULL) ✅
-// ✅ Style & komponen shadcn-ish (pakai ui_components.dart)
-// ✅ KPI cards rapi
-// ✅ Pie Segmen Pasien REAL (fl_chart)
-// ✅ Tren Order REAL (fl_chart line)
-// ✅ Table VIP (TableCard)
-// ✅ Animasi chart (0 -> nilai) saat buka tab / ganti range
-//
-// Backend sebaiknya:
-// GET /api/manager/dashboard/pasien?range=...
-
 import 'dart:convert';
 import 'dart:math';
 
@@ -40,22 +29,19 @@ class _PasienPageState extends State<PasienPage>
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ✅ MANAGER endpoint
   String get _url =>
       '$kApiBase/manager/dashboard/pasien?range=${Uri.encodeComponent(widget.range)}';
 
   Future<Map<String, dynamic>>? _future;
 
-  // ✅ animasi 0 -> nilai
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
 
-  // ===== PALETTE (samakan nuansa Overview) =====
-  static const Color _cPrimary = Color(0xFF06B6D4); // cyan-500
-  static const Color _cGreen = Color(0xFF22C55E); // green-500
-  static const Color _cAmber = Color(0xFFF59E0B); // amber-500
-  static const Color _grid = Color(0xFFE2E8F0); // slate-200
-  static const Color _axis = Color(0xFF64748B); // slate-500
+  static const Color _cPrimary = Color(0xFF06B6D4);
+  static const Color _cGreen = Color(0xFF22C55E);
+  static const Color _cAmber = Color(0xFFF59E0B);
+  static const Color _grid = Color(0xFFE2E8F0);
+  static const Color _axis = Color(0xFF64748B);
 
   @override
   void initState() {
@@ -92,9 +78,6 @@ class _PasienPageState extends State<PasienPage>
     _chartCtrl.forward();
   }
 
-  // =========================
-  // AUTH + FETCH
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
@@ -121,9 +104,6 @@ class _PasienPageState extends State<PasienPage>
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================
-  // SAFE PARSERS
-  // =========================
   int _toInt(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toInt();
@@ -142,9 +122,6 @@ class _PasienPageState extends State<PasienPage>
   List<Map<String, dynamic>> _list(dynamic v) =>
       (v is List) ? v.map((e) => _map(e)).toList() : <Map<String, dynamic>>[];
 
-  // =========================
-  // MONEY FORMAT (simple)
-  // =========================
   int _parseMoneyToInt(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.round();
@@ -172,9 +149,6 @@ class _PasienPageState extends State<PasienPage>
     return withPrefix ? 'Rp $txt' : txt;
   }
 
-  // =========================
-  // EXTRACTORS (fleksibel key)
-  // =========================
   Map<String, dynamic> _getKpi(Map<String, dynamic> data) {
     if (data['kpi'] is Map) return _map(data['kpi']);
     if (data['summary'] is Map) return _map(data['summary']);
@@ -211,9 +185,6 @@ class _PasienPageState extends State<PasienPage>
     return <Map<String, dynamic>>[];
   }
 
-  // =========================
-  // PIE: SEGMENT PASIEN
-  // =========================
   Widget _segmenPie(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -249,12 +220,12 @@ class _PasienPageState extends State<PasienPage>
 
     final totalSum = top.fold<double>(0, (a, b) => a + (b['total'] as double));
     final palette = <Color>[
-      const Color(0xFF06B6D4), // cyan
-      const Color(0xFF3B82F6), // blue
-      const Color(0xFF22C55E), // green
-      const Color(0xFFF59E0B), // amber
-      const Color(0xFF8B5CF6), // violet
-      const Color(0xFFEC4899), // pink
+      const Color(0xFF06B6D4),
+      const Color(0xFF3B82F6),
+      const Color(0xFF22C55E),
+      const Color(0xFFF59E0B),
+      const Color(0xFF8B5CF6),
+      const Color(0xFFEC4899),
     ];
 
     return XCard(
@@ -352,9 +323,6 @@ class _PasienPageState extends State<PasienPage>
     );
   }
 
-  // =========================
-  // LINE: TREN ORDER
-  // =========================
   Widget _trenOrderChart(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -498,9 +466,6 @@ class _PasienPageState extends State<PasienPage>
     );
   }
 
-  // =========================
-  // VIP TABLE
-  // =========================
   Widget _vipCard(List<Map<String, dynamic>> vip) {
     if (vip.isEmpty) {
       return const XCard(
@@ -529,9 +494,6 @@ class _PasienPageState extends State<PasienPage>
     );
   }
 
-  // =========================
-  // BUILD
-  // =========================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 3 : 2;

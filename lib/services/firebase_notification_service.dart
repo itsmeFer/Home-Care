@@ -7,7 +7,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-// BASE URL API
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
 @pragma('vm:entry-point')

@@ -38,9 +38,9 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   @override
   void initState() {
     super.initState();
-    // Load badges pertama kali
+
     _loadBadges();
-    // Start polling setelah delay
+
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         _startPolling();
@@ -88,7 +88,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   }
 
   Future<void> _loadBadges({bool silent = false}) async {
-    // Prevent multiple simultaneous loads
+
     if (_isLoadingBadge && !silent) return;
 
     if (!silent && mounted) {
@@ -115,7 +115,6 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
       debugPrint('🔄 Loading badges...');
 
-      // Fetch both in parallel
       final results = await Future.wait([
         _fetchChatUnread(token),
         _fetchOrderUnread(token),
@@ -164,7 +163,6 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
       final body = json.decode(res.body);
 
-      // Handle different response formats
       if (body is Map) {
         if (body['success'] == true) {
           final data = body['data'];
@@ -174,7 +172,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
             return int.tryParse(totalUnread?.toString() ?? '0') ?? 0;
           }
         }
-        // Alternative format
+
         final totalUnread = body['total_unread'];
         if (totalUnread is int) return totalUnread;
         return int.tryParse(totalUnread?.toString() ?? '0') ?? 0;
@@ -208,7 +206,6 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
       List data = [];
 
-      // Handle different response formats
       if (body is List) {
         data = body;
       } else if (body is Map<String, dynamic>) {
@@ -222,7 +219,6 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
         }
       }
 
-      // Filter hanya status yang relevan untuk "orderan masuk"
       final relevantStatuses = ['pending', 'menunggu_penugasan'];
 
       final filteredData =
@@ -464,7 +460,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                           ),
                         ),
                       const SizedBox(width: 10),
-                      // Debug button - hapus di production
+
                       IconButton(
                         onPressed: () {
                           debugPrint('🔄 Manual Refresh Badge');
@@ -558,7 +554,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                               (_) => const LihatOrderanMasukKoordinatorPage(),
                         ),
                       );
-                      // Force refresh after returning
+
                       _loadBadges(silent: false);
                     },
                   ),
@@ -574,7 +570,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                           builder: (_) => const KoordinatorChatListPage(),
                         ),
                       );
-                      // Force refresh after returning
+
                       _loadBadges(silent: false);
                     },
                   ),

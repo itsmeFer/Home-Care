@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Biar bisa pakai HCColor dari HomePage
 import 'package:home_care/users/HomePage.dart';
 
 class CrudKordinatorPage extends StatefulWidget {
@@ -36,9 +35,6 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     return prefs.getString('auth_token');
   }
 
-  // =========================
-  // GET LIST KOORDINATOR
-  // =========================
   Future<void> _fetchKoordinator() async {
     setState(() {
       _isLoading = true;
@@ -101,9 +97,6 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     }
   }
 
-  // =========================
-  // CREATE KOORDINATOR
-  // =========================
   Future<void> _createKoordinator(Map<String, dynamic> payload) async {
     try {
       final token = await _getToken();
@@ -126,7 +119,7 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
           final body = json.decode(res.body);
           if (body is Map) {
             if (body['errors'] != null) {
-              // gabung semua pesan error jadi satu string
+
               final errors = body['errors'] as Map<String, dynamic>;
               final buffer = StringBuffer();
               errors.forEach((key, value) {
@@ -163,9 +156,6 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     }
   }
 
-  // =========================
-  // UPDATE KOORDINATOR
-  // =========================
   Future<void> _updateKoordinator(int id, Map<String, dynamic> payload) async {
     try {
       final token = await _getToken();
@@ -211,9 +201,6 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     }
   }
 
-  // =========================
-  // DELETE KOORDINATOR
-  // =========================
   Future<void> _deleteKoordinator(Koordinator k) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -458,19 +445,15 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
   }
 }
 
-// =======================
-// MODEL KOORDINATOR
-// =======================
-
 class Koordinator {
-  final int? id; // id di tabel users
+  final int? id;
   final String? namaLengkap;
   final String? email;
   final bool? isActive;
   final String? noHp;
   final String? wilayah;
   final String? alamat;
-  final String? foto; // URL atau path foto
+  final String? foto;
 
   Koordinator({
     this.id,
@@ -488,7 +471,7 @@ class Koordinator {
 
     final dynamic fotoRaw =
         profil?['foto_url'] ??
-        profil?['foto']; // contoh: "/storage/koordinator/koor_xxx.jpg"
+        profil?['foto'];
 
     String? fullFoto;
     if (fotoRaw != null) {
@@ -497,17 +480,15 @@ class Koordinator {
         fullFoto = path;
       } else {
         const base =
-            'https://homecare.primamadanitalenta.my.id'; // host Laravel
+            'https://homecare.primamadanitalenta.my.id';
 
-        // path dari DB: "/storage/koordinator/koor_xxx.jpg"
-        // kita ubah jadi: "/api/media/koordinator/koor_xxx.jpg"
         const storagePrefix = '/storage/';
         String relative = path;
 
         if (relative.startsWith(storagePrefix)) {
           relative = relative.substring(
             storagePrefix.length,
-          ); // "koordinator/koor_xxx.jpg"
+          );
         }
 
         fullFoto = '$base/api/media/$relative';
@@ -531,7 +512,6 @@ class Koordinator {
     );
   }
 
-  /// Dipakai untuk huruf di CircleAvatar, contoh: "Tes Kordinator" -> "TK"
   String? get inisial {
     if (namaLengkap == null || namaLengkap!.isEmpty) return null;
     final parts = namaLengkap!.trim().split(' ');
@@ -539,10 +519,6 @@ class Koordinator {
     return (parts.first[0] + parts.last[0]).toUpperCase();
   }
 }
-
-// =======================
-// FORM DIALOG
-// =======================
 
 class _KoordinatorFormDialog extends StatefulWidget {
   final Koordinator? koordinator;
@@ -567,8 +543,8 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
   bool _isActive = true;
 
   final ImagePicker _picker = ImagePicker();
-  Uint8List? _pickedBytes; // untuk preview di web/mobile
-  String? _fotoBase64; // dikirim ke backend
+  Uint8List? _pickedBytes;
+  String? _fotoBase64;
 
   @override
   void initState() {
@@ -581,7 +557,7 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
     _noHpC = TextEditingController(text: k?.noHp ?? '');
     _wilayahC = TextEditingController(text: k?.wilayah ?? '');
     _alamatC = TextEditingController(text: k?.alamat ?? '');
-    _nikC = TextEditingController(); // kalau mau, isi dari data lama saat edit
+    _nikC = TextEditingController();
 
     _isActive = k?.isActive ?? true;
   }
@@ -620,7 +596,7 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
     final payload = <String, dynamic>{
       'name': _namaC.text.trim(),
       'email': _emailC.text.trim(),
-      'nik': _nikC.text.trim(), // <-- tambah ini
+      'nik': _nikC.text.trim(),
       'no_hp': _noHpC.text.trim(),
       'wilayah': _wilayahC.text.trim(),
       'alamat': _alamatC.text.trim(),
@@ -635,7 +611,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
       }
     }
 
-    // kalau ada foto baru dipilih, kirim base64-nya
     if (_fotoBase64 != null) {
       payload['foto_base64'] = _fotoBase64;
     }
@@ -644,7 +619,7 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
   }
 
   Widget _buildFotoPreview() {
-    // kalau baru pilih foto -> pakai bytes (aman di web)
+
     if (_pickedBytes != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(40),
@@ -657,7 +632,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
       );
     }
 
-    // kalau sudah ada foto dari server
     final existingFotoUrl = widget.koordinator?.foto;
     if (existingFotoUrl != null && existingFotoUrl.isNotEmpty) {
       return ClipRRect(
@@ -671,7 +645,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
       );
     }
 
-    // default avatar
     return CircleAvatar(
       radius: 40,
       child: Icon(Icons.person, size: 40, color: Colors.grey.shade600),
@@ -692,7 +665,7 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Foto profil
+
                 Center(
                   child: Column(
                     children: [
@@ -707,7 +680,7 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                // NIK
+
                 TextFormField(
                   controller: _nikC,
                   decoration: const InputDecoration(
@@ -723,7 +696,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Nama lengkap
                 TextFormField(
                   controller: _namaC,
                   decoration: const InputDecoration(
@@ -739,7 +711,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Email
                 TextFormField(
                   controller: _emailC,
                   decoration: const InputDecoration(
@@ -759,7 +730,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // No HP
                 TextFormField(
                   controller: _noHpC,
                   decoration: const InputDecoration(
@@ -770,7 +740,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Wilayah
                 TextFormField(
                   controller: _wilayahC,
                   decoration: const InputDecoration(
@@ -780,7 +749,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Alamat
                 TextFormField(
                   controller: _alamatC,
                   decoration: const InputDecoration(
@@ -792,7 +760,6 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Password
                 TextFormField(
                   controller: _passwordC,
                   decoration: InputDecoration(

@@ -11,20 +11,14 @@ class PerawatProfilPage extends StatefulWidget {
   State<PerawatProfilPage> createState() => _PerawatProfilPageState();
 }
 
-// ===============================
-// KONFIG BASE URL + HELPER MEDIA
-// ===============================
-
 const String kApiBase = 'https://homecare.primamadanitalenta.my.id/api';
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
 
-/// Ubah path dari DB menjadi URL yang aman CORS via /api/media
 String? resolveMediaUrl(String? raw) {
   if (raw == null) return null;
   var v = raw.trim();
   if (v.isEmpty) return null;
 
-  // Kalau sudah bentuk api/media → langsung pakai
   if (v.contains('/api/media/')) {
     if (!v.startsWith('http://') && !v.startsWith('https://')) {
       return '$kBaseUrl$v';
@@ -32,21 +26,17 @@ String? resolveMediaUrl(String? raw) {
     return v;
   }
 
-  // Kalau full URL: https://homecare.primamadanitalenta.my.id/storage/...
   if (v.startsWith('http://') || v.startsWith('https://')) {
     final uri = Uri.parse(v);
-    v = uri.path; // contoh: /storage/perawat/...
+    v = uri.path;
   }
 
-  // Hilangkan slash di depan
   if (v.startsWith('/')) v = v.substring(1);
 
-  // Hilangkan "storage/" di depan kalau ada
   if (v.startsWith('storage/')) {
-    v = v.substring('storage/'.length); // jadi: perawat/foto/xxx.jpg
+    v = v.substring('storage/'.length);
   }
 
-  // Sekarang v bentuknya perawat/... → gabung ke api/media
   return '$kBaseUrl/api/media/$v';
 }
 
@@ -210,7 +200,7 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
                 : ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
-                    // ====== HEADER CARD (NAMA + PROFESI) ======
+
                     Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
@@ -274,7 +264,6 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
 
                     const SizedBox(height: 16),
 
-                    // ====== DATA PRIBADI ======
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -316,7 +305,6 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
 
                     const SizedBox(height: 16),
 
-                    // ====== KONTAK & AREA ======
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -358,7 +346,6 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
 
                     const SizedBox(height: 16),
 
-                    // ====== PROFESIONAL ======
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -405,7 +392,6 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
 
                     const SizedBox(height: 16),
 
-                    // ====== KONTAK DARURAT ======
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -444,7 +430,6 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
 
                     const SizedBox(height: 16),
 
-                    // ====== STATUS ======
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -481,7 +466,6 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
 
                     const SizedBox(height: 16),
 
-                    // ====== FOTO & DOKUMEN ======
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(

@@ -7,9 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/ui_components.dart';
 
-// =============================================================
-// PAGE (IT SUPPORT TICKETS)
-// =============================================================
 class SupportTicketPage extends StatefulWidget {
   final bool isDesktop;
   final bool isTablet;
@@ -27,14 +24,13 @@ class SupportTicketPage extends StatefulWidget {
 }
 
 class _SupportTicketPageState extends State<SupportTicketPage> {
-  // ===== BASE URL PATTERN (SAMA PERSIS SEPERTI AUDIT) =====
+
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ===== Filters =====
-  String _status = 'all'; // all|open|in_progress|solved|closed
-  String _priority = 'all'; // all|low|medium|high
-  String _category = 'all'; // all|bug|error|performance|access|other
+  String _status = 'all';
+  String _priority = 'all';
+  String _category = 'all';
   String _q = '';
 
   Timer? _debounce;
@@ -47,12 +43,9 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
   Future<Map<String, dynamic>>? _future;
 
-  int? _myUserId; // untuk assign ke saya
+  int? _myUserId;
   SupportTicket? _selected;
 
-  // =========================
-  // NORMALIZE (ANTI DROPDOWN CRASH)
-  // =========================
   String _normalizeStatus(String v) {
     final x = v.trim().toLowerCase();
     const allowed = {'all', 'open', 'in_progress', 'solved', 'closed'};
@@ -91,7 +84,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   void initState() {
     super.initState();
     _qC.addListener(_onRealtimeChanged);
-    _future = _bootstrap(); // ambil /me lalu list
+    _future = _bootstrap();
   }
 
   @override
@@ -114,9 +107,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     super.dispose();
   }
 
-  // =========================
-  // AUTH / HEADER
-  // =========================
   Future<String> _token() async {
     final prefs = await SharedPreferences.getInstance();
     final token =
@@ -132,9 +122,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     'Authorization': 'Bearer $token',
   };
 
-  // =========================
-  // BOOTSTRAP -> ambil /me buat user id IT (assign)
-  // =========================
   Future<Map<String, dynamic>> _bootstrap() async {
     final token = await _token();
 
@@ -149,7 +136,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
     final body = jsonDecode(res.body);
 
-    // fleksibel: {data:{user:{id}}} atau {user:{id}} atau {data:{id}}
     final data = (body is Map && body['data'] != null) ? body['data'] : body;
     final user = (data is Map && data['user'] != null) ? data['user'] : data;
 
@@ -158,12 +144,9 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     return _fetchList();
   }
 
-  // =========================
-  // FETCH LIST
-  // =========================
   String _buildListUrl() {
     final qp = <String, String>{
-      'range': widget.range, // optional
+      'range': widget.range,
       'per_page': '$_perPage',
       'page': '$_page',
     };
@@ -193,12 +176,10 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       final body = jsonDecode(res.body);
 
-      // Controller kamu: { success, message, data: <paginator> }
       if (body is Map && body['data'] is Map) {
         return Map<String, dynamic>.from(body['data']);
       }
 
-      // fallback
       if (body is Map) return Map<String, dynamic>.from(body);
 
       return {'data': <dynamic>[]};
@@ -207,9 +188,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================
-  // ACTIONS (IT)
-  // =========================
   Future<void> _setStatus(int ticketId, String status) async {
     final token = await _token();
     final res = await http.post(
@@ -265,9 +243,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     }
   }
 
-  // =========================
-  // HELPERS
-  // =========================
   String _s(dynamic v, [String fb = '']) {
     if (v == null) return fb;
     final t = v.toString().trim();
@@ -336,7 +311,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     });
   }
 
-  // ===== parse paginator (FIX UTAMA) =====
   Map<String, dynamic> _asPager(Map<String, dynamic> data) {
     if (data['items'] is Map) return Map<String, dynamic>.from(data['items']);
     if (data['data'] is List && data.containsKey('current_page')) return data;
@@ -345,25 +319,21 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     return {'data': <dynamic>[]};
   }
 
-  // ✅ CEK apakah ticket ini sudah di-assign ke orang lain
   bool _isAssignedToOther(Map<String, dynamic> t) {
     final assignedId = _i(t['assigned_to']);
     if (assignedId == 0) return false;
     return assignedId != (_myUserId ?? 0);
   }
 
-  // ✅ CEK apakah ticket ini sudah di-assign ke saya
   bool _isAssignedToMe(Map<String, dynamic> t) {
     final assignedId = _i(t['assigned_to']);
     if (assignedId == 0) return false;
     return assignedId == (_myUserId ?? 0);
   }
 
-  // ✅ FIXED: Open Detail dengan Proper Async Handling
   Future<void> _openDetail(Map<String, dynamic> t) async {
     final id = _i(t['id']);
 
-    // ✅ PROTEKSI: Kalau ticket sudah di-assign ke IT lain, tidak bisa dibuka
     if (_isAssignedToOther(t)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -381,7 +351,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     _notesC.text = _s(t['it_notes'], '');
 
     if (!widget.isDesktop) {
-      // ✅ CRITICAL: Simpan context di variabel lokal SEBELUM showModalBottomSheet
+
       final scaffoldContext = context;
 
       await showModalBottomSheet(
@@ -396,7 +366,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
               notesCtrl: _notesC,
               myUserId: _myUserId ?? 0,
 
-              // ✅ FIX: SYNC CALLBACK (tidak async), tapi tetap jalan async via then/catchError
               onAssignMe: () {
                 Navigator.of(sheetContext).pop();
                 Future.delayed(const Duration(milliseconds: 100)).then((_) {
@@ -645,9 +614,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     }
   }
 
-  // =========================
-  // BUILD
-  // =========================
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -690,7 +656,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                 },
               ),
 
-            // ===== FILTER =====
             XCard(
               title: 'Filter',
               subtitle:
@@ -779,7 +744,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
             const SizedBox(height: 12),
 
-            // ===== CONTENT (LIST + DETAIL)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -925,7 +889,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                       });
                                 },
 
-                                // ✅ FIXED: SYNC callback (bukan async)
                                 onSaveNotes: () {
                                   _saveNotes(_i(selectedMap['id']))
                                       .then((_) {
@@ -957,7 +920,6 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                       });
                                 },
 
-                                // ✅ FIXED: SYNC callback (bukan async)
                                 onSetStatus: (st) {
                                   _setStatus(_i(selectedMap['id']), st)
                                       .then((_) {
@@ -999,18 +961,12 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   }
 }
 
-// =============================================================
-// Tiny model wrapper (biar gampang simpan selected)
-// =============================================================
 class SupportTicket {
   final Map<String, dynamic> raw;
   SupportTicket(this.raw);
   factory SupportTicket.fromMap(Map<String, dynamic> m) => SupportTicket(m);
 }
 
-// =============================================================
-// Widgets - TICKET ROW (✅ DENGAN ASSIGN INDICATOR!)
-// =============================================================
 class _TicketRow extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -1260,7 +1216,6 @@ class _MiniChip extends StatelessWidget {
   }
 }
 
-// ===== Detail Panel (desktop) =====
 class _TicketDetailPanel extends StatelessWidget {
   final Map<String, dynamic> ticket;
   final Color Function(String status) statusColor;
@@ -1546,7 +1501,6 @@ class _TicketDetailPanel extends StatelessWidget {
   }
 }
 
-// ===== Detail Sheet (mobile) - ✅ FIXED! =====
 class _TicketDetailSheet extends StatelessWidget {
   final Map<String, dynamic> ticket;
   final Color Function(String status) statusColor;
@@ -1618,7 +1572,6 @@ class _TicketDetailSheet extends StatelessWidget {
   }
 }
 
-// Filter Widgets
 class _StatusDropdown extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
@@ -1761,7 +1714,6 @@ class _CategoryDropdown extends StatelessWidget {
   }
 }
 
-// Pagination / Empty / Loading / Error
 class _PaginationBarNative extends StatelessWidget {
   final int page;
   final bool canPrev;

@@ -568,7 +568,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
+
                 Row(
                   children: [
                     Container(
@@ -638,7 +638,6 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
                 const Divider(height: 1),
                 const SizedBox(height: 12),
 
-                // Date & Time
                 Row(
                   children: [
                     _buildMetaChip(Icons.calendar_today, tanggal),
@@ -649,7 +648,6 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
 
                 const SizedBox(height: 12),
 
-                // Info rows
                 _buildInfoRow(Icons.person, 'Pasien', pasienNama),
                 const SizedBox(height: 6),
                 _buildInfoRow(

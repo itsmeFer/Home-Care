@@ -22,8 +22,8 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
   List<PerawatModel> _list = [];
 
   final TextEditingController _searchC = TextEditingController();
-  String? _filterStatus; // pending/verified/rejected
-  int? _filterActive; // 1/0
+  String? _filterStatus;
+  int? _filterActive;
 
   @override
   void initState() {
@@ -59,11 +59,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     };
   }
 
-  // =========================
-  // GET LIST PERAWAT
-  // sesuai ShowPerawatController@index
-  // GET /admin/perawat
-  // =========================
   Future<void> _fetchPerawat() async {
     if (mounted) {
       setState(() {
@@ -100,8 +95,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
               .map((e) => PerawatModel.fromJson(Map<String, dynamic>.from(e)))
               .toList();
 
-      // filter lokal karena endpoint /admin/perawat dari ShowPerawatController
-      // baru support search, belum ada status_verifikasi / is_active
       final filtered =
           items.where((x) {
             final statusOk =
@@ -130,11 +123,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     }
   }
 
-  // =========================
-  // GET DETAIL PERAWAT
-  // sesuai ShowPerawatController@show
-  // GET /admin/perawat/{id}
-  // =========================
   Future<PerawatDetailModel> _fetchPerawatDetail(int id) async {
     final res = await http.get(
       _buildUri('/admin/perawat/$id'),
@@ -173,12 +161,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     );
   }
 
-  // =========================
-  // CREATE / UPDATE
-  // POST/PUT /admin/perawat-crud
-  // lalu assign koordinator via endpoint khusus
-  // PUT /admin/perawat/{id}/assign-koordinator
-  // =========================
   Future<void> _savePerawat({PerawatModel? perawat}) async {
     try {
       PerawatDetailModel? detail;
@@ -290,10 +272,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     }
   }
 
-  // =========================
-  // ASSIGN KOORDINATOR
-  // PUT /admin/perawat/{id}/assign-koordinator
-  // =========================
   Future<void> _assignKoordinator(PerawatModel p) async {
     try {
       final detail = await _fetchPerawatDetail(p.id);
@@ -357,9 +335,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     }
   }
 
-  // =========================
-  // DELETE
-  // =========================
   Future<void> _deletePerawat(PerawatModel p) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -422,9 +397,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     }
   }
 
-  // =========================
-  // SET PASSWORD
-  // =========================
   Future<void> _setPassword(PerawatModel p) async {
     final password = await showDialog<String>(
       context: context,
@@ -481,9 +453,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     }
   }
 
-  // =========================
-  // VERIFIKASI
-  // =========================
   Future<void> _verifikasi(PerawatModel p) async {
     final result = await showDialog<_VerifyResult>(
       context: context,
@@ -961,9 +930,6 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
   }
 }
 
-// =======================
-// MODEL
-// =======================
 class PerawatModel {
   final int id;
   final int? userId;
@@ -1163,9 +1129,6 @@ class PerawatFormResult {
   }
 }
 
-// =======================
-// DIALOG FORM PERAWAT
-// =======================
 class _PerawatFormDialog extends StatefulWidget {
   final PerawatModel? perawat;
   final String apiBase;
@@ -1645,9 +1608,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
   }
 }
 
-// =======================
-// DIALOG ASSIGN KOORDINATOR
-// =======================
 class _AssignKoordinatorDialog extends StatefulWidget {
   final int? currentKoordinatorId;
   final List<KoordinatorItem> coordinators;
@@ -1725,9 +1685,6 @@ class _AssignKoordinatorDialogState extends State<_AssignKoordinatorDialog> {
   }
 }
 
-// =======================
-// DIALOG PASSWORD
-// =======================
 class _PasswordDialog extends StatefulWidget {
   const _PasswordDialog();
 
@@ -1793,9 +1750,6 @@ class _PasswordDialogState extends State<_PasswordDialog> {
   }
 }
 
-// =======================
-// DIALOG VERIFIKASI
-// =======================
 class _VerifyResult {
   final String status;
   final String? note;

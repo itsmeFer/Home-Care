@@ -1,10 +1,3 @@
-// ManagerDashboard.dart (IMPROVED MOBILE) ✅
-// ✅ UI mirip DirekturDashboard dengan mobile layout yang RAPI
-// ✅ Top Bar mobile vertikal: Menu+Title di atas, Range di bawah
-// ✅ Bottom Nav dengan height tetap dan SafeArea
-// ✅ Mobile Menu (Bottom Sheet) lengkap dengan logout
-// ✅ Responsive padding dan spacing yang konsisten
-
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -15,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'pages/overview_page.dart';
 import 'package:home_care/manager/pages/keuangan_page.dart';
 import 'pages/tim_page.dart';
-import 'pages/lapor_it.dart'; // ✅ Import Lapor IT
+import 'pages/lapor_it.dart';
 import 'package:home_care/screen/login.dart';
 
 class ManagerDashboard extends StatefulWidget {
@@ -26,7 +19,7 @@ class ManagerDashboard extends StatefulWidget {
 }
 
 class _ManagerDashboardState extends State<ManagerDashboard> {
-  // ====== SHADCN-LIKE PALETTE ======
+
   static const Color kBg = Color(0xFFF8FAFC);
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
@@ -340,9 +333,6 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
   }
 }
 
-/* ============================================================
-  TOP BAR - RESPONSIVE MOBILE/DESKTOP
-============================================================ */
 class _TopBar extends StatelessWidget {
   final String title;
   final String rangeValue;
@@ -383,7 +373,7 @@ class _TopBar extends StatelessWidget {
               ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Baris 1: Menu + Title + Avatar
+
                   Row(
                     children: [
                       if (onOpenMenu != null)
@@ -428,7 +418,7 @@ class _TopBar extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Baris 2: Range Selector (Mobile Segmented Control)
+
                   _MobileRangeSelector(
                     value: rangeValue,
                     items: ranges,
@@ -527,9 +517,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  MOBILE RANGE SELECTOR (SEGMENTED CONTROL)
-============================================================ */
 class _MobileRangeSelector extends StatelessWidget {
   final String value;
   final List<String> items;
@@ -601,9 +588,6 @@ class _MobileRangeSelector extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SIDEBAR (DESKTOP)
-============================================================ */
 class _Sidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
@@ -677,7 +661,6 @@ class _Sidebar extends StatelessWidget {
           const Divider(height: 1, color: kBorder),
           const SizedBox(height: 8),
 
-          // ✅ Menu Lapor IT
           _NavItem(
             icon: Icons.support_agent_rounded,
             label: 'Lapor IT',
@@ -847,9 +830,6 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  BOTTOM NAV (MOBILE/TABLET) - IMPROVED
-============================================================ */
 class _BottomNav extends StatelessWidget {
   final int index;
   final ValueChanged<int> onChanged;
@@ -948,9 +928,6 @@ class _BottomNavItem extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  MOBILE MENU (BOTTOM SHEET) - IMPROVED
-============================================================ */
 class _MobileMenu extends StatelessWidget {
   final int selectedIndex;
   final String userName;
@@ -982,7 +959,7 @@ class _MobileMenu extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle bar
+
               Container(
                 height: 5,
                 width: 46,
@@ -993,7 +970,6 @@ class _MobileMenu extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Header dengan Avatar
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -1050,7 +1026,6 @@ class _MobileMenu extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Menu Title
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -1064,7 +1039,6 @@ class _MobileMenu extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // Menu Items
               _menuItem(0, Icons.dashboard_outlined, 'Overview'),
               _menuItem(1, Icons.account_balance_outlined, 'Keuangan'),
               _menuItem(2, Icons.groups_outlined, 'Kinerja Tim'),
@@ -1075,10 +1049,9 @@ class _MobileMenu extends StatelessWidget {
               const Divider(height: 1, color: kBorder),
               const SizedBox(height: 8),
 
-              // ✅ Menu Lapor IT
               InkWell(
                 onTap: () {
-                  Navigator.pop(context); // Close menu first
+                  Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1118,7 +1091,6 @@ class _MobileMenu extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Logout Button
               InkWell(
                 onTap: onLogout,
                 borderRadius: BorderRadius.circular(14),
@@ -1201,9 +1173,6 @@ class _MobileMenu extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SMALL UI COMPONENTS
-============================================================ */
 class _Select extends StatelessWidget {
   final String value;
   final List<String> items;

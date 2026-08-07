@@ -1,27 +1,3 @@
-// ManagerOverviewPage.dart (FULL) ✅
-//
-// ✅ Desain DISAMAKAN persis seperti OverviewPage Direktur
-// ✅ KPI Rupiah (Rp + titik)
-// ✅ Chart: prefer cashflow 3 line (Income/Fee/Profit) kalau ada data,
-//    fallback ke Trend 1 line kalau backend manager hanya punya trend.
-// ✅ Top Layanan (progress bar list)
-// ✅ Leaderboard Tim (table)
-// ✅ Animasi chart 0 -> nilai tiap buka tab / ganti range
-// ✅ Modal "Evaluasi Perawat" -> POST /api/manager/perawat-evaluations
-//
-// Backend (manager):
-// GET  /api/manager/dashboard/overview?range=...
-// GET  /api/manager/perawat
-// GET  /api/manager/koordinator
-// POST /api/manager/perawat-evaluations
-//
-// Expected keys (fleksibel):
-// - kpi / summary
-// - cashflow_trend / cashflow / trend_cashflow / trend : [{label, income, fee, profit}]
-// - trend (fallback) : [{label, total/order/count/...}]
-// - top_layanan / top_services : [{nama, omset}]
-// - leaderboard / leaderboard_tim : [{nama, role, order, rating, fee}]
-
 import 'dart:convert';
 import 'dart:math';
 
@@ -53,22 +29,19 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ✅ endpoint manager
   String get _url =>
       '$kApiBase/manager/dashboard/overview?range=${Uri.encodeComponent(_rangeParam(widget.range))}';
 
   Future<Map<String, dynamic>>? _future;
 
-  // ✅ animasi 0 -> nilai (sama seperti direktur)
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
 
-  // ===== PALETTE (samakan direktur) =====
-  static const Color _cIncome = Color(0xFF06B6D4); // cyan-500
-  static const Color _cFee = Color(0xFFF59E0B); // amber-500
-  static const Color _cProfit = Color(0xFF22C55E); // green-500
-  static const Color _grid = Color(0xFFE2E8F0); // slate-200
-  static const Color _axis = Color(0xFF64748B); // slate-500
+  static const Color _cIncome = Color(0xFF06B6D4);
+  static const Color _cFee = Color(0xFFF59E0B);
+  static const Color _cProfit = Color(0xFF22C55E);
+  static const Color _grid = Color(0xFFE2E8F0);
+  static const Color _axis = Color(0xFF64748B);
 
   @override
   void initState() {
@@ -88,7 +61,7 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
   void didUpdateWidget(covariant ManagerOverviewPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.range != widget.range) {
-      _refresh(); // ✅ BENAR - panggil method async yang sudah ada
+      _refresh();
     }
   }
 
@@ -108,16 +81,13 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
   Future<void> _refresh() async {
     if (!mounted) return;
 
-    // Stop animasi dulu sebelum setState
     _chartCtrl.stop();
     _chartCtrl.value = 0;
 
-    // Baru setState
     setState(() {
       _future = _fetch();
     });
 
-    // Tunggu frame berikutnya baru replay
     if (!mounted) return;
     await Future.delayed(Duration.zero);
     if (!mounted) return;
@@ -125,9 +95,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     _chartCtrl.forward();
   }
 
-  // =========================================================
-  // ✅ Range mapping: label UI -> param backend
-  // =========================================================
   String _rangeParam(String label) {
     switch (label) {
       case 'Hari ini':
@@ -145,9 +112,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     }
   }
 
-  // =========================
-  // AUTH + FETCH
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
@@ -163,9 +127,8 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
       headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
-    // ignore: avoid_print
     print('MANAGER OVERVIEW URL: $_url');
-    // ignore: avoid_print
+
     print('MANAGER OVERVIEW RAW: ${res.body}');
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -180,9 +143,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================
-  // FORMAT RUPIAH (tanpa intl) - sama direktur
-  // =========================
   double _toDouble(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
@@ -235,18 +195,12 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     return _formatThousandsId(n.round());
   }
 
-  // =========================
-  // SAFE MAP/LIST
-  // =========================
   Map<String, dynamic> _map(dynamic v) =>
       (v is Map) ? Map<String, dynamic>.from(v) : <String, dynamic>{};
 
   List<Map<String, dynamic>> _list(dynamic v) =>
       (v is List) ? v.map((e) => _map(e)).toList() : <Map<String, dynamic>>[];
 
-  // =========================
-  // EXTRACTORS (fleksibel key) - samakan direktur
-  // =========================
   Map<String, dynamic> _getKpi(Map<String, dynamic> data) {
     if (data['kpi'] is Map) return _map(data['kpi']);
     if (data['summary'] is Map) return _map(data['summary']);
@@ -318,10 +272,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     return <Map<String, dynamic>>[];
   }
 
-  // =========================
-  // CHART: CASHFLOW 3 LINES
-  // + fallback 1 line trend kalau tidak ada cashflow
-  // =========================
   Widget _cashflowOrTrendChart(
     List<Map<String, dynamic>> cashflow,
     List<Map<String, dynamic>> trendFallback,
@@ -679,9 +629,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     );
   }
 
-  // =========================
-  // TOP LAYANAN (progress list) - sama direktur
-  // =========================
   Widget _topLayananCard(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -763,9 +710,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     );
   }
 
-  // =========================
-  // LEADERBOARD (table) - sama direktur
-  // =========================
   Widget _leaderboardCard(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -801,9 +745,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     );
   }
 
-  // =========================
-  // ✅ EVALUASI PERAWAT (UI + API)
-  // =========================
   Future<List<Map<String, dynamic>>> _fetchList(String url) async {
     final token = await _getToken();
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
@@ -813,9 +754,8 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
       headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
-    // ignore: avoid_print
     print('LIST URL: $url');
-    // ignore: avoid_print
+
     print('LIST RAW: ${res.body}');
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
@@ -865,9 +805,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
     );
   }
 
-  // =========================
-  // BUILD (sama direktur)
-  // =========================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 4 : 2;
@@ -919,7 +856,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
         final data = snap.data ?? {};
         final kpi = _getKpi(data);
 
-        // ✅ KPI manager (fleksibel)
         final revenue =
             kpi['income'] ??
             kpi['revenue'] ??
@@ -938,7 +874,6 @@ class _ManagerOverviewPageState extends State<ManagerOverviewPage>
 
         final rating = _toDouble(kpi['rating_avg'] ?? kpi['avg_rating'] ?? 0);
 
-        // ✅ data chart/top/leaderboard
         final cashflow = _getCashflow(data);
         final trendFallback = _getTrendFallback(data);
         final topLayanan = _getTopLayanan(data);

@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart' as uio;
-// ignore: avoid_web_libraries_in_flutter
+
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/ui_components.dart';
@@ -34,7 +34,6 @@ class _AuditPageManagerState extends State<AuditPageManager> {
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ✅ endpoints
   Uri _buildAuditUri() {
     return Uri.parse(
       '$kApiBase/manager/dashboard/audit',
@@ -110,7 +109,7 @@ class _AuditPageManagerState extends State<AuditPageManager> {
                             ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
-                              // ⛳ nanti bisa diarahkan ke detail / edit
+
                             },
                           ),
                         ),
@@ -155,9 +154,6 @@ class _AuditPageManagerState extends State<AuditPageManager> {
     }
   }
 
-  // =========================
-  // FETCH
-  // =========================
   Future<Map<String, dynamic>> _fetch() async {
     final prefs = await SharedPreferences.getInstance();
     final token =
@@ -192,9 +188,6 @@ class _AuditPageManagerState extends State<AuditPageManager> {
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================
-  // ✅ EVALUASI PERAWAT (MOVED FROM OVERVIEW)
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
@@ -243,7 +236,7 @@ class _AuditPageManagerState extends State<AuditPageManager> {
   int _pickId(Map<String, dynamic> m) => _toInt(m['id']);
 
   Future<void> _openEvaluasiPerawat() async {
-    // loading
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -365,8 +358,8 @@ class _AuditPageManagerState extends State<AuditPageManager> {
                   throw Exception('HTTP ${res.statusCode}: ${res.body}');
                 }
 
-                if (mounted) Navigator.of(ctx).pop(); // close loading
-                if (mounted) Navigator.of(ctx).pop(); // close form
+                if (mounted) Navigator.of(ctx).pop();
+                if (mounted) Navigator.of(ctx).pop();
                 _toastSuccess(
                   'Evaluasi tersimpan',
                   'Berhasil membuat evaluasi.',
@@ -546,9 +539,6 @@ class _AuditPageManagerState extends State<AuditPageManager> {
     );
   }
 
-  // =========================
-  // HELPERS
-  // =========================
   int _toInt(dynamic v) {
     if (v == null) return 0;
     if (v is int) return v;

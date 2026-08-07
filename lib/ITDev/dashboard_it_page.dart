@@ -9,7 +9,6 @@ import 'pages/support_ticket_page.dart';
 import 'pages/system_maintenance_page.dart';
 import 'pages/session_token_page.dart';
 
-// ✅ sesuaikan path login kamu
 import 'package:home_care/screen/login.dart';
 
 class ITDevDashboard extends StatefulWidget {
@@ -20,13 +19,13 @@ class ITDevDashboard extends StatefulWidget {
 }
 
 class _ITDevDashboardState extends State<ITDevDashboard> {
-  // ====== SHADCN-LIKE PALETTE ======
-  static const Color kBg = Color(0xFFF8FAFC); // slate-50
+
+  static const Color kBg = Color(0xFFF8FAFC);
   static const Color kCard = Colors.white;
-  static const Color kBorder = Color(0xFFE2E8F0); // slate-200
-  static const Color kText = Color(0xFF0F172A); // slate-900
-  static const Color kMuted = Color(0xFF64748B); // slate-500
-  static const Color kPrimary = Color(0xFF0EA5E9); // sky-500
+  static const Color kBorder = Color(0xFFE2E8F0);
+  static const Color kText = Color(0xFF0F172A);
+  static const Color kMuted = Color(0xFF64748B);
+  static const Color kPrimary = Color(0xFF0EA5E9);
 
   int _tabIndex = 0;
 
@@ -186,7 +185,7 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
             Expanded(
               child: Column(
                 children: [
-                  // ✅ Top Bar yang sudah diperbaiki untuk mobile
+
                   _TopBar(
                     title: _titleForTab(_tabIndex),
                     rangeValue: _range,
@@ -278,9 +277,6 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
   }
 }
 
-/* ============================================================
-  TOP BAR - DIPERBAIKI UNTUK MOBILE
-============================================================ */
 class _TopBar extends StatelessWidget {
   final String title;
   final String rangeValue;
@@ -310,7 +306,7 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isMobile) {
-      // ✅ MOBILE: Layout vertikal yang lebih rapi
+
       return Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
@@ -319,7 +315,7 @@ class _TopBar extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Baris 1: Menu + Title
+
             Row(
               children: [
                 if (onOpenMenu != null)
@@ -364,7 +360,7 @@ class _TopBar extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            // Baris 2: Range Selector (Full Width)
+
             _MobileRangeSelector(
               value: rangeValue,
               items: ranges,
@@ -375,7 +371,6 @@ class _TopBar extends StatelessWidget {
       );
     }
 
-    // ✅ TABLET/DESKTOP: Layout horizontal seperti sebelumnya
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
@@ -452,9 +447,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  MOBILE RANGE SELECTOR
-============================================================ */
 class _MobileRangeSelector extends StatelessWidget {
   final String value;
   final List<String> items;
@@ -515,9 +507,6 @@ class _MobileRangeSelector extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SIDEBAR (DESKTOP)
-============================================================ */
 class _Sidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
@@ -745,9 +734,6 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  BOTTOM NAV (MOBILE/TABLET) - DIPERBAIKI
-============================================================ */
 class _BottomNav extends StatelessWidget {
   final int index;
   final ValueChanged<int> onChanged;
@@ -825,9 +811,6 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  MOBILE MENU - DIPERBAIKI
-============================================================ */
 class _MobileMenu extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
@@ -859,7 +842,7 @@ class _MobileMenu extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Handle bar
+
                 Container(
                   height: 5,
                   width: 46,
@@ -870,7 +853,6 @@ class _MobileMenu extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Header dengan avatar
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -925,7 +907,6 @@ class _MobileMenu extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // Menu items
                 _menuItem(context, 0, Icons.monitor_heart_outlined, 'Dashboard IT'),
                 _menuItem(context, 1, Icons.policy_outlined, 'Audit Sistem'),
                 _menuItem(context, 2, Icons.manage_accounts_outlined, 'User Monitor'),
@@ -937,7 +918,6 @@ class _MobileMenu extends StatelessWidget {
                 const Divider(height: 1, color: kBorder),
                 const SizedBox(height: 12),
 
-                // Logout
                 _actionItem(
                   icon: Icons.logout_rounded,
                   label: 'Logout',
@@ -1049,9 +1029,6 @@ class _MobileMenu extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SMALL UI: SELECT, AVATAR CHIP
-============================================================ */
 class _Select extends StatelessWidget {
   final String value;
   final List<String> items;

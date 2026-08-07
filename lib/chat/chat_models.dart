@@ -1,4 +1,3 @@
-// lib/chat/chat_models.dart
 import 'dart:convert';
 
 class ChatRoom {

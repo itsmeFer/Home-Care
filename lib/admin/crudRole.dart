@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Biar bisa pakai HCColor dari HomePage
 import 'package:home_care/users/HomePage.dart';
 
 class CrudRolePage extends StatefulWidget {
@@ -21,7 +20,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
   bool _isError = false;
   String? _errorMessage;
 
-  // untuk assign
   bool _assignLoading = false;
   AssignFormData? _assignData;
 
@@ -31,7 +29,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
   void initState() {
     super.initState();
     _fetchRoles();
-    _fetchAssignFormData(); // load list user + role di awal
+    _fetchAssignFormData();
   }
 
   Future<String?> _getToken() async {
@@ -39,9 +37,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
     return prefs.getString('auth_token');
   }
 
-  // =========================
-  // HELPER: dapatkan nama role dari role_id
-  // =========================
   String _getRoleNameById(int? roleId) {
     if (roleId == null || _assignData == null) return '-';
     for (final r in _assignData!.roles) {
@@ -50,9 +45,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
     return '-';
   }
 
-  // =========================
-  // GET LIST ROLE
-  // =========================
   Future<void> _fetchRoles() async {
     setState(() {
       _isLoading = true;
@@ -88,7 +80,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
       }
 
       final body = json.decode(res.body);
-      // dari controller: return ['data' => $roles]; // $roles = paginate
+
       if (body is Map && body['data'] != null) {
         final paginated = body['data'];
         if (paginated is Map && paginated['data'] != null) {
@@ -124,9 +116,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
     }
   }
 
-  // =========================
-  // CREATE ROLE
-  // =========================
   Future<void> _createRole(Map<String, dynamic> payload) async {
     try {
       final token = await _getToken();
@@ -149,7 +138,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
           final body = json.decode(res.body);
           if (body is Map) {
             if (body['errors'] != null) {
-              // gabung semua pesan error jadi satu string
+
               final errors = body['errors'] as Map<String, dynamic>;
               final buffer = StringBuffer();
               errors.forEach((key, value) {
@@ -176,7 +165,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
       );
 
       await _fetchRoles();
-      await _fetchAssignFormData(); // refresh mapping user-role
+      await _fetchAssignFormData();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -187,9 +176,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
     }
   }
 
-  // =========================
-  // UPDATE ROLE
-  // =========================
   Future<void> _updateRole(int id, Map<String, dynamic> payload) async {
     try {
       final token = await _getToken();
@@ -236,9 +222,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
     }
   }
 
-  // =========================
-  // DELETE ROLE
-  // =========================
   Future<void> _deleteRole(RoleModel r) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -325,10 +308,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
       await _updateRole(role.id, result);
     }
   }
-
-  // =========================
-  // ASSIGN ROLE → USER
-  // =========================
 
   Future<void> _fetchAssignFormData() async {
     setState(() {
@@ -431,7 +410,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
   }
 
   Future<void> _showAssignSheet(RoleModel role) async {
-    // kalau belum ada data, fetch dulu
+
     if (_assignData == null) {
       await _fetchAssignFormData();
     }
@@ -463,7 +442,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: maxHeight,
-                      maxWidth: 700, // biar rapi di tablet/web juga
+                      maxWidth: 700,
                     ),
                     child: Material(
                       color: Colors.transparent,
@@ -487,7 +466,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
                               child: Center(child: CircularProgressIndicator()),
                             )
                           else ...[
-                            // FIELD SEARCH
+
                             TextField(
                               decoration: InputDecoration(
                                 labelText: 'Cari user (nama / email)',
@@ -528,7 +507,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
                             ),
                             const SizedBox(height: 12),
 
-                            // LIST USER DI DALAM SHEET (BUKAN DROPDOWN)
                             Expanded(
                               child:
                                   filteredUsers.isEmpty
@@ -711,7 +689,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
                 itemBuilder: (_, i) {
                   final r = _list[i];
 
-                  // user yang punya role ini
                   final List<UserSummary> assignedUsers =
                       _assignData?.users
                           .where((u) => u.roleId == r.id)
@@ -846,10 +823,6 @@ class _CrudRolePageState extends State<CrudRolePage> {
   }
 }
 
-// =======================
-// MODEL ROLE
-// =======================
-
 class RoleModel {
   final int id;
   final String name;
@@ -885,10 +858,6 @@ class RoleModel {
     return (parts.first[0] + parts.last[0]).toUpperCase();
   }
 }
-
-// =======================
-// MODEL UNTUK ASSIGN
-// =======================
 
 class AssignFormData {
   final List<RoleModel> roles;
@@ -935,10 +904,6 @@ class UserSummary {
     );
   }
 }
-
-// =======================
-// FORM DIALOG ROLE
-// =======================
 
 class _RoleFormDialog extends StatefulWidget {
   final RoleModel? role;

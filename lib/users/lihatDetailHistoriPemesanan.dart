@@ -5,12 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Import halaman rating - sesuaikan dengan path project Anda
-// import 'lihat_rating_page.dart';
-
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
-// ===== COLOR SCHEME =====
 class HCColors {
   static const primary = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
@@ -42,7 +38,6 @@ class _LihatDetailHistoriPemesananPageState
   String? _error;
   Map<String, dynamic>? _order;
 
-  // Rating state
   bool _isLoadingRating = false;
   bool _isSubmittingRating = false;
   Map<String, dynamic>? _ratingData;
@@ -468,7 +463,6 @@ class _LihatDetailHistoriPemesananPageState
             _isLoading = false;
           });
 
-          // Fetch rating jika status selesai
           if (_canRate()) {
             _fetchRating();
           }
@@ -561,7 +555,7 @@ class _LihatDetailHistoriPemesananPageState
   }
 
   Future<void> _submitRating() async {
-    // Validasi
+
     if (_ratingLayanan == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -632,7 +626,6 @@ class _LihatDetailHistoriPemesananPageState
           ),
         );
 
-        // Refresh data rating
         await _fetchRating();
       } else if (response.statusCode == 422) {
         String errorMsg = 'Validasi gagal';
@@ -1030,7 +1023,7 @@ class _LihatDetailHistoriPemesananPageState
                   const SizedBox(height: 12),
                   _buildCancelButton(),
                 ],
-                // ✅ RATING CARD (hanya untuk status selesai)
+
                 if (_canRate()) ...[
                   const SizedBox(height: 12),
                   _buildRatingCard(),
@@ -1088,7 +1081,6 @@ class _LihatDetailHistoriPemesananPageState
     );
   }
 
-  // ✅ RATING CARD - INLINE TANPA NAVIGASI
   Widget _buildRatingCard() {
     if (_isLoadingRating) {
       return Container(
@@ -1151,10 +1143,9 @@ class _LihatDetailHistoriPemesananPageState
           const SizedBox(height: 16),
 
           if (_hasRating) ...[
-            // TAMPILAN RATING YANG SUDAH DIBERIKAN
+
             _buildSubmittedRatingDisplay(),
 
-            // Rating Rata-rata
             if (avgLayanan != null || avgPerawat != null) ...[
               const Divider(height: 24),
               const Text(
@@ -1182,14 +1173,13 @@ class _LihatDetailHistoriPemesananPageState
                 ),
             ],
           ] else ...[
-            // FORM RATING
+
             const Text(
               'Bagaimana pengalaman Anda dengan layanan kami?',
               style: TextStyle(fontSize: 14, color: HCColors.textMuted),
             ),
             const SizedBox(height: 20),
 
-            // Rating Layanan
             _buildRatingSection(
               icon: Icons.medical_services_rounded,
               label: 'Rating Layanan',
@@ -1202,7 +1192,6 @@ class _LihatDetailHistoriPemesananPageState
 
             const SizedBox(height: 16),
 
-            // Rating Perawat
             _buildRatingSection(
               icon: Icons.person_rounded,
               label: 'Rating Perawat',
@@ -1215,7 +1204,6 @@ class _LihatDetailHistoriPemesananPageState
 
             const SizedBox(height: 16),
 
-            // Komentar
             const Row(
               children: [
                 Icon(
@@ -1262,7 +1250,6 @@ class _LihatDetailHistoriPemesananPageState
 
             const SizedBox(height: 16),
 
-            // Submit Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

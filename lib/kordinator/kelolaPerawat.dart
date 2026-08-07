@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:home_care/kordinator/detailPerawat.dart';
-// pakai warna HCColor
+
 import 'package:home_care/users/HomePage.dart';
 
 class KelolaPerawatPage extends StatefulWidget {
@@ -36,9 +36,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     return prefs.getString('auth_token');
   }
 
-  // ====================================
-  // GET LIST PERAWAT
-  // ====================================
   Future<void> _fetchPerawat() async {
     setState(() {
       _isLoading = true;
@@ -100,7 +97,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  // verdifikasi status
   Future<void> _ubahStatusVerifikasi(
     int perawatId,
     String status, {
@@ -134,7 +130,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
         throw 'Gagal mengubah status verifikasi (kode ${res.statusCode})';
       }
 
-      // 🔔 SnackBar beda-beda tergantung status
       String msg;
       Color bgColor;
 
@@ -156,7 +151,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
         context,
       ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: bgColor));
 
-      _fetchPerawat(); // refresh list
+      _fetchPerawat();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -217,9 +212,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  // ====================================
-  // CREATE PERAWAT
-  // ====================================
   Future<void> _createPerawat(Map<String, dynamic> payload) async {
     try {
       final token = await _getToken();
@@ -265,9 +257,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  // ====================================
-  // UPDATE PERAWAT
-  // ====================================
   Future<void> _updatePerawat(int id, Map<String, dynamic> payload) async {
     try {
       final token = await _getToken();
@@ -313,9 +302,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  // ====================================
-  // DELETE PERAWAT
-  // ====================================
   Future<void> _deletePerawat(Perawat p) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -445,7 +431,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                   final p = _list[i];
                   final bool canToggleActive = p.statusVerifikasi == 'verified';
 
-                  // 👉 ambil URL foto (lewat /api/media biar aman CORS)
                   final String? fotoUrl = resolveMediaUrl(p.foto);
 
                   return InkWell(
@@ -500,7 +485,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
                                   Row(
                                     children: [
-                                      // chip verifikasi
+
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 10,
@@ -523,7 +508,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      // chip aktif / tidak aktif
+
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 10,
@@ -619,7 +604,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                                 });
                                               }
                                             }
-                                            : null, // <= kalau null, Switch otomatis disabled
+                                            : null,
                                     activeColor: HCColor.primary,
                                   ),
                                 ),
@@ -739,16 +724,12 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   }
 }
 
-// ====================================
-// MODEL PERAWAT
-// ====================================
-
 class Perawat {
   final int? id;
   final String? kodePerawat;
   final String? namaLengkap;
   final String? nik;
-  final String? jenisKelamin; // L / P
+  final String? jenisKelamin;
   final String? tanggalLahir;
   final String? tempatLahir;
 
@@ -771,12 +752,10 @@ class Perawat {
 
   final bool? isActive;
 
-  // 🔥 STATUS VERIFIKASI
   final String? statusVerifikasi;
   final String? verifiedAt;
   final String? catatanVerifikasi;
 
-  // 👉 TAMBAHAN UNTUK FOTO & DOKUMEN
   final String? foto;
   final String? fotoKtp;
   final String? ijazah;
@@ -809,12 +788,10 @@ class Perawat {
     this.kontakDaruratHubungan,
     this.isActive,
 
-    // 🔥 status verifikasi
     this.statusVerifikasi,
     this.verifiedAt,
     this.catatanVerifikasi,
 
-    // dokumen
     this.foto,
     this.fotoKtp,
     this.ijazah,
@@ -863,12 +840,10 @@ class Perawat {
                   ? json['is_active']
                   : json['is_active'].toString() == '1'),
 
-      // 🔥 status verifikasi
       statusVerifikasi: json['status_verifikasi']?.toString(),
       verifiedAt: json['verified_at']?.toString(),
       catatanVerifikasi: json['catatan_verifikasi']?.toString(),
 
-      // 👉 MAP FIELD FOTO & DOKUMEN
       foto: json['foto']?.toString(),
       fotoKtp: json['foto_ktp']?.toString(),
       ijazah: json['ijazah']?.toString(),
@@ -893,7 +868,6 @@ class Perawat {
     return '-';
   }
 
-  // 🔥 helper status verifikasi
   String get labelStatusVerifikasi {
     switch (statusVerifikasi) {
       case 'verified':
@@ -926,36 +900,27 @@ String? resolveMediaUrl(String? raw) {
   var v = raw.trim();
   if (v.isEmpty) return null;
 
-  // Kalau sudah bentuk api/media → langsung pakai
   if (v.contains('/api/media/')) {
-    // kalau belum ada domain, tambahkan
+
     if (!v.startsWith('http')) {
       return '$kBaseUrl$v';
     }
     return v;
   }
 
-  // Kalau full URL: https://homecare.primamadanitalenta.my.id/storage/...
   if (v.startsWith('http://') || v.startsWith('https://')) {
     final uri = Uri.parse(v);
-    v = uri.path; // contoh: /storage/perawat/...
+    v = uri.path;
   }
 
-  // Hilangkan slash di depan
   if (v.startsWith('/')) v = v.substring(1);
 
-  // Hilangkan "storage/" di depan kalau ada
   if (v.startsWith('storage/')) {
-    v = v.substring('storage/'.length); // jadi: perawat/foto/xxx.jpg
+    v = v.substring('storage/'.length);
   }
 
-  // Sekarang v bentuknya perawat/... → gabung ke api/media
   return '$kBaseUrl/api/media/$v';
 }
-
-// ====================================
-// FORM DIALOG PERAWAT
-// ====================================
 
 class _PerawatFormDialog extends StatefulWidget {
   final Perawat? perawat;
@@ -971,7 +936,7 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
 
   late TextEditingController _namaC;
   late TextEditingController _nikC;
-  String? _jenisKelamin; // 'L' atau 'P'
+  String? _jenisKelamin;
   late TextEditingController _tanggalLahirC;
   late TextEditingController _tempatLahirC;
 
@@ -1094,7 +1059,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
 
     final bytes = await picked.readAsBytes();
 
-    // asumsi default jpg; kalau mau lebih presisi bisa cek extension
     String mime = 'image/jpeg';
     final path = picked.path.toLowerCase();
     if (path.endsWith('.png')) mime = 'image/png';
@@ -1134,7 +1098,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
     );
   }
 
-  // dan seterusnya untuk STR, SIP, BTCLS, PPRA, lainnya:
   Future<void> _pickStrFile() async {
     await _pickImage(
       onPicked: (file, b64) {
@@ -1223,7 +1186,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
 
       'is_active': _isActive,
 
-      // ========= DOKUMEN BASE64 =========
       'foto_base64': _fotoBase64,
       'foto_ktp_base64': _fotoKtpBase64,
       'ijazah_base64': _ijazahBase64,
@@ -1234,7 +1196,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
       'sertifikat_lainnya_base64': _sertifLainBase64,
     };
 
-    // untuk update, kosong/null dibuang biar nggak overwrite paksa
     if (isEdit) {
       payload.removeWhere((key, value) {
         if (value == null) return true;
@@ -1260,7 +1221,7 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Nama lengkap
+
                 TextFormField(
                   controller: _namaC,
                   decoration: const InputDecoration(
@@ -1276,7 +1237,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // NIK
                 TextFormField(
                   controller: _nikC,
                   decoration: const InputDecoration(
@@ -1287,7 +1247,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Jenis Kelamin
                 DropdownButtonFormField<String>(
                   value: _jenisKelamin,
                   decoration: const InputDecoration(
@@ -1304,7 +1263,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Tempat lahir
                 TextFormField(
                   controller: _tempatLahirC,
                   decoration: const InputDecoration(
@@ -1314,7 +1272,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Tanggal lahir (sementara manual YYYY-MM-DD)
                 TextFormField(
                   controller: _tanggalLahirC,
                   decoration: const InputDecoration(
@@ -1324,7 +1281,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // No HP
                 TextFormField(
                   controller: _noHpC,
                   decoration: const InputDecoration(
@@ -1335,7 +1291,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Email
                 TextFormField(
                   controller: _emailC,
                   decoration: const InputDecoration(
@@ -1352,7 +1307,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Profesi
                 TextFormField(
                   controller: _profesiC,
                   decoration: const InputDecoration(
@@ -1362,7 +1316,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Keahlian
                 TextFormField(
                   controller: _keahlianC,
                   decoration: const InputDecoration(
@@ -1372,7 +1325,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // No STR
                 TextFormField(
                   controller: _noStrC,
                   decoration: const InputDecoration(
@@ -1382,7 +1334,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // No SIP
                 TextFormField(
                   controller: _noSipC,
                   decoration: const InputDecoration(
@@ -1392,7 +1343,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Tahun pengalaman
                 TextFormField(
                   controller: _tahunPengalamanC,
                   decoration: const InputDecoration(
@@ -1403,7 +1353,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Tempat kerja terakhir
                 TextFormField(
                   controller: _tempatKerjaTerakhirC,
                   decoration: const InputDecoration(
@@ -1413,7 +1362,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Wilayah
                 TextFormField(
                   controller: _wilayahC,
                   decoration: const InputDecoration(
@@ -1423,7 +1371,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Alamat
                 TextFormField(
                   controller: _alamatC,
                   decoration: const InputDecoration(
@@ -1435,7 +1382,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Kontak darurat - nama
                 TextFormField(
                   controller: _kontakDaruratNamaC,
                   decoration: const InputDecoration(
@@ -1445,7 +1391,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Kontak darurat - no hp
                 TextFormField(
                   controller: _kontakDaruratNoHpC,
                   decoration: const InputDecoration(
@@ -1456,7 +1401,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 10),
 
-                // Kontak darurat - hubungan
                 TextFormField(
                   controller: _kontakDaruratHubunganC,
                   decoration: const InputDecoration(
@@ -1475,7 +1419,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
 
                 const SizedBox(height: 8),
 
-                // Foto profil
                 Row(
                   children: [
                     Expanded(
@@ -1493,7 +1436,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 8),
 
-                // Foto KTP
                 Row(
                   children: [
                     Expanded(
@@ -1511,7 +1453,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 8),
 
-                // Ijazah
                 Row(
                   children: [
                     Expanded(
@@ -1529,7 +1470,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 8),
 
-                // STR
                 Row(
                   children: [
                     Expanded(
@@ -1545,7 +1485,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 8),
 
-                // SIP
                 Row(
                   children: [
                     Expanded(
@@ -1561,7 +1500,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 8),
 
-                // Sertifikat BTCLS
                 Row(
                   children: [
                     Expanded(
@@ -1579,7 +1517,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 8),
 
-                // Sertifikat PPRA
                 Row(
                   children: [
                     Expanded(
@@ -1597,7 +1534,6 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 ),
                 const SizedBox(height: 8),
 
-                // Sertifikat lainnya
                 Row(
                   children: [
                     Expanded(

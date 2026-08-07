@@ -20,7 +20,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   bool _isResending = false;
   int _cooldownSeconds = 0;
   Timer? _cooldownTimer;
-  Timer? _pollingTimer; // ✅ Timer untuk polling
+  Timer? _pollingTimer;
 
   static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
   static const int cooldownDuration = 60;
@@ -28,25 +28,23 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ Mulai polling setiap 5 detik
+
     _startPolling();
   }
 
   @override
   void dispose() {
     _cooldownTimer?.cancel();
-    _pollingTimer?.cancel(); // ✅ Cancel polling saat dispose
+    _pollingTimer?.cancel();
     super.dispose();
   }
 
-  // ✅ POLLING: Cek status verifikasi setiap 5 detik
   void _startPolling() {
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _checkVerificationStatus();
     });
   }
 
-  // ✅ CEK STATUS VERIFIKASI
   Future<void> _checkVerificationStatus() async {
     try {
       final url = Uri.parse('$baseUrl/check-verification-status');
@@ -59,19 +57,16 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       if (res.statusCode == 200) {
         final body = json.decode(res.body);
 
-        // Jika email sudah verified
         if (body['verified'] == true) {
-          _pollingTimer?.cancel(); // Stop polling
+          _pollingTimer?.cancel();
 
           if (!mounted) return;
 
-          // Simpan token jika ada
           if (body['token'] != null) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('token', body['token']);
             await prefs.setString('auth_token', body['token']);
 
-            // Simpan data user
             if (body['data'] != null) {
               final data = body['data'] as Map<String, dynamic>;
               await prefs.setInt('user_id', data['user_id'] ?? 0);
@@ -82,17 +77,15 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
             }
           }
 
-          // Tampilkan success message
           _showSuccessDialog();
         }
       }
     } catch (e) {
-      // Silent fail - jangan ganggu user
+
       print('Polling error: $e');
     }
   }
 
-  // ✅ DIALOG SUCCESS
   void _showSuccessDialog() {
     showDialog(
       context: context,
@@ -138,7 +131,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           ),
     );
 
-    // Auto redirect setelah 2 detik
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
 
@@ -246,7 +238,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               children: [
                 SizedBox(height: size.height * 0.05),
 
-                // Icon Email
                 Center(
                   child: Container(
                     height: size.height * 0.14,
@@ -273,7 +264,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
                 SizedBox(height: size.height * 0.03),
 
-                // Title
                 Text(
                   'Verifikasi Email Anda',
                   textAlign: TextAlign.center,
@@ -287,7 +277,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
                 SizedBox(height: size.height * 0.02),
 
-                // Email yang dikirim
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -326,7 +315,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
                 SizedBox(height: size.height * 0.025),
 
-                // Instruksi
                 Container(
                   padding: EdgeInsets.all(size.width * 0.05),
                   decoration: BoxDecoration(
@@ -401,7 +389,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
                 SizedBox(height: size.height * 0.03),
 
-                // Button Resend Email
                 SizedBox(
                   height: 56,
                   child: ElevatedButton.icon(
@@ -451,7 +438,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
                 const SizedBox(height: 16),
 
-                // Button Back to Login
                 TextButton(
                   onPressed: () {
                     Navigator.pushReplacement(

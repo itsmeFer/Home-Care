@@ -27,8 +27,7 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ===== Filters =====
-  String _risk = 'all'; // all|low|medium|high
+  String _risk = 'all';
   String _action = '';
   String _q = '';
   Timer? _debounce;
@@ -52,9 +51,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
 
   Future<Map<String, dynamic>>? _future;
 
-  // =========================
-  // NORMALIZE (ANTI DROPDOWN CRASH)
-  // =========================
   String _normalizeRisk(String v) {
     final x = v.trim().toLowerCase();
     const allowed = {'all', 'low', 'medium', 'high'};
@@ -76,7 +72,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
 
       if (!mounted) return;
 
-      // ❗️PASTIKAN BUKAN async di dalam setState
       setState(() {
         _future = _fetch();
       });
@@ -86,7 +81,7 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
   void _reload() {
     if (!mounted) return;
     setState(() {
-      _future = _fetch(); // tetap tidak await
+      _future = _fetch();
     });
   }
 
@@ -117,9 +112,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
     super.dispose();
   }
 
-  // =========================
-  // FETCH
-  // =========================
   String _buildUrl() {
     final qp = <String, String>{
       'range': widget.range,
@@ -164,9 +156,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================
-  // HELPERS
-  // =========================
   String _s(dynamic v, [String fb = '']) {
     if (v == null) return fb;
     final t = v.toString().trim();
@@ -233,9 +222,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
     setState(() => _future = _fetch());
   }
 
-  // =========================
-  // BUILD
-  // =========================
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -282,7 +268,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
                 },
               ),
 
-            // ===== FILTER =====
             XCard(
               title: 'Filter',
               subtitle: 'Action • Risk • Search (title/desc/ip/ua).',
@@ -404,7 +389,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
 
             const SizedBox(height: 12),
 
-            // ===== LIST =====
             XCard(
               title: 'Audit Logs',
               subtitle:
@@ -610,9 +594,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
   }
 }
 
-// =========================
-// Filter widget
-// =========================
 class _RiskDropdown extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
@@ -705,9 +686,6 @@ class _PaginationBarNative extends StatelessWidget {
   }
 }
 
-// =========================
-// List row & empty
-// =========================
 class _EmptyState extends StatelessWidget {
   final String text;
   const _EmptyState({required this.text});
@@ -848,9 +826,6 @@ class _AuditRow extends StatelessWidget {
   }
 }
 
-// =========================
-// Local Loading & Error card
-// =========================
 class _LoadingCardX extends StatelessWidget {
   final String title;
   const _LoadingCardX({required this.title});

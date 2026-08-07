@@ -1,12 +1,3 @@
-// KeuanganPage.dart (FIXED TOKEN) ✅
-// ✅ Token diambil dari 'auth_token' (sesuai login.dart)
-// ✅ KPI Rupiah (Rp + titik)
-// ✅ Table Rupiah
-// ✅ 3 Chart mode (Line/Pie/Bar)
-// ✅ Pie donut + legend responsif (rapih, tidak numpuk tulisan)
-// ✅ Animasi chart 0 -> nilai tiap buka tab / ganti tab / ganti range
-// ✅ Export CSV (Web & Mobile)
-
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -19,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart' as uio;
-// ignore: avoid_web_libraries_in_flutter
+
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/ui_components.dart';
@@ -53,11 +44,9 @@ class _KeuanganPageState extends State<KeuanganPage>
 
   KeuanganChartMode _mode = KeuanganChartMode.lineRevenue;
 
-  // ✅ animasi nilai chart 0 -> nilai
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
 
-  // ✅ animasi masuk (fade/slide) saat ganti chart/range
   Key _chartAnimKey = UniqueKey();
 
   @override
@@ -119,12 +108,9 @@ class _KeuanganPageState extends State<KeuanganPage>
     );
   }
 
-  // =========================
-  // AUTH + FETCH
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    // ✅ FIX: Cek auth_token dulu (sesuai login.dart), fallback ke token
+
     return prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
   }
 
@@ -148,9 +134,6 @@ class _KeuanganPageState extends State<KeuanganPage>
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================================================
-  // ✅ FORMAT RUPIAH PINTAR (tanpa intl)
-  // =========================================================
   double _toDouble(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
@@ -210,15 +193,12 @@ class _KeuanganPageState extends State<KeuanganPage>
     final suffix = m != null ? m.group(1)! : '';
 
     final parts = n.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
-    final base = parts.take(2).join(' '); // "Layanan Demo"
+    final base = parts.take(2).join(' ');
 
     if (suffix.isNotEmpty) return '$base $suffix';
     return n.length > 14 ? '${n.substring(0, 14)}…' : n;
   }
 
-  // =========================
-  // EXPORT CSV
-  // =========================
   Uint8List _utf8WithBom(String s) {
     final b = utf8.encode(s);
     return Uint8List.fromList([0xEF, 0xBB, 0xBF, ...b]);
@@ -348,9 +328,6 @@ class _KeuanganPageState extends State<KeuanganPage>
     }
   }
 
-  // =========================
-  // DATA EXTRACT
-  // =========================
   List<Map<String, dynamic>> _extractTrend(Map<String, dynamic> data) {
     final keys = [
       'trend',
@@ -425,9 +402,6 @@ class _KeuanganPageState extends State<KeuanganPage>
     return (spots: spots, labels: labels);
   }
 
-  // =========================
-  // UI: SWITCHER
-  // =========================
   Widget _chartSwitcher() {
     String label(KeuanganChartMode m) {
       switch (m) {
@@ -463,7 +437,7 @@ class _KeuanganPageState extends State<KeuanganPage>
                   () => setState(() {
                     _mode = m;
                     _chartAnimKey = UniqueKey();
-                    _replayChart(); // ✅ animasi 0->nilai tiap ganti tab
+                    _replayChart();
                   }),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -515,9 +489,6 @@ class _KeuanganPageState extends State<KeuanganPage>
     );
   }
 
-  // =========================
-  // UI: PIE LEGEND
-  // =========================
   Widget _pieLegend(List<Map<String, dynamic>> data, {required bool isWide}) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -586,9 +557,6 @@ class _KeuanganPageState extends State<KeuanganPage>
     );
   }
 
-  // =========================
-  // CHARTS (Line, Pie, Bar - code tetap sama, tidak perlu diubah)
-  // =========================
   Widget _lineRevenueChart(List<Map<String, dynamic>> trend) {
     if (trend.isEmpty) {
       return const XCard(
@@ -702,7 +670,6 @@ class _KeuanganPageState extends State<KeuanganPage>
       );
     }
 
-    // normalize + sort
     final data =
         items
             .map(
@@ -752,7 +719,6 @@ class _KeuanganPageState extends State<KeuanganPage>
               final isWide = w >= 780;
               final chartSize = isWide ? 260.0 : 240.0;
 
-              // build sections base (tanpa text di slice)
               final baseSections = <PieChartSectionData>[];
               for (var i = 0; i < data.length; i++) {
                 final v = data[i]['value'] as double;
@@ -915,7 +881,7 @@ class _KeuanganPageState extends State<KeuanganPage>
                   touchTooltipData: BarTouchTooltipData(
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       final nama = (top[group.x]['nama'] ?? '-').toString();
-                      // tooltip pakai nilai asli (bukan yg ter-animasi)
+
                       final raw = _toDouble(top[group.x]['profit']);
                       return BarTooltipItem(
                         '$nama\n${rupiah(raw, withPrefix: true)}',
@@ -934,7 +900,7 @@ class _KeuanganPageState extends State<KeuanganPage>
                       x: i,
                       barRods: [
                         BarChartRodData(
-                          toY: _toDouble(top[i]['profit']) * tt, // ✅ 0 -> nilai
+                          toY: _toDouble(top[i]['profit']) * tt,
                           width: 18,
                           borderRadius: BorderRadius.circular(6),
                         ),
@@ -1025,9 +991,6 @@ class _KeuanganPageState extends State<KeuanganPage>
     }
   }
 
-  // =========================
-  // BUILD
-  // =========================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 3 : 2;

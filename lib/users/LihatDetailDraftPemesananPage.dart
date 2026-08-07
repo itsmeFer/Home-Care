@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
-// ===== COLOR SCHEME =====
 class HCColors {
   static const primary = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
@@ -390,14 +389,14 @@ class _LihatDetailDraftPemesananPageState
                     _buildCatatanCard(),
                   const SizedBox(height: 16),
                   _buildPembayaranCard(),
-                  const SizedBox(height: 100), // ✅ Space untuk bottom button
+                  const SizedBox(height: 100),
                 ]),
               ),
             ),
           ],
         ),
       ),
-      // ✅ BOTTOM BUTTON DI SINI
+
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

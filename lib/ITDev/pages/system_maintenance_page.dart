@@ -20,7 +20,7 @@ class SystemMaintenancePage extends StatefulWidget {
 }
 
 class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
-  // ✅ CONFIG (sama dengan login page kamu)
+
   static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
   final TextEditingController _messageController = TextEditingController();
@@ -35,7 +35,6 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
     _loadToken();
   }
 
-  // ✅ Load token dari SharedPreferences (sama dengan login page kamu)
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('auth_token') ?? prefs.getString('token');

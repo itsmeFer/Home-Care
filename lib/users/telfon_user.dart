@@ -87,10 +87,8 @@ class _CallScreenPageState extends State<CallScreenPage>
     _avatarController.forward();
     _pulseController.repeat(reverse: true);
     
-    // Start ringing vibration pattern
     _startRingingVibration();
 
-    // Simulate connecting after 3 seconds
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
         _stopRingingVibration();
@@ -122,7 +120,6 @@ class _CallScreenPageState extends State<CallScreenPage>
     
     HapticFeedback.mediumImpact();
     
-    // Close screen after brief delay
     Timer(const Duration(milliseconds: 800), () {
       if (mounted) {
         Navigator.pop(context);
@@ -142,10 +139,8 @@ class _CallScreenPageState extends State<CallScreenPage>
     HapticFeedback.selectionClick();
   }
   
-  // Vibration methods
   void _startRingingVibration() {
-    // Pattern: [wait, vibrate, wait, vibrate] in milliseconds
-    // Repeat pattern every 2 seconds
+
     _vibrationTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       Vibration.vibrate(
         pattern: [0, 200, 400, 200],
@@ -255,7 +250,7 @@ class _CallScreenPageState extends State<CallScreenPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Call Status
+
             Text(
               _getCallStatusText(),
               style: const TextStyle(
@@ -279,7 +274,6 @@ class _CallScreenPageState extends State<CallScreenPage>
 
             const SizedBox(height: 40),
 
-            // Avatar with pulse animation
             AnimatedBuilder(
               animation: _avatarAnimation,
               builder: (context, child) {
@@ -326,7 +320,6 @@ class _CallScreenPageState extends State<CallScreenPage>
 
             const SizedBox(height: 24),
 
-            // User Info
             Text(
               widget.userName,
               style: const TextStyle(
@@ -439,7 +432,7 @@ class _CallScreenPageState extends State<CallScreenPage>
               child: Column(
                 children: [
                   if (_callState == CallState.connected) ...[
-                    // Secondary controls
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -463,7 +456,6 @@ class _CallScreenPageState extends State<CallScreenPage>
                     const SizedBox(height: 30),
                   ],
                   
-                  // Main end call button
                   _buildEndCallButton(),
                 ],
               ),
@@ -582,7 +574,7 @@ class _CallScreenPageState extends State<CallScreenPage>
                     onTap: () {
                       _playClickVibration();
                       HapticFeedback.selectionClick();
-                      // Add dialpad functionality here
+
                     },
                     child: Container(
                       decoration: BoxDecoration(

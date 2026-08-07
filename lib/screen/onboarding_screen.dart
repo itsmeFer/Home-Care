@@ -65,7 +65,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
 
-    // Calculate responsive sizes to strictly match the reference image's proportions
     final double paddingHorizontal = (size.width * 0.08).clamp(30.0, 48.0);
     final double paddingVertical = (size.height * 0.05).clamp(32.0, 64.0);
     final double logoSize = (size.width * 0.12).clamp(48.0, 60.0);
@@ -75,17 +74,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final double buttonFontSize = (size.width * 0.045).clamp(16.0, 18.0);
 
     return Scaffold(
-      backgroundColor: Colors.black, // Prevents white flash when looping back
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background PageView
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
               setState(() {
                 _currentPage = index;
               });
-              _startTimer(); // Reset auto-slide timer when manually swiped
+              _startTimer();
             },
             itemCount: _pages.length,
             itemBuilder: (context, index) {
@@ -93,7 +91,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 fit: StackFit.expand,
                 children: [
                   Image.asset(_pages[index]['image']!, fit: BoxFit.cover),
-                  // Gradient Overlay
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -113,7 +110,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               );
             },
           ),
-          // Content overlay
           SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(
@@ -124,7 +120,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo
                   Image.asset(
                     'assets/images/home_nobg.png',
                     width: logoSize,
@@ -132,7 +127,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     color: Colors.white,
                   ),
                   SizedBox(height: size.height * 0.02),
-                  // Animated Text (Title)
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 400),
                     child: Text(
@@ -150,7 +144,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   SizedBox(height: size.height * 0.015),
-                  // Animated Text (Subtitle)
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 400),
                     child: Text(
@@ -167,7 +160,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   SizedBox(height: size.height * 0.03),
-                  // Smooth Page Indicator
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
@@ -180,17 +172,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           color:
                               _currentPage == index
-                                  ? const Color(0xFF0F9D94) // Active color
+                                  ? const Color(0xFF0F9D94)
                                   : Colors.white.withOpacity(
                                     0.3,
-                                  ), // Inactive color
+                                  ),
                           borderRadius: BorderRadius.circular(4.0),
                         ),
                       ),
                     ),
                   ),
                   SizedBox(height: size.height * 0.03),
-                  // Button
                   SizedBox(
                     width: double.infinity,
                     height: buttonHeight,

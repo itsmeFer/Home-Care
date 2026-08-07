@@ -38,7 +38,6 @@ class _DetailOrderLayananAdminPageState
 
   Map<String, dynamic>? _order;
 
-  // ====== bagian KOORDINATOR ======
   bool _isLoadingKoordinator = false;
   bool _isAssigningKoordinator = false;
   List<Map<String, dynamic>> _koordinators = [];
@@ -49,7 +48,7 @@ class _DetailOrderLayananAdminPageState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this); // ✅ Dari 5 jadi 6
+    _tabController = TabController(length: 6, vsync: this);
     _initialLoad();
   }
 
@@ -71,7 +70,6 @@ class _DetailOrderLayananAdminPageState
         _fetchKoordinators(internalCall: true),
       ]);
 
-      // setelah dua-duanya dapat, set selected koordinator dari data order
       final koorId = _order?['koordinator_id'];
       if (koorId != null && koorId is int) {
         _selectedKoordinatorId = koorId;
@@ -165,7 +163,7 @@ class _DetailOrderLayananAdminPageState
           else
             GestureDetector(
               onTap: () {
-                // ✅ FULLSCREEN MODAL
+
                 showDialog(
                   context: context,
                   builder:
@@ -174,14 +172,14 @@ class _DetailOrderLayananAdminPageState
                         insetPadding: const EdgeInsets.all(16),
                         child: Stack(
                           children: [
-                            // Background dismiss
+
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: Container(
                                 color: Colors.black.withOpacity(0.8),
                               ),
                             ),
-                            // Image viewer
+
                             Center(
                               child: InteractiveViewer(
                                 minScale: 0.5,
@@ -237,7 +235,7 @@ class _DetailOrderLayananAdminPageState
                                 ),
                               ),
                             ),
-                            // Close button
+
                             Positioned(
                               top: 40,
                               right: 16,
@@ -321,7 +319,7 @@ class _DetailOrderLayananAdminPageState
                         );
                       },
                     ),
-                    // Overlay indicator untuk zoom
+
                     Positioned(
                       bottom: 8,
                       right: 8,
@@ -411,7 +409,6 @@ class _DetailOrderLayananAdminPageState
           _order = decoded['data'] as Map<String, dynamic>;
         });
 
-        // ✅ Debug print
         print('📦 Order Addons: ${_order?['order_addons']}');
       } else if (response.statusCode == 404) {
         setState(() {
@@ -971,7 +968,7 @@ class _DetailOrderLayananAdminPageState
               Tab(text: 'Pembayaran'),
               Tab(text: 'Addons'),
               Tab(text: 'Koordinator'),
-              Tab(text: 'Foto'), // ✅ TAB BARU
+              Tab(text: 'Foto'),
             ],
           ),
           SizedBox(
@@ -984,7 +981,7 @@ class _DetailOrderLayananAdminPageState
                 _buildPembayaranTab(),
                 _buildAddonsTab(),
                 _buildKoordinatorTab(),
-                _buildFotoTab(), // ✅ TAB BARU
+                _buildFotoTab(),
               ],
             ),
           ),
@@ -1324,7 +1321,6 @@ class _DetailOrderLayananAdminPageState
       );
     }
 
-    // ✅ CEK STATUS ORDER
     final status = _order?['status_order']?.toString() ?? '';
     final isOrderFinished = status == 'selesai' || status == 'dibatalkan';
 
@@ -1361,7 +1357,6 @@ class _DetailOrderLayananAdminPageState
             ],
           ),
 
-          // ✅ PERINGATAN JIKA ORDER SUDAH SELESAI
           if (isOrderFinished) ...[
             const SizedBox(height: 12),
             Container(
@@ -1394,7 +1389,6 @@ class _DetailOrderLayananAdminPageState
 
           const SizedBox(height: 12),
 
-          // ✅ DROPDOWN DISABLED JIKA SELESAI
           DropdownButtonFormField<int>(
             value: _selectedKoordinatorId,
             isExpanded: true,
@@ -1433,7 +1427,7 @@ class _DetailOrderLayananAdminPageState
                 }).toList(),
             onChanged:
                 isOrderFinished
-                    ? null // ✅ DISABLE DROPDOWN
+                    ? null
                     : (val) {
                       setState(() {
                         _selectedKoordinatorId = val;
@@ -1443,13 +1437,12 @@ class _DetailOrderLayananAdminPageState
 
           const SizedBox(height: 12),
 
-          // ✅ BUTTON DISABLED JIKA SELESAI
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed:
                   (isOrderFinished || _isAssigningKoordinator)
-                      ? null // ✅ DISABLE BUTTON
+                      ? null
                       : _assignKoordinator,
               icon:
                   _isAssigningKoordinator

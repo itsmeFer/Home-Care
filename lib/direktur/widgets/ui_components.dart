@@ -1,9 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-/* ============================================================
-  REUSABLE: SECTION HEADER
-============================================================ */
 class SectionHeader extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -50,9 +47,6 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  REUSABLE: CARDS
-============================================================ */
 class XCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -202,9 +196,6 @@ class KpiCard extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  REUSABLE: LAYOUT HELPERS
-============================================================ */
 class ResponsiveGrid extends StatelessWidget {
   final int columns;
   final double gap;
@@ -263,9 +254,6 @@ class ResponsiveSplit extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  PLACEHOLDERS (CHARTS)
-============================================================ */
 class ChartPlaceholder extends StatelessWidget {
   final double height;
   const ChartPlaceholder({super.key, required this.height});
@@ -435,9 +423,6 @@ class LegendDot extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SIMPLE BAR LIST
-============================================================ */
 class BarItem {
   final String name;
   final String value;
@@ -499,9 +484,6 @@ class SimpleBarList extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  TABLE CARD
-============================================================ */
 class TableCard extends StatelessWidget {
   final List<String> columns;
   final List<List<String>> rows;
@@ -575,9 +557,6 @@ class TableCard extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  BULLETS + QUICK ACTIONS
-============================================================ */
 class BulletList extends StatelessWidget {
   final List<String> items;
   const BulletList({super.key, required this.items});
@@ -691,9 +670,6 @@ class OutlineButtonX extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  PILL BADGE
-============================================================ */
 class PillBadge extends StatelessWidget {
   final String text;
   final IconData icon;
@@ -727,9 +703,6 @@ class PillBadge extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SMALL HELPERS
-============================================================ */
 class LoadingCard extends StatelessWidget {
   final String title;
   const LoadingCard({super.key, required this.title});

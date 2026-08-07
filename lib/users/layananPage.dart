@@ -9,7 +9,6 @@ import 'dart:async';
 
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 
-/// Palet warna home care (teal/medical)
 class HCColor {
   static const primary = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
@@ -141,7 +140,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
   bool _isTypingForward = true;
   final TextEditingController _searchController = TextEditingController();
 
-  // ✅ Profile data untuk validasi
   Map<String, dynamic>? _profileData;
 
   @override
@@ -343,7 +341,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     });
   }
 
-  // ===== FETCH PROFILE DATA (untuk validasi) =====
   Future<void> _fetchProfileData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -381,11 +378,9 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     }
   }
 
-  // ===== VALIDASI PROFIL LENGKAP =====
   bool _isProfileComplete() {
     if (_profileData == null) return false;
 
-    // Field yang wajib diisi
     final requiredFields = [
       'nama_lengkap',
       'no_hp',
@@ -407,7 +402,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     return true;
   }
 
-  // ===== GET MISSING FIELDS =====
   List<String> _getMissingFields() {
     if (_profileData == null) return ['Semua data profil'];
 
@@ -434,7 +428,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     return missingFields;
   }
 
-  // ===== SHOW INCOMPLETE PROFILE DIALOG =====
   void _showIncompleteProfileDialog() {
     final missingFields = _getMissingFields();
 
@@ -548,12 +541,12 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
-                  // ✅ Navigate ke ProfilePage
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const ProfilePage()),
                   ).then((_) {
-                    // Refresh profile setelah kembali dari ProfilePage
+
                     _fetchProfileData();
                   });
                 },
@@ -576,15 +569,13 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     );
   }
 
-  // ===== HANDLE LAYANAN TAP (WITH VALIDATION) =====
   Future<void> _handleLayananTap(Layanan layanan) async {
-    // ✅ Validasi profil lengkap
+
     if (!_isProfileComplete()) {
       _showIncompleteProfileDialog();
       return;
     }
 
-    // ✅ Jika profil lengkap, lanjut ke PesanLayananPage
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => PesanLayananPage(layanan: layanan)),
@@ -763,7 +754,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
       ),
       body: Column(
         children: [
-          // ===== SEARCH BAR =====
+
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -803,7 +794,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
             ),
           ),
 
-          // ===== KATEGORI HORIZONTAL SCROLL =====
           if (!_isLoadingKategori)
             Container(
               color: Colors.white,
@@ -855,7 +845,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
 
           const SizedBox(height: 8),
 
-          // ===== LIST LAYANAN =====
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
@@ -1006,16 +995,15 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _handleLayananTap(layanan), // ✅ GUNAKAN METHOD BARU
+          onTap: () => _handleLayananTap(layanan),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ===== GAMBAR LAYANAN =====
+
               Stack(
                 children: [
                   _buildImageHeader(layanan),
 
-                  // Kategori Badge
                   if (layanan.kategori != null)
                     Positioned(
                       top: 12,
@@ -1049,13 +1037,12 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                 ],
               ),
 
-              // ===== DETAIL LAYANAN =====
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Nama Layanan
+
                     Text(
                       layanan.namaLayanan,
                       style: const TextStyle(
@@ -1067,7 +1054,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
 
                     const SizedBox(height: 6),
 
-                    // Deskripsi
                     if (layanan.deskripsi != null &&
                         layanan.deskripsi!.trim().isNotEmpty)
                       Text(
@@ -1083,7 +1069,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
 
                     const SizedBox(height: 12),
 
-                    // Info Badges
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -1113,12 +1098,11 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                     const Divider(height: 1),
                     const SizedBox(height: 16),
 
-                    // Harga & Button
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Harga
+
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1144,7 +1128,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                           ),
                         ),
 
-                        // Button Pesan
                         Container(
                           decoration: BoxDecoration(
                             color: HCColor.primary,
@@ -1164,7 +1147,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                               onTap:
                                   () => _handleLayananTap(
                                     layanan,
-                                  ), // ✅ GUNAKAN METHOD BARU
+                                  ),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24,

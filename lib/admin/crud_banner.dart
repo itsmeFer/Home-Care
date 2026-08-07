@@ -10,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// ─── KONSTANTA ────────────────────────────────────────────────────────────────
 class _Cfg {
   static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
   static const String bannerUrl = '$baseUrl/admin/banners';
@@ -18,14 +17,12 @@ class _Cfg {
   static const String tokenKey = 'auth_token';
 }
 
-// ─── WARNA ─────────────────────────────────────────────────────────────────
 class _AC {
   static const primary = Color(0xFF0BA5A7);
   static const light = Color(0xFFE6FAFA);
   static const bg = Color(0xFFF5F7FA);
 }
 
-// ─── HELPER ────────────────────────────────────────────────────────────────
 Future<http.MultipartFile> _toMultipart(String field, XFile xfile) async {
   final bytes = await xfile.readAsBytes();
   final ext = xfile.name.split('.').last.toLowerCase();
@@ -37,7 +34,6 @@ Future<http.MultipartFile> _toMultipart(String field, XFile xfile) async {
   );
 }
 
-// ─── CURRENCY FORMATTER ───────────────────────────────────────────────────
 class CurrencyFormatter extends TextInputFormatter {
   final NumberFormat _formatter = NumberFormat.currency(
     locale: 'id_ID',
@@ -85,9 +81,6 @@ String formatRupiah(double value) {
   return formatter.format(value);
 }
 
-// =========================
-// MODEL LAYANAN
-// =========================
 class LayananModel {
   final int id;
   final String kodeLayanan;
@@ -125,9 +118,6 @@ class LayananModel {
   }
 }
 
-// =========================
-// MODEL BANNER
-// =========================
 class BannerModel {
   final int id;
   final int? layananId;
@@ -192,9 +182,6 @@ class BannerModel {
   }
 }
 
-// =========================
-// SERVICE
-// =========================
 class BannerService {
   static Future<String?> _token() async {
     final prefs = await SharedPreferences.getInstance();
@@ -348,9 +335,6 @@ class BannerService {
   }
 }
 
-// =========================
-// HALAMAN CRUD BANNER
-// =========================
 class CrudBannerPage extends StatefulWidget {
   const CrudBannerPage({super.key});
   @override
@@ -953,7 +937,6 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
     );
   }
 
-  // ✅ FULL WIDTH CARD (HORIZONTAL LAYOUT)
   Widget _buildFullWidthCard(BannerModel b) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -972,7 +955,7 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
         children: [
           Row(
             children: [
-              // GAMBAR KIRI
+
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
@@ -1020,7 +1003,6 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
                 ),
               ),
 
-              // INFO KANAN
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -1354,9 +1336,6 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
   );
 }
 
-// =========================
-// FORM TAMBAH / EDIT BANNER
-// =========================
 class FormBannerPage extends StatefulWidget {
   final BannerModel? banner;
   const FormBannerPage({super.key, this.banner});
@@ -1899,11 +1878,10 @@ class _FormBannerPageState extends State<FormBannerPage> {
     ),
   );
 
-  // ✅ PREVIEW FULL WIDTH (HORIZONTAL LAYOUT)
   Widget _buildFullWidthPreview() {
     return Row(
       children: [
-        // GAMBAR KIRI (140x140 = kotak)
+
         Container(
           width: 140,
           height: 140,
@@ -1955,7 +1933,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                   ),
         ),
 
-        // INFO KANAN
         Expanded(
           child: Container(
             color: Colors.white,
@@ -1964,7 +1941,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // JUDUL & SUBTITLE
+
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1992,7 +1969,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                   ],
                 ),
 
-                // HARGA & PROMO
                 if (_selectedLayanan != null) ...[
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2073,7 +2049,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
     );
   }
 
-  // ✅ PREVIEW STANDARD (LANDSCAPE & SQUARE)
   Widget _buildStandardPreview() {
     return Stack(
       fit: StackFit.expand,
@@ -2209,7 +2184,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // PILIH LAYANAN
+
                       Row(
                         children: [
                           const Icon(
@@ -2485,7 +2460,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                       const Divider(thickness: 1),
                       const SizedBox(height: 16),
 
-                      // TIPE CARD (3 PILIHAN)
                       Row(
                         children: [
                           const Icon(
@@ -2507,7 +2481,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          // LANDSCAPE
+
                           Expanded(
                             child: GestureDetector(
                               onTap:
@@ -2600,7 +2574,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                           ),
                           const SizedBox(width: 10),
 
-                          // SQUARE
                           Expanded(
                             child: GestureDetector(
                               onTap: () => setState(() => _tipeCard = 'square'),
@@ -2692,7 +2665,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                           ),
                           const SizedBox(width: 10),
 
-                          // FULL WIDTH
                           Expanded(
                             child: GestureDetector(
                               onTap:
@@ -2803,7 +2775,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                       const Divider(thickness: 1),
                       const SizedBox(height: 16),
 
-                      // PREVIEW GAMBAR
                       _label('Gambar Banner'),
                       const SizedBox(height: 8),
                       GestureDetector(
@@ -2852,7 +2823,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
 
                       const SizedBox(height: 22),
 
-                      // JUDUL
                       _label('Judul (Opsional)'),
                       const SizedBox(height: 8),
                       _field(
@@ -2863,7 +2833,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
 
                       const SizedBox(height: 16),
 
-                      // SUBTITLE
                       _label('Subtitle (Opsional)'),
                       const SizedBox(height: 8),
                       _field(
@@ -2874,7 +2843,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
 
                       const SizedBox(height: 16),
 
-                      // URUTAN
                       _label('Urutan Tampil'),
                       const SizedBox(height: 8),
                       _field(
@@ -2894,7 +2862,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                       const Divider(thickness: 1),
                       const SizedBox(height: 16),
 
-                      // SECTION DISKON
                       Row(
                         children: [
                           const Icon(
@@ -3081,7 +3048,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
                       const Divider(thickness: 1),
                       const SizedBox(height: 16),
 
-                      // TOGGLE AKTIF
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -3109,7 +3075,6 @@ class _FormBannerPageState extends State<FormBannerPage> {
 
                       const SizedBox(height: 32),
 
-                      // BUTTON SIMPAN
                       SizedBox(
                         width: double.infinity,
                         height: 52,

@@ -1,25 +1,3 @@
-// TimPage.dart (FULL) ✅ FIX
-// ✅ KPI tim (angka)
-// ✅ Leaderboard perawat + Fee format Rupiah (Rp + titik)
-// ✅ Rating FIX: normalisasi skala 0..5 (support 0..1, 0..5, 0..100) + tampil bintang + angka
-// ✅ 3 pilihan chart (Line/Bar/Pie) + animasi 0 -> nilai tiap buka tab / ganti tab / ganti range
-// ✅ Legend pie responsif + donut modern
-// ✅ Export CSV (Web & Mobile) - kolom konsisten (tidak geser) + fee "Rp ..."
-// ✅ TOKEN FIX: cek 'auth_token' dulu (sesuai login.dart), fallback 'token'
-// Dependencies:
-// - fl_chart, http, shared_preferences, universal_html, universal_io, path_provider
-//
-// Backend:
-// GET /api/direktur/dashboard/tim?range=...
-//
-// Expected keys (fleksibel):
-// kpi: perawat_aktif, koordinator_aktif, dokter_aktif, komplain
-// leaderboard_perawat: [{nama, order, rating/rating_avg/avg_rating/nilai_rating/score, fee}]
-// tim_trend (atau trend / chart_trend / trend_kinerja):
-//   [{label/period/date/bulan/month, order/total_order/value/count}]
-// komplain_composition (atau komplain_pie / pie_komplain):
-//   [{name/label/tipe, total/value/amount}]
-
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -32,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart' as uio;
-// ignore: avoid_web_libraries_in_flutter
+
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/ui_components.dart';
@@ -65,11 +43,9 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
 
   TimChartMode _mode = TimChartMode.lineOrders;
 
-  // ✅ animasi nilai chart 0 -> nilai
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
 
-  // ✅ animasi masuk saat ganti chart / range
   Key _chartAnimKey = UniqueKey();
 
   @override
@@ -131,12 +107,9 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  // =========================
-  // AUTH + FETCH
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    // ✅ Cek auth_token dulu (sesuai login.dart), fallback ke token
+
     return prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
   }
 
@@ -159,9 +132,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================================================
-  // HELPERS
-  // =========================================================
   double _toDouble(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
@@ -201,10 +171,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     return withPrefix ? 'Rp $txt' : txt;
   }
 
-  // ✅ Normalisasi rating ke 0..5:
-  // - 0..1 => *5
-  // - 0..5 => 그대로
-  // - 0..100 => /20
   double? _normalizeRating(dynamic raw) {
     if (raw == null) return null;
 
@@ -247,7 +213,7 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       if (i < full) {
         buf.write('★');
       } else if (i == full && hasHalf) {
-        buf.write('⯨'); // simbol half (biar beda dari ½)
+        buf.write('⯨');
       } else {
         buf.write('☆');
       }
@@ -255,9 +221,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     return '${buf.toString()}  ${r.toStringAsFixed(1)}';
   }
 
-  // =========================================================
-  // DATA EXTRACT (fleksibel)
-  // =========================================================
   List<Map<String, dynamic>> _extractTrend(Map<String, dynamic> data) {
     final keys = [
       'tim_trend',
@@ -337,9 +300,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     return (spots: spots, labels: labels);
   }
 
-  // =========================================================
-  // EXPORT CSV
-  // =========================================================
   Uint8List _utf8WithBom(String s) {
     final b = utf8.encode(s);
     return Uint8List.fromList([0xEF, 0xBB, 0xBF, ...b]);
@@ -380,7 +340,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       final sb = StringBuffer();
       sb.writeln('sep=;');
 
-      // ✅ KPI: 3 kolom konsisten SECTION;Key;Value
       sb.writeln('KPI;Key;Value');
       sb.writeln('KPI;range;${_esc(widget.range)}');
       sb.writeln('KPI;perawat_aktif;${_toInt(kpi['perawat_aktif'])}');
@@ -390,7 +349,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
 
       sb.writeln('');
 
-      // ✅ TREND: 3 kolom konsisten SECTION;label;order
       sb.writeln('TREND;label;order');
       for (final m in trend) {
         final label =
@@ -409,7 +367,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
 
       sb.writeln('');
 
-      // ✅ LEADERBOARD: 5 kolom konsisten SECTION;nama;order;rating;fee
       sb.writeln('LEADERBOARD_PERAWAT;nama;order;rating;fee');
       for (final e in lb) {
         final m =
@@ -453,9 +410,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     }
   }
 
-  // =========================================================
-  // UI: SWITCHER
-  // =========================================================
   Widget _chartSwitcher() {
     String label(TimChartMode m) {
       switch (m) {
@@ -543,9 +497,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  // =========================================================
-  // CHARTS
-  // =========================================================
   Widget _lineOrdersChart(List<Map<String, dynamic>> trend) {
     if (trend.isEmpty) {
       return const XCard(
@@ -671,7 +622,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
             )
             .toList();
 
-    // ✅ sort by order desc, tie-break by rating desc
     items.sort((a, b) {
       final ao = _toInt(a['order']);
       final bo = _toInt(b['order']);
@@ -1069,9 +1019,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     }
   }
 
-  // =========================================================
-  // BUILD
-  // =========================================================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 4 : 2;
@@ -1113,8 +1060,8 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                   return [
                     (m['nama'] ?? '-').toString(),
                     _toInt(m['order']).toString(),
-                    _ratingText(r), // ✅ bintang + angka (0..5)
-                    rupiah(m['fee'], withPrefix: true), // ✅ Rp
+                    _ratingText(r),
+                    rupiah(m['fee'], withPrefix: true),
                   ];
                 }).toList()
                 : const <List<String>>[];

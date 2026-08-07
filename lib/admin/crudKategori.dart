@@ -25,7 +25,7 @@ class _CrudKategoriPageState extends State<CrudKategoriPage> {
   final TextEditingController _searchC = TextEditingController();
 
   List<KategoriLayanan> _kategoriList = [];
-  bool? _filterAktif; // null = semua
+  bool? _filterAktif;
 
   @override
   void initState() {
@@ -579,8 +579,6 @@ class _CrudKategoriPageState extends State<CrudKategoriPage> {
     if (item == null) {
       await _createKategori(result.payload);
 
-      // kalau tambah baru + pilih gambar, refresh list dulu,
-      // lalu upload dari item terbaru berdasarkan slug
       if (result.imageFile != null || result.imageBytes != null) {
         await _fetchKategori();
 

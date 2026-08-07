@@ -31,7 +31,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     if (!mounted) return;
     final nav = Navigator.of(context, rootNavigator: true);
     if (nav.canPop()) {
-      nav.pop(); // pastikan ini dipanggil hanya setelah showDialog loading
+      nav.pop();
     }
   }
 
@@ -58,16 +58,13 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
   Future<Map<String, dynamic>>? _future;
 
-  // search
   final _searchCtrl = TextEditingController();
   Timer? _debounce;
   String _q = '';
 
-  // caches
   List<Map<String, dynamic>> _koorOptions = [];
 
-  // ===== palette (nyambung tema manager)
-  static const Color _cPrimary = Color(0xFF06B6D4); // cyan-500
+  static const Color _cPrimary = Color(0xFF06B6D4);
   static const Color _cGreen = Color(0xFF22C55E);
   static const Color _cAmber = Color(0xFFF59E0B);
   static const Color _cRed = Color(0xFFDC2626);
@@ -85,9 +82,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     super.dispose();
   }
 
-  // =========================
-  // AUTH + HELPERS
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
@@ -100,11 +94,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   List<Map<String, dynamic>> _list(dynamic v) =>
       (v is List) ? v.map((e) => _map(e)).toList() : <Map<String, dynamic>>[];
 
-  /// Baca list dari berbagai bentuk:
-  /// - [ ... ]
-  /// - {data: [ ... ]}
-  /// - {data: {data: [ ... ]}} paginate
-  /// - {items: [ ... ]} dll
   List<Map<String, dynamic>> _asList(dynamic body) {
     if (body is List) return _list(body);
 
@@ -113,12 +102,10 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
       if (data is List) return _list(data);
 
-      // paginate: data.data
       if (data is Map && data['data'] is List) {
         return _list(data['data']);
       }
 
-      // fallback keys
       for (final k in ['items', 'rows', 'result', 'results']) {
         final v = body[k];
         if (v is List) return _list(v);
@@ -148,9 +135,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     return t.isEmpty ? fallback : t;
   }
 
-  // =========================
-  // FETCH
-  // =========================
   Future<List<Map<String, dynamic>>> _fetchList(String url) async {
     final token = await _getToken();
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
@@ -168,13 +152,10 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     return _asList(body);
   }
 
-  /// Build URI dengan beberapa kemungkinan query param:
-  /// backend kadang pakai q / search / keyword
   Uri _buildPerawatUri() {
     final q = _q.trim();
     if (q.isEmpty) return Uri.parse(_perawatUrl);
 
-    // ✅ pakai q dulu (paling umum)
     return Uri.parse(_perawatUrl).replace(queryParameters: {'q': q});
   }
 
@@ -182,18 +163,16 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     final token = await _getToken();
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
 
-    // 1) coba pakai q
     var uri = _buildPerawatUri();
     var res = await http.get(
       uri,
       headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
-    // 2) fallback kalau backend ternyata pakai "search"
     if (res.statusCode == 200 && _q.trim().isNotEmpty) {
-      // ok
+
     } else if (_q.trim().isNotEmpty) {
-      // kalau backend 422/400 karena param q, coba search
+
       final uri2 = Uri.parse(
         _perawatUrl,
       ).replace(queryParameters: {'search': _q.trim()});
@@ -208,7 +187,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
         uri = uri2;
         res = res2;
       } else {
-        // coba keyword
+
         final uri3 = Uri.parse(
           _perawatUrl,
         ).replace(queryParameters: {'keyword': _q.trim()});
@@ -232,10 +211,8 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
     final body = jsonDecode(res.body);
 
-    // 1) normal list / paginate
     var list = _asList(body);
 
-    // 2) fallback kalau format dashboard: {data:{leaderboard:[...]}}
     if (list.isEmpty && body is Map && body['data'] is Map) {
       final d = Map<String, dynamic>.from(body['data']);
       if (d['leaderboard'] is List) {
@@ -243,7 +220,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       }
     }
 
-    // preload koordinator options sekali
     if (_koorOptions.isEmpty) {
       try {
         _koorOptions = await _fetchList(_koordinatorUrl);
@@ -252,13 +228,11 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       }
     }
 
-    // KPI sederhana dari list
     final total = list.length;
 
-    // aktif/pending hanya valid kalau key tersedia.
     final aktif =
         list.where((e) {
-          if (!e.containsKey('is_active')) return true; // fallback anggap aktif
+          if (!e.containsKey('is_active')) return true;
           return (e['is_active'] == true || e['is_active'] == 1);
         }).length;
 
@@ -268,7 +242,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
           return _s(e['status_verifikasi']) == 'pending';
         }).length;
 
-    // avg rating fleksibel
     double avgRating = 0;
     if (total > 0) {
       final sum = list.fold<double>(
@@ -290,14 +263,11 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   }
 
   void _reload() {
-    final f = _fetch(); // jangan await di dalam setState
+    final f = _fetch();
     if (!mounted) return;
     setState(() => _future = f);
   }
 
-  // =========================
-  // SEARCH (debounce)
-  // =========================
   void _onSearchChanged(String v) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 420), () {
@@ -310,9 +280,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     });
   }
 
-  // =========================
-  // FIELD PICKERS (fleksibel)
-  // =========================
   String _pickName(Map<String, dynamic> m) =>
       _s(m['nama_lengkap'] ?? m['name'] ?? m['nama'], '-');
 
@@ -341,7 +308,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   }
 
   bool _isActive(Map<String, dynamic> m) {
-    if (!m.containsKey('is_active')) return true; // fallback
+    if (!m.containsKey('is_active')) return true;
     return (m['is_active'] == true || m['is_active'] == 1);
   }
 
@@ -366,15 +333,12 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       case 'rejected':
         return _cRed;
       default:
-        return _cAmber; // pending
+        return _cAmber;
     }
   }
 
-  // =========================
-  // ACTIONS (assign/toggle)
-  // =========================
   Future<void> _assignKoordinator(int perawatId, {int? currentKoorId}) async {
-    // ✅ pastikan koordinator sudah ter-load (kalau belum, fetch + loading)
+
     final ok = await _ensureKoordinatorLoaded();
     if (!ok) return;
 
@@ -498,7 +462,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   Future<void> _pickPerawatAndAssignOneDialog(
     List<Map<String, dynamic>> items,
   ) async {
-    // ✅ auto fetch koordinator kalau belum ada
+
     final ok = await _ensureKoordinatorLoaded();
     if (!ok) return;
 
@@ -549,7 +513,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                       ),
                       const SizedBox(height: 14),
 
-                      // ====== Perawat dropdown
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
@@ -580,7 +543,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
                       const SizedBox(height: 10),
 
-                      // ====== Koordinator dropdown
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
@@ -729,9 +691,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  // =========================
-  // TOAST
-  // =========================
   void _toastSuccess(String title, String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -746,9 +705,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
   }
 
-  // =========================
-  // UI PIECES
-  // =========================
   Widget _searchBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -783,7 +739,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
   }
 
-  // list card (mobile/tablet)
   Widget _cardsList(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -909,7 +864,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
   }
 
-  // table (desktop)
   Widget _tableList(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -1198,9 +1152,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
   }
 
-  // =========================
-  // BUILD
-  // =========================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 4 : 2;
@@ -1319,10 +1270,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
   }
 }
-
-// =========================
-// MINI UI helpers
-// =========================
 
 class _EmptyBox extends StatelessWidget {
   final String text;

@@ -1,4 +1,3 @@
-// lib/it/pages/user_monitor_page.dart
 import 'dart:async';
 import 'dart:convert';
 
@@ -7,11 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// =============================================================
-// USER MONITOR PAGE (FULL) — FIXED (ANTI setState async)
-// - Semua UI components (SectionHeader, XCard, OutlineButtonX) disertakan
-// - OutlineButtonX aman untuk onTap async (tidak pernah setState(() async {}))
-// =============================================================
 class UserMonitorPage extends StatefulWidget {
   final bool isDesktop;
   final bool isTablet;
@@ -32,9 +26,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // =========================
-  // Query state
-  // =========================
   final _qC = TextEditingController();
   Timer? _debounce;
 
@@ -42,7 +33,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
   int _perPage = 20;
   int _page = 1;
 
-  // Filters
   int? _roleId;
   bool? _isActive;
   bool? _isFrozen;
@@ -92,9 +82,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     });
   }
 
-  // =========================
-  // Formatting helpers
-  // =========================
   String formatWaktuID(String iso) {
     try {
       final dt = DateTime.tryParse(iso)?.toLocal();
@@ -142,9 +129,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     return const Color(0xFF334155);
   }
 
-  // =========================
-  // API helpers
-  // =========================
   Future<String> _token() async {
     final prefs = await SharedPreferences.getInstance();
     final token =
@@ -203,9 +187,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     throw Exception('Response bukan object JSON.');
   }
 
-  // =========================
-  // ENDPOINTS
-  // =========================
   Future<List<Map<String, dynamic>>> _fetchRoles() async {
     final map = await _api('GET', '/it/roles');
     final data = map['data'];
@@ -231,9 +212,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     return map;
   }
 
-  // =========================
-  // ACTIONS
-  // =========================
   Future<void> _createUser() async {
     final roles = await (_rolesFuture ?? _fetchRoles());
     if (!mounted) return;
@@ -452,9 +430,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     );
   }
 
-  // =========================
-  // UX helpers
-  // =========================
   void _toast(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -569,9 +544,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     return res;
   }
 
-  // =========================
-  // UI (RESPONSIVE + FIX UNBOUNDED WIDTH ✅)
-  // =========================
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -579,8 +551,8 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
         final mqW = MediaQuery.sizeOf(context).width;
         final w = (c.maxWidth.isFinite && c.maxWidth > 0) ? c.maxWidth : mqW;
 
-        final isWide = w >= 980; // desktop table
-        final isCompact = w < 720; // mobile
+        final isWide = w >= 980;
+        final isCompact = w < 720;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,9 +563,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
             ),
             const SizedBox(height: 12),
 
-            // =========================
-            // Search & Filters
-            // =========================
             FutureBuilder<List<Map<String, dynamic>>>(
               future: _rolesFuture,
               builder: (context, roleSnap) {
@@ -807,9 +776,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
 
             const SizedBox(height: 12),
 
-            // =========================
-            // Users list
-            // =========================
             FutureBuilder<Map<String, dynamic>>(
               future: _future,
               builder: (context, snap) {
@@ -877,7 +843,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                     ],
                   );
 
-                  // ✅ FIX UTAMA: width HARUS bounded (tidak infinite)
                   if (isWide) {
                     final tableW = (w < 980) ? 980.0 : w;
                     listBody = SingleChildScrollView(
@@ -1065,9 +1030,6 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
   }
 }
 
-// =============================================================
-// UI COMPONENTS (self-contained)
-// =============================================================
 class SectionHeader extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -1161,12 +1123,10 @@ class XCard extends StatelessWidget {
   }
 }
 
-/// ✅ FIX UTAMA: tombol aman untuk callback async (tidak pernah setState async)
 class OutlineButtonX extends StatefulWidget {
   final IconData icon;
   final String label;
 
-  /// boleh async / sync (sync tinggal: () async { ... })
   final Future<void> Function()? onTap;
 
   final bool enabled;
@@ -1244,9 +1204,6 @@ class _OutlineButtonXState extends State<OutlineButtonX> {
   }
 }
 
-// =========================
-// Header row (desktop only)
-// =========================
 class _HeaderRow extends StatelessWidget {
   const _HeaderRow();
 
@@ -1292,11 +1249,6 @@ class _HeaderRow extends StatelessWidget {
   }
 }
 
-// =========================
-// Row widget (CRUD)
-// - Desktop: tombol actions tetap wrap
-// - Mobile : actions via arrow dropdown ✅
-// =========================
 class _UserRowCrud extends StatefulWidget {
   final bool isWide;
   final bool isCompact;
@@ -1363,7 +1315,6 @@ class _UserRowCrudState extends State<_UserRowCrud> {
     final statusLabel =
         widget.frozen ? 'FROZEN' : (widget.active ? 'ACTIVE' : 'INACTIVE');
 
-    // ===== DESKTOP ROW =====
     if (widget.isWide) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -1481,7 +1432,6 @@ class _UserRowCrudState extends State<_UserRowCrud> {
       );
     }
 
-    // ===== MOBILE CARD (arrow dropdown actions) =====
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -1496,7 +1446,7 @@ class _UserRowCrudState extends State<_UserRowCrud> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // left info
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1563,7 +1513,6 @@ class _UserRowCrudState extends State<_UserRowCrud> {
 
                 const SizedBox(width: 10),
 
-                // arrow toggle
                 InkWell(
                   onTap: () => setState(() => _expanded = !_expanded),
                   borderRadius: BorderRadius.circular(999),
@@ -1746,9 +1695,6 @@ Widget _pill(String s, Color c) {
   );
 }
 
-// =========================
-// Dialog: Create/Edit user
-// =========================
 class _UserFormResult {
   final String name;
   final String email;
@@ -1943,9 +1889,6 @@ class _UserFormDialogState extends State<_UserFormDialog> {
   }
 }
 
-// =========================
-// Small filter chip
-// =========================
 class _FilterChipX extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -1999,9 +1942,6 @@ class _FilterChipX extends StatelessWidget {
   }
 }
 
-// =========================
-// Busy dialog
-// =========================
 class _BusyDialog extends StatelessWidget {
   final String label;
   const _BusyDialog({required this.label});
@@ -2037,9 +1977,6 @@ class _BusyDialog extends StatelessWidget {
   }
 }
 
-// =========================
-// Local Loading & Error card
-// =========================
 class _LoadingCardX extends StatelessWidget {
   final String title;
   const _LoadingCardX({required this.title});

@@ -17,19 +17,11 @@ class CrudAddOnsPage extends StatefulWidget {
 
 class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     with SingleTickerProviderStateMixin {
-  // =====================
-  // CONFIG
-  // =====================
+
   final String baseUrl = "https://homecare.primamadanitalenta.my.id/api";
 
-  // =====================
-  // TAB
-  // =====================
   late TabController _tab;
 
-  // =====================
-  // STATE: ADDONS
-  // =====================
   bool loadingAddons = true;
   bool loadingCategoriesDropdown = true;
 
@@ -38,7 +30,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
 
   String q = "";
   int? selectedCategoryId;
-  int? filterActive; // null=all, 1=aktif, 0=nonaktif
+  int? filterActive;
 
   int perPage = 15;
   int currentPage = 1;
@@ -46,25 +38,19 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
 
   final TextEditingController searchCtrl = TextEditingController();
 
-  // =====================
-  // STATE: ADDON CATEGORIES CRUD
-  // =====================
   bool loadingCat = true;
   List<dynamic> catItems = [];
 
   String catQ = "";
-  int? catIsActive; // null/1/0
+  int? catIsActive;
   int catPerPage = 15;
   int catPage = 1;
   int catLastPage = 1;
 
   final TextEditingController catSearchCtrl = TextEditingController();
 
-  bool catReorderMode = false; // mode drag urutan
+  bool catReorderMode = false;
 
-  // =====================
-  // LIFECYCLE
-  // =====================
   @override
   void initState() {
     super.initState();
@@ -82,15 +68,12 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
 
   Future<void> _initLoad() async {
     await Future.wait([
-      _fetchCategoriesDropdown(), // dropdown add-ons (active)
+      _fetchCategoriesDropdown(),
       _fetchAddons(resetPage: true),
-      _fetchCategoryCrud(resetPage: true), // list kategori untuk tab kategori
+      _fetchCategoryCrud(resetPage: true),
     ]);
   }
 
-  // =====================
-  // AUTH HEADER
-  // =====================
   Future<Map<String, String>> _authHeaders({bool jsonContent = true}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("auth_token");
@@ -113,9 +96,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     return headers;
   }
 
-  // =====================
-  // API: Categories (Dropdown) - GET /admin/addon-categories/all
-  // =====================
   Future<void> _fetchCategoriesDropdown() async {
     setState(() => loadingCategoriesDropdown = true);
     try {
@@ -136,9 +116,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // =====================
-  // API: List Addons
-  // =====================
   Future<void> _fetchAddons({bool resetPage = false}) async {
     if (resetPage) currentPage = 1;
 
@@ -184,9 +161,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // =====================
-  // API: Toggle Addon
-  // =====================
   Future<void> _toggleAddon(int id, bool newValue) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addons/$id/toggle");
@@ -206,9 +180,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // =====================
-  // API: Delete Addon
-  // =====================
   Future<void> _deleteAddon(int id) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addons/$id");
@@ -224,10 +195,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // =====================
-  // API: CATEGORY CRUD (Tab Kategori)
-  // GET /admin/addon-categories?q&is_active&per_page&page
-  // =====================
   Future<void> _fetchCategoryCrud({bool resetPage = false}) async {
     if (resetPage) catPage = 1;
     setState(() => loadingCat = true);
@@ -263,7 +230,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // POST /admin/addon-categories
   Future<void> _createCategory(Map<String, dynamic> payload) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories");
@@ -290,7 +256,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // PUT /admin/addon-categories/{id}
   Future<void> _updateCategory(int id, Map<String, dynamic> payload) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/$id");
@@ -314,7 +279,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // DELETE /admin/addon-categories/{id}
   Future<void> _deleteCategory(int id) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/$id");
@@ -328,7 +292,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           _fetchCategoriesDropdown(),
         ]);
       } else {
-        // controller kamu kirim 422 kalau addons_count > 0
+
         _toast(
           body?["message"]?.toString() ?? "Gagal hapus (${res.statusCode})",
         );
@@ -338,7 +302,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // PATCH /admin/addon-categories/{id}/toggle  body: {is_active: boolean}
   Future<void> _toggleCategory(int id, bool newValue) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/$id/toggle");
@@ -362,7 +325,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // POST /admin/addon-categories/reorder  body: {items: [{id, sort_order}]}
   Future<void> _reorderCategoriesCommit() async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/reorder");
@@ -394,9 +356,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     }
   }
 
-  // =====================
-  // Helpers
-  // =====================
   void _toast(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
@@ -429,9 +388,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     return formatter.format(val);
   }
 
-  // =====================
-  // UI: Dialog Create/Update Addon (punyamu)
-  // =====================
   Future<void> _openAddonForm({Map<String, dynamic>? item}) async {
     final isEdit = item != null;
 
@@ -745,9 +701,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     );
   }
 
-  // =====================
-  // UI: Dialog Create/Update Category (SIMPLIFIED - NO ICON/COLOR INPUT)
-  // =====================
   Future<void> _openCategoryForm({Map<String, dynamic>? item}) async {
     final isEdit = item != null;
 
@@ -856,7 +809,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                                       ? null
                                       : descCtrl.text.trim(),
                               "is_active": isActive,
-                              // icon & color = null (tidak dikirim)
+
                             };
 
                             Navigator.pop(ctx);
@@ -883,9 +836,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     );
   }
 
-  // =====================
-  // UI
-  // =====================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -940,9 +890,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     );
   }
 
-  // =====================
-  // TAB 1: ADDONS
-  // =====================
   Widget _buildTabAddons() {
     return Column(
       children: [
@@ -1355,9 +1302,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     );
   }
 
-  // =====================
-  // TAB 2: CATEGORIES CRUD
-  // =====================
   Widget _buildTabCategories() {
     return Column(
       children: [
@@ -1760,9 +1704,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     );
   }
 
-  // =====================
-  // CHIP
-  // =====================
   Widget _chip(String text, {Color? accent}) {
     final bg = (accent ?? Colors.grey.shade200).withOpacity(0.15);
     final fg = accent ?? Colors.grey.shade800;
@@ -1783,9 +1724,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   }
 }
 
-// =====================
-// Currency Input Formatter
-// =====================
 class _CurrencyInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

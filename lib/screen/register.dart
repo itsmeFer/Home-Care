@@ -84,7 +84,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final body = json.decode(res.body);
 
-      // ✅ HANDLE SUCCESS
       if (res.statusCode == 200 || res.statusCode == 201) {
         if (body['success'] == true) {
           _showVerificationDialog();
@@ -92,18 +91,15 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
 
-      // ❌ HANDLE ERROR RESPONSES
       String errorMessage = 'Registrasi gagal';
 
       if (body['message'] != null) {
         errorMessage = body['message'];
       }
 
-      // ✅ HANDLE VALIDATION ERRORS
       if (body['errors'] != null && body['errors'] is Map) {
         final errors = body['errors'] as Map<String, dynamic>;
 
-        // Ambil semua error messages
         List<String> errorMessages = [];
         errors.forEach((field, messages) {
           if (messages is List && messages.isNotEmpty) {
@@ -243,7 +239,7 @@ class _RegisterPageState extends State<RegisterPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // Close dialog
+                  Navigator.pop(context);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -276,7 +272,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: IntrinsicHeight(
                   child: Column(
                     children: [
-                      // Top Section (Logo)
+
                       Expanded(
                         child: Center(
                           child: Padding(
@@ -303,7 +299,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
-                      // Bottom Section (Form)
+
                       Container(
                         width: double.infinity,
                         decoration: const BoxDecoration(
@@ -347,7 +343,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ),
                                     const SizedBox(height: 32),
 
-                                    // Form fields
                                     const Text(
                                       'Nama Lengkap',
                                       style: TextStyle(

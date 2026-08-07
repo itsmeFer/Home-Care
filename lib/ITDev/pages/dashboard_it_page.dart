@@ -37,7 +37,6 @@ class _DashboardITPageState extends State<DashboardITPage> {
     _future = _fetch();
     _metricsFuture = _fetchMetrics();
 
-    // optional live refresh tiap 5 detik
     _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
       setState(() {
@@ -71,9 +70,6 @@ class _DashboardITPageState extends State<DashboardITPage> {
     });
   }
 
-  // =========================
-  // FETCH
-  // =========================
   String _buildUrl() {
     return Uri.parse(
       '$kApiBase/it/dashboard/overview',
@@ -133,9 +129,6 @@ class _DashboardITPageState extends State<DashboardITPage> {
     throw Exception('Format response metrics tidak sesuai.');
   }
 
-  // =========================
-  // HELPERS
-  // =========================
   String _s(dynamic v, [String fb = '-']) {
     if (v == null) return fb;
     final t = v.toString().trim();
@@ -181,9 +174,6 @@ class _DashboardITPageState extends State<DashboardITPage> {
     return (u / t) * 100.0;
   }
 
-  // =========================
-  // UI
-  // =========================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 3 : 2;
@@ -248,13 +238,13 @@ class _DashboardITPageState extends State<DashboardITPage> {
 
         final reqCount = _i(
           stats['sessions_total'],
-        ); // fallback (kalau belum ada request_count)
+        );
         final err5xx = _i(
           queue['failed_jobs'],
-        ); // queue failed sebagai indikator error berat
+        );
         final err4xx = _i(
           stats['audit_medium'],
-        ); // indikator (bukan real 4xx), nanti bisa kamu ganti
+        );
 
         final frozenUsers = _i(stats['frozen_users']);
         final tokensTotal = _i(stats['tokens_total']);
@@ -365,7 +355,6 @@ class _DashboardITPageState extends State<DashboardITPage> {
                     );
                   }
 
-                  // contoh parsing: [{label, request_count, error_4xx, error_5xx}]
                   final req = <FlSpot>[];
                   final e4 = <FlSpot>[];
                   final e5 = <FlSpot>[];
@@ -383,7 +372,7 @@ class _DashboardITPageState extends State<DashboardITPage> {
                     );
                   }
                   final showDots =
-                      req.length < 2; // kalau cuma 1 titik, tampilkan dot
+                      req.length < 2;
 
                   return SizedBox(
                     height: 240,
@@ -394,21 +383,21 @@ class _DashboardITPageState extends State<DashboardITPage> {
                             spots: req,
                             isCurved: true,
                             barWidth: 3,
-                            color: const Color(0xFF0EA5E9), // biru
+                            color: const Color(0xFF0EA5E9),
                             dotData: FlDotData(show: showDots),
                           ),
                           LineChartBarData(
                             spots: e4,
                             isCurved: true,
                             barWidth: 2,
-                            color: const Color(0xFFF59E0B), // kuning
+                            color: const Color(0xFFF59E0B),
                             dotData: FlDotData(show: showDots),
                           ),
                           LineChartBarData(
                             spots: e5,
                             isCurved: true,
                             barWidth: 2,
-                            color: const Color(0xFFDC2626), // merah
+                            color: const Color(0xFFDC2626),
                             dotData: FlDotData(show: showDots),
                           ),
                         ],
@@ -477,7 +466,6 @@ class _DashboardITPageState extends State<DashboardITPage> {
                         ),
                       );
 
-                      // setelah balik dari halaman maintenance, refresh biar status dashboard update
                       _reload();
                     },
                   ),
@@ -539,7 +527,6 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-// ===== local loading & error =====
 class _LoadingCardX extends StatelessWidget {
   final String title;
   const _LoadingCardX({required this.title});

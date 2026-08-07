@@ -1,20 +1,3 @@
-// OverviewPage.dart (FULL) ✅
-// ✅ KPI Rupiah (Rp + titik)
-// ✅ Cashflow chart REAL (fl_chart) 3 line: Income/Fee/Profit
-// ✅ Top Layanan (progress bar list)
-// ✅ Leaderboard Tim (table)
-// ✅ Animasi chart 0 -> nilai tiap buka tab / ganti range
-// ✅ WARNA PREMIUM (shadcn-ish): Income=Cyan, Fee=Amber, Profit=Green
-//
-// Backend (bebas, tapi sebaiknya):
-// GET /api/direktur/dashboard/overview?range=...
-//
-// Expected keys (fleksibel):
-// - kpi: { income/revenue, profit, total_order/orders, rating_avg }
-// - cashflow_trend / trend_cashflow / cashflow / trend : [{label, income, fee, profit}]
-// - top_layanan / top_services / layanan_top : [{nama, omset}]
-// - leaderboard / leaderboard_tim : [{nama, role, order, rating, fee}]
-
 import 'dart:convert';
 import 'dart:math';
 
@@ -49,16 +32,14 @@ class _OverviewPageState extends State<OverviewPage>
       '$kApiBase/direktur/dashboard/overview?range=${Uri.encodeComponent(widget.range)}';
   Future<Map<String, dynamic>>? _future;
 
-  // ✅ animasi 0 -> nilai
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
 
-  // ===== PALETTE (shadcn-ish) =====
-  static const Color _cIncome = Color(0xFF06B6D4); // cyan-500
-  static const Color _cFee = Color(0xFFF59E0B); // amber-500
-  static const Color _cProfit = Color(0xFF22C55E); // green-500
-  static const Color _grid = Color(0xFFE2E8F0); // slate-200
-  static const Color _axis = Color(0xFF64748B); // slate-500
+  static const Color _cIncome = Color(0xFF06B6D4);
+  static const Color _cFee = Color(0xFFF59E0B);
+  static const Color _cProfit = Color(0xFF22C55E);
+  static const Color _grid = Color(0xFFE2E8F0);
+  static const Color _axis = Color(0xFF64748B);
 
   @override
   void initState() {
@@ -95,9 +76,6 @@ class _OverviewPageState extends State<OverviewPage>
     _chartCtrl.forward();
   }
 
-  // =========================
-  // AUTH + FETCH
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
@@ -124,9 +102,6 @@ class _OverviewPageState extends State<OverviewPage>
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================
-  // FORMAT RUPIAH (tanpa intl)
-  // =========================
   double _toDouble(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
@@ -173,9 +148,6 @@ class _OverviewPageState extends State<OverviewPage>
     return _formatThousandsId(n.round());
   }
 
-  // =========================
-  // EXTRACTORS (fleksibel key)
-  // =========================
   Map<String, dynamic> _map(dynamic v) =>
       (v is Map) ? Map<String, dynamic>.from(v) : <String, dynamic>{};
 
@@ -230,9 +202,6 @@ class _OverviewPageState extends State<OverviewPage>
     return <Map<String, dynamic>>[];
   }
 
-  // =========================
-  // CHART: CASHFLOW 3 LINES
-  // =========================
   Widget _cashflowChart(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -263,7 +232,6 @@ class _OverviewPageState extends State<OverviewPage>
       profitSpots.add(FlSpot(i.toDouble(), profit));
     }
 
-    // handle 1 titik (biar chart gak error)
     if (incomeSpots.length == 1) {
       incomeSpots.add(FlSpot(1, incomeSpots.first.y));
       feeSpots.add(FlSpot(1, feeSpots.first.y));
@@ -334,7 +302,7 @@ class _OverviewPageState extends State<OverviewPage>
                   ),
                 ),
                 lineBarsData: [
-                  // Income
+
                   LineChartBarData(
                     spots: anim(incomeSpots),
                     isCurved: true,
@@ -346,7 +314,7 @@ class _OverviewPageState extends State<OverviewPage>
                       color: _cIncome.withOpacity(.18),
                     ),
                   ),
-                  // Fee
+
                   LineChartBarData(
                     spots: anim(feeSpots),
                     isCurved: true,
@@ -358,7 +326,7 @@ class _OverviewPageState extends State<OverviewPage>
                       color: _cFee.withOpacity(.14),
                     ),
                   ),
-                  // Profit
+
                   LineChartBarData(
                     spots: anim(profitSpots),
                     isCurved: true,
@@ -428,9 +396,6 @@ class _OverviewPageState extends State<OverviewPage>
     );
   }
 
-  // =========================
-  // TOP LAYANAN (progress list)
-  // =========================
   Widget _topLayananCard(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -512,9 +477,6 @@ class _OverviewPageState extends State<OverviewPage>
     );
   }
 
-  // =========================
-  // LEADERBOARD (table)
-  // =========================
   Widget _leaderboardCard(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return const XCard(
@@ -550,9 +512,6 @@ class _OverviewPageState extends State<OverviewPage>
     );
   }
 
-  // =========================
-  // BUILD
-  // =========================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 4 : 2;

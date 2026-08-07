@@ -17,7 +17,7 @@ const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 class ChatRoomPage extends StatefulWidget {
   final int roomId;
   final String roomTitle;
-  final String role; // pasien / koordinator / perawat
+  final String role;
   final bool simpleChat;
 
   const ChatRoomPage({

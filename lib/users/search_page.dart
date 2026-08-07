@@ -6,10 +6,6 @@ import 'package:home_care/users/layananPage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// ========================================
-/// SEARCH PAGE - Pencarian Layanan + History
-/// ========================================
-
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
 
@@ -549,10 +545,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
-/// ========================================
-/// MODEL SEARCH RESULT
-/// ========================================
-
 class LayananSearchResult {
   final int id;
   final String kodeLayanan;
@@ -587,10 +579,6 @@ class LayananSearchResult {
     );
   }
 }
-
-/// ========================================
-/// MODEL HISTORY
-/// ========================================
 
 class SearchHistoryItem {
   final int id;
@@ -655,10 +643,6 @@ class RecentViewedLayananItem {
     );
   }
 }
-
-/// ========================================
-/// HISTORY TILE
-/// ========================================
 
 class _SearchHistoryTile extends StatelessWidget {
   final SearchHistoryItem item;
@@ -826,10 +810,6 @@ class _RecentViewedLayananTile extends StatelessWidget {
     );
   }
 }
-
-/// ========================================
-/// WIDGET CARD HASIL SEARCH
-/// ========================================
 
 class _LayananSearchCard extends StatelessWidget {
   final LayananSearchResult layanan;

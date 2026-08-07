@@ -1,18 +1,3 @@
-// manager/pages/tim_page.dart (FULL) ✅
-//
-// ✅ MIRIP persis TimPage Direktur (UI + animasi + chart + export)
-// ✅ KPI tim (angka)
-// ✅ Leaderboard perawat + Fee format Rupiah (Rp + titik)
-// ✅ Rating FIX: normalisasi skala 0..5 (support 0..1, 0..5, 0..100) + bintang + angka
-// ✅ 3 chart mode (Line/Bar/Pie) + animasi 0 -> nilai (tiap buka/ganti tab/range)
-// ✅ Legend pie responsif + donut modern
-// ✅ Export CSV (Web & Mobile) - kolom konsisten + fee "Rp ..."
-// Dependencies:
-// - fl_chart, http, shared_preferences, universal_html, universal_io, path_provider
-//
-// Backend:
-// GET /api/manager/dashboard/tim?range=...
-
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -25,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart' as uio;
-// ignore: avoid_web_libraries_in_flutter
+
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/ui_components.dart';
@@ -52,7 +37,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
   static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
   String get kApiBase => '$kBaseUrl/api';
 
-  // ✅ MANAGER endpoint
   String get _url =>
       '$kApiBase/manager/dashboard/tim?range=${Uri.encodeComponent(widget.range)}';
 
@@ -60,11 +44,9 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
 
   TimChartMode _mode = TimChartMode.lineOrders;
 
-  // ✅ animasi nilai chart 0 -> nilai
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
 
-  // ✅ animasi masuk saat ganti chart / range
   Key _chartAnimKey = UniqueKey();
 
   @override
@@ -126,9 +108,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  // =========================
-  // AUTH + FETCH
-  // =========================
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
@@ -154,9 +133,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
-  // =========================================================
-  // HELPERS
-  // =========================================================
   double _toDouble(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
@@ -196,10 +172,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     return withPrefix ? 'Rp $txt' : txt;
   }
 
-  // ✅ Normalisasi rating ke 0..5:
-  // - 0..1 => *5
-  // - 0..5 => 그대로
-  // - 0..100 => /20
   double? _normalizeRating(dynamic raw) {
     if (raw == null) return null;
 
@@ -242,7 +214,7 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       if (i < full) {
         buf.write('★');
       } else if (i == full && hasHalf) {
-        buf.write('⯨'); // half
+        buf.write('⯨');
       } else {
         buf.write('☆');
       }
@@ -250,9 +222,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     return '${buf.toString()}  ${r.toStringAsFixed(1)}';
   }
 
-  // =========================================================
-  // DATA EXTRACT (fleksibel)
-  // =========================================================
   List<Map<String, dynamic>> _extractTrend(Map<String, dynamic> data) {
     final keys = [
       'tim_trend',
@@ -332,9 +301,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     return (spots: spots, labels: labels);
   }
 
-  // =========================================================
-  // EXPORT CSV
-  // =========================================================
   Uint8List _utf8WithBom(String s) {
     final b = utf8.encode(s);
     return Uint8List.fromList([0xEF, 0xBB, 0xBF, ...b]);
@@ -443,9 +409,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     }
   }
 
-  // =========================================================
-  // UI: SWITCHER
-  // =========================================================
   Widget _chartSwitcher() {
     String label(TimChartMode m) {
       switch (m) {
@@ -533,9 +496,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  // =========================================================
-  // CHARTS
-  // =========================================================
   Widget _lineOrdersChart(List<Map<String, dynamic>> trend) {
     if (trend.isEmpty) {
       return const XCard(
@@ -786,7 +746,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
   Widget _pieComplaintsChart(Map<String, dynamic> dataRoot) {
     final raw = _extractComplaintsPie(dataRoot);
 
-    // fallback kalau backend cuma kirim KPI.komplain
     final list =
         raw.isNotEmpty
             ? raw
@@ -1056,9 +1015,6 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     }
   }
 
-  // =========================================================
-  // BUILD
-  // =========================================================
   @override
   Widget build(BuildContext context) {
     final cols = widget.isDesktop ? 4 : 2;

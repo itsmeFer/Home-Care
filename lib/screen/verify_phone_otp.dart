@@ -45,7 +45,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
     ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
   }
 
-  // Register ke Laravel setelah OTP verified
   Future<void> _registerToLaravel() async {
     try {
       final url = Uri.parse('$baseUrl/register');
@@ -54,14 +53,13 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           ...widget.userData,
-          'is_verified': true, // Sudah verified via Firebase
+          'is_verified': true,
         }),
       );
 
       if (res.statusCode == 200 || res.statusCode == 201) {
         final body = json.decode(res.body);
 
-        // Simpan token
         final prefs = await SharedPreferences.getInstance();
         if (body['token'] != null) {
           await prefs.setString('auth_token', body['token']);
@@ -79,7 +77,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
 
         _showSuccess('Registrasi berhasil!');
 
-        // Navigate to home
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const HomePage()),
@@ -93,7 +90,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
     }
   }
 
-  // Verifikasi OTP
   Future<void> _verifyOTP() async {
     if (_otpC.text.trim().isEmpty) {
       _showError('Mohon isi kode OTP');
@@ -103,20 +99,18 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Buat credential dari OTP
+
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: widget.verificationId,
         smsCode: _otpC.text.trim(),
       );
 
-      // Sign in dengan credential
       await FirebaseAuth.instance.signInWithCredential(credential);
 
       if (!mounted) return;
 
       _showSuccess('Verifikasi berhasil!');
 
-      // Register ke Laravel
       await _registerToLaravel();
     } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
@@ -131,7 +125,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
     }
   }
 
-  // Resend OTP
   Future<void> _resendOTP() async {
     setState(() => _isLoading = true);
 
@@ -183,7 +176,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
               children: [
                 const SizedBox(height: 40),
 
-                // Icon
                 Container(
                   height: 100,
                   width: 100,
@@ -200,7 +192,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
 
                 const SizedBox(height: 24),
 
-                // Title
                 const Text(
                   'Verifikasi OTP',
                   textAlign: TextAlign.center,
@@ -223,7 +214,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
 
                 const SizedBox(height: 40),
 
-                // Card Form
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -233,7 +223,7 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Label
+
                       Text(
                         'KODE OTP (6 DIGIT)',
                         style: TextStyle(
@@ -245,7 +235,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Input OTP
                       TextField(
                         controller: _otpC,
                         keyboardType: TextInputType.number,
@@ -282,7 +271,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
 
                       const SizedBox(height: 24),
 
-                      // Button Verify
                       SizedBox(
                         height: 52,
                         child: ElevatedButton(
@@ -315,7 +303,6 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
 
                       const SizedBox(height: 16),
 
-                      // Resend OTP
                       TextButton(
                         onPressed: _isLoading ? null : _resendOTP,
                         child: Text(

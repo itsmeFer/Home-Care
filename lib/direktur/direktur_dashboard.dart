@@ -19,13 +19,13 @@ class DirekturDashboard extends StatefulWidget {
 }
 
 class _DirekturDashboardState extends State<DirekturDashboard> {
-  // ====== SHADCN-LIKE PALETTE (CLEAN / ELEGANT) ======
-  static const Color kBg = Color(0xFFF8FAFC); // slate-50
+
+  static const Color kBg = Color(0xFFF8FAFC);
   static const Color kCard = Colors.white;
-  static const Color kBorder = Color(0xFFE2E8F0); // slate-200
-  static const Color kText = Color(0xFF0F172A); // slate-900
-  static const Color kMuted = Color(0xFF64748B); // slate-500
-  static const Color kPrimary = Color(0xFF0EA5E9); // sky-500
+  static const Color kBorder = Color(0xFFE2E8F0);
+  static const Color kText = Color(0xFF0F172A);
+  static const Color kMuted = Color(0xFF64748B);
+  static const Color kPrimary = Color(0xFF0EA5E9);
 
   int _tabIndex = 0;
 
@@ -37,10 +37,8 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
   ];
   String _range = 'Bulan ini';
 
-  // ✅ Nama user login
   String _userName = '...';
 
-  // ✅ KUNCI: supaya tiap ganti TAB / RANGE halaman di-recreate -> chart replay animasi
   Key _pageAnimKey = UniqueKey();
 
   @override
@@ -94,7 +92,6 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
 
     final prefs = await SharedPreferences.getInstance();
 
-    // ✅ hapus token + data role/user (biar bersih)
     await prefs.remove('auth_token');
     await prefs.remove('token');
     await prefs.remove('role');
@@ -331,9 +328,6 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
   }
 }
 
-/* ============================================================
-  TOP BAR - FULLY RESPONSIVE
-============================================================ */
 class _TopBar extends StatelessWidget {
   final String title;
   final String rangeValue;
@@ -377,7 +371,7 @@ class _TopBar extends StatelessWidget {
               ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Row 1: Menu + Title
+
                   Row(
                     children: [
                       if (onOpenMenu != null)
@@ -418,7 +412,7 @@ class _TopBar extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Row 2: Select + Avatar (scrollable jika perlu)
+
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -496,9 +490,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SIDEBAR (DESKTOP)
-============================================================ */
 class _Sidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
@@ -580,7 +571,6 @@ class _Sidebar extends StatelessWidget {
 
           const Spacer(),
 
-          // ✅ Logout Button
           Padding(
             padding: const EdgeInsets.all(14),
             child: InkWell(
@@ -737,9 +727,6 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  BOTTOM NAV (MOBILE/TABLET)
-============================================================ */
 class _BottomNav extends StatelessWidget {
   final int index;
   final ValueChanged<int> onChanged;
@@ -802,9 +789,6 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  MOBILE MENU - WITH LOGOUT
-============================================================ */
 class _MobileMenu extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
@@ -881,7 +865,7 @@ class _MobileMenu extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Divider(height: 1, color: kBorder),
                 const SizedBox(height: 8),
-                // ✅ Logout Button
+
                 InkWell(
                   onTap: onLogout,
                   borderRadius: BorderRadius.circular(14),
@@ -967,9 +951,6 @@ class _MobileMenu extends StatelessWidget {
   }
 }
 
-/* ============================================================
-  SMALL UI: SELECT, AVATAR CHIP, BUTTONS - RESPONSIVE
-============================================================ */
 class _Select extends StatelessWidget {
   final String value;
   final List<String> items;

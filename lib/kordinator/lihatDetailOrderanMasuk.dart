@@ -25,7 +25,6 @@ class _DetailOrderKoordinatorPageState
 
   Map<String, dynamic>? _order;
 
-  // ====== PERAWAT (ANAK KOORDINATOR) ======
   bool _isLoadingPerawat = false;
   bool _isAssigningPerawat = false;
   List<Map<String, dynamic>> _perawats = [];
@@ -49,7 +48,6 @@ class _DetailOrderKoordinatorPageState
         _fetchPerawatList(internalCall: true),
       ]);
 
-      // set default selected perawat dari data order (kalau sudah ada)
       final perawatId = _order?['perawat_id'];
       if (perawatId != null) {
         if (perawatId is int) {
@@ -168,7 +166,7 @@ class _DetailOrderKoordinatorPageState
     }
 
     try {
-      // endpoint: GET /api/koordinator/perawat-list
+
       final uri = Uri.parse('$kBaseUrl/koordinator/perawat-list');
 
       final response = await http.get(
@@ -235,7 +233,7 @@ class _DetailOrderKoordinatorPageState
     }
 
     try {
-      // endpoint: POST /api/koordinator/order-layanan/{id}/assign-perawat
+
       final uri = Uri.parse(
         '$kBaseUrl/koordinator/order-layanan/${widget.orderId}/assign-perawat',
       );
@@ -264,7 +262,6 @@ class _DetailOrderKoordinatorPageState
             const SnackBar(content: Text('Perawat berhasil ditugaskan.')),
           );
 
-          // balik ke list & trigger refresh
           Navigator.pop(context, true);
           return;
         } else {

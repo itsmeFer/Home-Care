@@ -26,13 +26,11 @@ class _SplashScreenState extends State<SplashScreen> {
       if (!mounted) return;
 
       if (hasSeenOnboarding) {
-        // Jika sudah pernah melihat onboarding, arahkan ke pengecekan login (RootAuthGate)
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const RootAuthGate()),
         );
       } else {
-        // Jika belum, tampilkan Onboarding
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const OnboardingScreen()),

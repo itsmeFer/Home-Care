@@ -4,10 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 
-/* ===========================================================
-   THEME (PUTIH)
-=========================================================== */
-
 const Color kBg = Color(0xFFF7F8FA);
 const Color kCard = Colors.white;
 const Color kBorder = Color(0xFFE5E7EB);
@@ -17,18 +13,9 @@ const Color kTextSub = Color(0xFF6B7280);
 const Color kDanger = Color(0xFFDC2626);
 const Color kSuccess = Color(0xFF16A34A);
 
-/* ===========================================================
-   CONFIG
-=========================================================== */
-
-/// Base URL tanpa /api
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
 
 String get apiBaseUrl => '$kBaseUrl/api';
-
-/* ===========================================================
-   MODEL DATA
-=========================================================== */
 
 class FeeTimelinePoint {
   final DateTime date;
@@ -75,10 +62,6 @@ class SimpleUserOption {
   });
 }
 
-/* ===========================================================
-   HELPER FORMAT
-=========================================================== */
-
 String formatRupiah(num value) {
   final s = value.toStringAsFixed(0);
   final buffer = StringBuffer();
@@ -95,10 +78,6 @@ String formatRupiah(num value) {
   return 'Rp $result';
 }
 
-/* ===========================================================
-   PAGE: ADMIN LIHAT CATATAN FEE USER
-=========================================================== */
-
 class LihatCatatanFeePage extends StatefulWidget {
   const LihatCatatanFeePage({Key? key}) : super(key: key);
 
@@ -107,20 +86,17 @@ class LihatCatatanFeePage extends StatefulWidget {
 }
 
 class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
-  // user yang dipilih admin
+
   SimpleUserOption? _selectedUser;
 
-  // list hasil search user
   List<SimpleUserOption> _userSearchResults = [];
   String _userSearchQuery = '';
   bool _isSearchingUser = false;
 
-  // filter fee
   String _selectedRange = '30_hari_terakhir';
   String _selectedStatus = 'semua';
-  int? _selectedLayananId; // null = semua
+  int? _selectedLayananId;
 
-  // data fee
   bool _isLoadingData = false;
   String? _errorMessage;
 
@@ -140,13 +116,9 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
   @override
   void initState() {
     super.initState();
-    // auto load daftar user pertama kali
+
     _searchUsers();
   }
-
-  /* ===========================================================
-     API: SEARCH USER
-  ============================================================ */
 
   Future<void> _searchUsers() async {
     setState(() {
@@ -156,7 +128,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // ❗ pakai key yang sama dengan halaman lain
       final token = prefs.getString('auth_token');
       if (token == null) {
         throw Exception('Token tidak ditemukan. Silakan login ulang.');
@@ -200,7 +171,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
             );
           }).toList();
 
-      // 🔥 AUTO PILIH USER PERTAMA (TERBARU) KALAU BELUM ADA YANG TERPILIH
       if (_selectedUser == null && _userSearchResults.isNotEmpty) {
         _selectedUser = _userSearchResults.first;
         _selectedLayananId = null;
@@ -215,10 +185,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     });
   }
 
-  /* ===========================================================
-     API: LOAD DATA FEE UNTUK USER TERPILIH
-  ============================================================ */
-
   Future<void> _loadFeeData() async {
     if (_selectedUser == null) return;
 
@@ -230,7 +196,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // ❗ sama: pakai 'auth_token'
       final token = prefs.getString('auth_token');
       if (token == null) {
         throw Exception('Token tidak ditemukan. Silakan login ulang.');
@@ -273,10 +238,8 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
 
       final data = jsonRes['data'] ?? {};
 
-      // total semua
       _totalSemuaLayanan = (data['total_semua_layanan'] ?? 0).toDouble();
 
-      // per layanan
       final byLayananRaw = (data['total_per_layanan'] ?? []) as List;
       _byLayanan =
           byLayananRaw.map((e) {
@@ -287,7 +250,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
             );
           }).toList();
 
-      // timeline
       final timelineRaw = (data['timeline'] ?? []) as List;
       _timeline =
           timelineRaw.map((e) {
@@ -304,7 +266,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
             );
           }).toList();
 
-      // leaderboard
       final leaderboardRaw = (data['leaderboard'] ?? []) as List;
       _leaderboard =
           leaderboardRaw.map((e) {
@@ -331,10 +292,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       orElse: () => _byLayanan.first,
     );
   }
-
-  /* ===========================================================
-     BUILD
-  ============================================================ */
 
   @override
   Widget build(BuildContext context) {
@@ -375,10 +332,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       ),
     );
   }
-
-  /* ===========================================================
-     USER PICKER (ADMIN PILIH USER)
-  ============================================================ */
 
   Widget _buildUserPickerCard() {
     return Container(
@@ -501,7 +454,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
               onTap: () async {
                 setState(() {
                   _selectedUser = u;
-                  _selectedLayananId = null; // reset filter layanan
+                  _selectedLayananId = null;
                 });
                 await _loadFeeData();
               },
@@ -600,10 +553,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     );
   }
 
-  /* ===========================================================
-     MAIN CONTENT
-  ============================================================ */
-
   Widget _buildEmptyState() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -679,10 +628,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       ],
     );
   }
-
-  /* ===========================================================
-     FILTER ROW (RANGE, STATUS, LAYANAN)
-  ============================================================ */
 
   Widget _buildFilterRow() {
     return Row(
@@ -797,10 +742,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     );
   }
 
-  /* ===========================================================
-     SUMMARY CARD
-  ============================================================ */
-
   Widget _buildSummaryCard() {
     final selected = _selectedLayanan;
     final totalSelected = selected?.totalFee ?? _totalSemuaLayanan;
@@ -849,10 +790,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       ),
     );
   }
-
-  /* ===========================================================
-     GRAFIK GUNUNG (LINE/AREA)
-  ============================================================ */
 
   Widget _buildLineChartCard() {
     return Container(
@@ -976,10 +913,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       ],
     );
   }
-
-  /* ===========================================================
-     PIE CHART
-  ============================================================ */
 
   Widget _buildPieChartCard() {
     final totalAll = _byLayanan.fold<double>(
@@ -1147,10 +1080,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     if (layananId <= 0) return colors[0];
     return colors[layananId % colors.length];
   }
-
-  /* ===========================================================
-     LEADERBOARD
-  ============================================================ */
 
   Widget _buildLeaderboardCard() {
     if (_leaderboard.isEmpty) {

@@ -4,10 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 
-/* ===========================================================
-   THEME (PUTIH)
-=========================================================== */
-
 const Color kBg = Color(0xFFF7F8FA);
 const Color kCard = Colors.white;
 const Color kBorder = Color(0xFFE5E7EB);
@@ -16,31 +12,20 @@ const Color kText = Color(0xFF111827);
 const Color kTextSub = Color(0xFF6B7280);
 const Color kDanger = Color(0xFFDC2626);
 const Color kSuccess = Color(0xFF16A34A);
-const Color kAddon = Color(0xFF7C3AED); // warna untuk addon
-
-/* ===========================================================
-   CONFIG
-=========================================================== */
+const Color kAddon = Color(0xFF7C3AED);
 
 const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
 String get kApiBase => '$kBaseUrl/api';
 
-// Endpoints LAYANAN
 String get kFeeLayananUrl => '$kApiBase/admin/fee/layanan';
 String get kFeeRulesUrl => '$kApiBase/admin/fee/rules';
 
-// Endpoints ADDON
 String get kFeeAddonsUrl => '$kApiBase/admin/fee/addons';
 String get kFeeAddonRulesUrl => '$kApiBase/admin/fee/addon-rules';
 
-// Misc
 String get kFeeUsersUrl => '$kApiBase/admin/fee/users';
 String get kFeeCreateUserUrl => '$kApiBase/admin/fee/create-user';
 String get kRolesUrl => '$kApiBase/admin/roles';
-
-/* ===========================================================
-   RESPONSIVE HELPERS
-=========================================================== */
 
 class R {
   static double w(BuildContext c) => MediaQuery.of(c).size.width;
@@ -75,10 +60,6 @@ class R {
     return v.toDouble();
   }
 }
-
-/* ===========================================================
-   HELPERS
-=========================================================== */
 
 String? resolveMediaUrl(dynamic raw) {
   final s = (raw ?? '').toString().trim();
@@ -161,10 +142,6 @@ extension StringExtension on String {
     return '${this[0].toUpperCase()}${substring(1)}';
   }
 }
-
-/* ===========================================================
-   API CLIENT
-=========================================================== */
 
 class ApiClient {
   Future<String?> _getToken() async {
@@ -263,10 +240,6 @@ class ApiClient {
     return null;
   }
 }
-
-/* ===========================================================
-   MODELS
-=========================================================== */
 
 class Layanan {
   final int id;
@@ -456,10 +429,6 @@ class FeeSimItem {
 enum _SimMode { perItem, semuaItem }
 
 enum _ChartType { bar, pie, area }
-
-/* ===========================================================
-   SMALL UI HELPERS
-=========================================================== */
 
 class _RBtn extends StatelessWidget {
   final Widget child;
@@ -710,10 +679,6 @@ Widget _avatarCircle({
   );
 }
 
-/* ===========================================================
-   PAGE UTAMA
-=========================================================== */
-
 class KelolaFeePage extends StatefulWidget {
   const KelolaFeePage({super.key});
 
@@ -789,10 +754,6 @@ class _KelolaFeePageState extends State<KelolaFeePage>
     );
   }
 }
-
-/* ===========================================================
-   TAB GENERIK (LAYANAN / ADDON)
-=========================================================== */
 
 class _FeeManagementTab extends StatefulWidget {
   final ApiClient api;
@@ -1134,7 +1095,7 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
       child: ListView(
         padding: pad,
         children: [
-          // CARD PILIH ITEM
+
           _MiniCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1330,7 +1291,6 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
 
           const SizedBox(height: 14),
 
-          // CARD CHART
           _MiniCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1430,7 +1390,6 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
 
           const SizedBox(height: 14),
 
-          // LIST
           if (_mode == _SimMode.perItem) ...[
             if (_loading)
               const Center(
@@ -1548,10 +1507,6 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
     );
   }
 }
-
-/* ===========================================================
-   CARD PENERIMA
-=========================================================== */
 
 class _RecipientCard extends StatefulWidget {
   final FeeRule rule;
@@ -1723,10 +1678,6 @@ class _RecipientCardState extends State<_RecipientCard> {
   }
 }
 
-/* ===========================================================
-   LEADERBOARD CARD
-=========================================================== */
-
 class _LeaderboardCard extends StatelessWidget {
   final FeeSimItem item;
   final int rank;
@@ -1816,10 +1767,6 @@ class _LeaderboardCard extends StatelessWidget {
   }
 }
 
-/* ===========================================================
-   CHART SWITCHER
-=========================================================== */
-
 class _FeeChartSwitcher extends StatelessWidget {
   final List<FeeSimItem> items;
   final num totalNominal;
@@ -1867,10 +1814,6 @@ class _FeeChartSwitcher extends StatelessWidget {
     );
   }
 }
-
-/* ===========================================================
-   BAR CHART
-=========================================================== */
 
 class _FeeBarChart extends StatelessWidget {
   final List<FeeSimItem> items;
@@ -1979,10 +1922,6 @@ class _FeeBarChart extends StatelessWidget {
   }
 }
 
-/* ===========================================================
-   PIE CHART
-=========================================================== */
-
 class _FeePieChart extends StatelessWidget {
   final List<FeeSimItem> items;
   final num totalNominal;
@@ -2084,10 +2023,6 @@ class _FeePieChart extends StatelessWidget {
   }
 }
 
-/* ===========================================================
-   AREA CHART
-=========================================================== */
-
 class _FeeAreaChart extends StatelessWidget {
   final List<FeeSimItem> items;
   final num totalNominal;
@@ -2188,10 +2123,6 @@ class _FeeAreaChart extends StatelessWidget {
     );
   }
 }
-
-/* ===========================================================
-   USER PICKER DIALOG
-=========================================================== */
 
 class _UserPickerDialog extends StatefulWidget {
   final ApiClient api;
@@ -2344,10 +2275,6 @@ class _UserPickerDialogState extends State<_UserPickerDialog> {
     );
   }
 }
-
-/* ===========================================================
-   CREATE USER DIALOG
-=========================================================== */
 
 class _CreatedUserResult {
   final int userId;
@@ -2830,10 +2757,6 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
     );
   }
 }
-
-/* ===========================================================
-   FEE RULE FORM DIALOG
-=========================================================== */
 
 class _FeeRuleFormDialog extends StatefulWidget {
   final ApiClient api;
