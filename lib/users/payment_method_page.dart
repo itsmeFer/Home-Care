@@ -66,10 +66,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   }
 
   String _money(int v) => NumberFormat.currency(
-        locale: 'id_ID',
-        symbol: 'Rp ',
-        decimalDigits: 0,
-      ).format(v);
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  ).format(v);
 
   String _formatDate(String? raw) {
     if (raw == null || raw.isEmpty) return '-';
@@ -173,7 +173,9 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
         return;
       }
 
-      debugPrint('🔵 [FETCH] Token: ${t.substring(0, t.length > 20 ? 20 : t.length)}...');
+      debugPrint(
+        '🔵 [FETCH] Token: ${t.substring(0, t.length > 20 ? 20 : t.length)}...',
+      );
 
       final uri = Uri.parse('$kApiBase/pasien/order-draft/${widget.draftId}');
       debugPrint('🔵 [FETCH] URI: $uri');
@@ -283,13 +285,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
       final res = await http.post(
         Uri.parse('$kApiBase/pasien/order-draft/${widget.draftId}/bayar'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $t',
-        },
-        body: {
-          'method': _selectedMethod,
-        },
+        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $t'},
+        body: {'method': _selectedMethod},
       );
 
       debugPrint('🔵 [PAY] Response Status: ${res.statusCode}');
@@ -313,16 +310,19 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
       final body = json.decode(res.body);
 
       if (body is! Map || body['success'] != true) {
-        _toast(body is Map
-            ? body['message']?.toString() ?? 'Gagal membuat pembayaran'
-            : 'Gagal membuat pembayaran');
+        _toast(
+          body is Map
+              ? body['message']?.toString() ?? 'Gagal membuat pembayaran'
+              : 'Gagal membuat pembayaran',
+        );
         _startAutoPolling();
         return;
       }
 
-      final data = body['data'] is Map<String, dynamic>
-          ? body['data'] as Map<String, dynamic>
-          : Map<String, dynamic>.from(body['data'] ?? {});
+      final data =
+          body['data'] is Map<String, dynamic>
+              ? body['data'] as Map<String, dynamic>
+              : Map<String, dynamic>.from(body['data'] ?? {});
 
       final rawOrderId = data['order_id'];
       final int? orderId = _parseOrderId(rawOrderId);
@@ -382,10 +382,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
       final res = await http.get(
         Uri.parse('$kApiBase/pasien/order-draft/${widget.draftId}/status'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $t',
-        },
+        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $t'},
       );
 
       if (!mounted) return;
@@ -416,7 +413,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
       payStatus ??= data['status']?.toString();
 
-      final isPaid = (draftStatus == 'dibayar') ||
+      final isPaid =
+          (draftStatus == 'dibayar') ||
           (payStatus == 'paid') ||
           (draftStatus == 'confirmed');
 
@@ -489,10 +487,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                 children: [
                   const Text(
                     'Total Pembayaran',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 13, color: textSecondary),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -510,11 +505,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
             const Text(
               'Bayar di tempat saat petugas datang',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: textSecondary,
-                height: 1.4,
-              ),
+              style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
             ),
             const SizedBox(height: 20),
             Row(
@@ -527,10 +518,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                     ),
                     child: const Text(
                       'Batal',
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: primaryColor,
-                      ),
+                      style: TextStyle(fontSize: 17, color: primaryColor),
                     ),
                   ),
                 ),
@@ -614,11 +602,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
             const Text(
               'Pesanan Anda telah dikonfirmasi. Koordinator akan segera menugaskan perawat.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: textSecondary,
-                height: 1.4,
-              ),
+              style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -751,10 +735,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                         ),
                         child: const Text(
                           'Kembali',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: textPrimary,
-                          ),
+                          style: TextStyle(fontSize: 15, color: textPrimary),
                         ),
                       ),
                     ),
@@ -895,10 +876,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                       children: [
                         const Text(
                           'Total Pembayaran',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: textSecondary,
-                          ),
+                          style: TextStyle(fontSize: 13, color: textSecondary),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -1053,24 +1031,26 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                       elevation: 0,
                       disabledBackgroundColor: Colors.transparent,
                     ),
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                    child:
+                        _isSubmitting
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : const Text(
+                              'Konfirmasi Pesanan',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'Konfirmasi Pesanan',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
                   ),
                 ),
               ),
@@ -1093,10 +1073,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: textSecondary,
-                ),
+                style: const TextStyle(fontSize: 12, color: textSecondary),
               ),
               const SizedBox(height: 2),
               Text(

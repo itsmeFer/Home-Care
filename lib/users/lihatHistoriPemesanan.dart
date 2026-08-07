@@ -75,9 +75,10 @@ class OrderHistory {
     }
 
     final isDraft = json['is_draft'] == true;
-    final draftId = json['draft_id'] != null
-        ? int.tryParse(json['draft_id'].toString())
-        : null;
+    final draftId =
+        json['draft_id'] != null
+            ? int.tryParse(json['draft_id'].toString())
+            : null;
 
     bool hasRating = false;
     if (json.containsKey('has_rating') && json['has_rating'] != null) {
@@ -151,50 +152,63 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     }
   }
 
-  List<OrderHistory> get _unpaidOrders => _allOrders.where((o) {
-    final statusOrder = o.statusOrder.toLowerCase().trim();
-    final isDone = ['selesai', 'dibatalkan', 'expired'].contains(statusOrder);
+  List<OrderHistory> get _unpaidOrders =>
+      _allOrders.where((o) {
+        final statusOrder = o.statusOrder.toLowerCase().trim();
+        final isDone = [
+          'selesai',
+          'dibatalkan',
+          'expired',
+        ].contains(statusOrder);
 
-    if (isDone) return false;
+        if (isDone) return false;
 
-    if (o.isDraft) {
-      return !_isDraftExpired(o) &&
-          ['belum_bayar', 'pending', 'menunggu_pembayaran'].contains(
-            o.statusPembayaran.toLowerCase().trim(),
-          );
-    }
+        if (o.isDraft) {
+          return !_isDraftExpired(o) &&
+              [
+                'belum_bayar',
+                'pending',
+                'menunggu_pembayaran',
+              ].contains(o.statusPembayaran.toLowerCase().trim());
+        }
 
-    if (_isCodOrder(o)) return false;
+        if (_isCodOrder(o)) return false;
 
-    return _isUnpaidPaymentStatus(o.statusPembayaran);
-  }).toList();
+        return _isUnpaidPaymentStatus(o.statusPembayaran);
+      }).toList();
 
-  List<OrderHistory> get _activeOrders => _allOrders.where((o) {
-    final statusOrder = o.statusOrder.toLowerCase().trim();
-    final isDone = ['selesai', 'dibatalkan', 'expired'].contains(statusOrder);
+  List<OrderHistory> get _activeOrders =>
+      _allOrders.where((o) {
+        final statusOrder = o.statusOrder.toLowerCase().trim();
+        final isDone = [
+          'selesai',
+          'dibatalkan',
+          'expired',
+        ].contains(statusOrder);
 
-    if (isDone) return false;
+        if (isDone) return false;
 
-    if (o.isDraft) return false;
+        if (o.isDraft) return false;
 
-    if (_isCodOrder(o)) return true;
+        if (_isCodOrder(o)) return true;
 
-    return !_isUnpaidPaymentStatus(o.statusPembayaran);
-  }).toList();
+        return !_isUnpaidPaymentStatus(o.statusPembayaran);
+      }).toList();
 
-  List<OrderHistory> get _historyOrders => _allOrders.where((o) {
-    final statusOrder = o.statusOrder.toLowerCase().trim();
+  List<OrderHistory> get _historyOrders =>
+      _allOrders.where((o) {
+        final statusOrder = o.statusOrder.toLowerCase().trim();
 
-    if (['selesai', 'dibatalkan', 'expired'].contains(statusOrder)) {
-      return true;
-    }
+        if (['selesai', 'dibatalkan', 'expired'].contains(statusOrder)) {
+          return true;
+        }
 
-    if (o.isDraft && _isDraftExpired(o)) {
-      return true;
-    }
+        if (o.isDraft && _isDraftExpired(o)) {
+          return true;
+        }
 
-    return false;
-  }).toList();
+        return false;
+      }).toList();
 
   @override
   void initState() {
@@ -299,59 +313,66 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
 
       if (orderData.isNotEmpty) {
         debugPrint('🔍 [DEBUG] Sample order data: ${orderData[0]}');
-        debugPrint('🔍 [DEBUG] has_rating value: ${orderData[0]['has_rating']}');
+        debugPrint(
+          '🔍 [DEBUG] has_rating value: ${orderData[0]['has_rating']}',
+        );
       }
 
-      final finalOrders = orderData
-          .map((e) => OrderHistory.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final finalOrders =
+          orderData
+              .map((e) => OrderHistory.fromJson(e as Map<String, dynamic>))
+              .toList();
 
       if (finalOrders.isNotEmpty) {
         debugPrint('🔍 [DEBUG] Parsed hasRating: ${finalOrders[0].hasRating}');
       }
 
-      final draftOrders = draftData.map((e) {
-        final draft = Map<String, dynamic>.from(e as Map<String, dynamic>);
-        final draftStatus =
-            draft['status']?.toString().toLowerCase().trim() ?? 'draft';
+      final draftOrders =
+          draftData.map((e) {
+            final draft = Map<String, dynamic>.from(e as Map<String, dynamic>);
+            final draftStatus =
+                draft['status']?.toString().toLowerCase().trim() ?? 'draft';
 
-        String paymentStatus;
-        switch (draftStatus) {
-          case 'expired':
-            paymentStatus = 'expired';
-            break;
-          case 'dibayar':
-            paymentStatus = 'dibayar';
-            break;
-          case 'dibatalkan':
-            paymentStatus = 'gagal';
-            break;
-          case 'menunggu_pembayaran':
-          case 'draft':
-          default:
-            paymentStatus = 'belum_bayar';
-            break;
-        }
+            String paymentStatus;
+            switch (draftStatus) {
+              case 'expired':
+                paymentStatus = 'expired';
+                break;
+              case 'dibayar':
+                paymentStatus = 'dibayar';
+                break;
+              case 'dibatalkan':
+                paymentStatus = 'gagal';
+                break;
+              case 'menunggu_pembayaran':
+              case 'draft':
+              default:
+                paymentStatus = 'belum_bayar';
+                break;
+            }
 
-        return OrderHistory(
-          id: draft['id'] as int,
-          kodeOrder: draft['draft_code']?.toString() ?? '-',
-          statusOrder: draftStatus,
-          statusPembayaran: paymentStatus,
-          namaLayanan: draft['nama_layanan']?.toString() ?? '-',
-          totalBayar: double.tryParse(draft['total_bayar'].toString()) ?? 0,
-          tanggalMulai: draft['tanggal_mulai']?.toString(),
-          jamMulai: draft['jam_mulai']?.toString(),
-          tipeLayanan: draft['tipe_layanan']?.toString(),
-          metodePembayaran: null,
-          qty: draft['qty'] != null ? int.tryParse(draft['qty'].toString()) : 1,
-          gambarLayanan: null,
-          isDraft: true,
-          draftId: draft['id'] as int,
-          hasRating: false,
-          expiredAt: draft['expired_at']?.toString(),
-        );
-      }).toList();
+            return OrderHistory(
+              id: draft['id'] as int,
+              kodeOrder: draft['draft_code']?.toString() ?? '-',
+              statusOrder: draftStatus,
+              statusPembayaran: paymentStatus,
+              namaLayanan: draft['nama_layanan']?.toString() ?? '-',
+              totalBayar: double.tryParse(draft['total_bayar'].toString()) ?? 0,
+              tanggalMulai: draft['tanggal_mulai']?.toString(),
+              jamMulai: draft['jam_mulai']?.toString(),
+              tipeLayanan: draft['tipe_layanan']?.toString(),
+              metodePembayaran: null,
+              qty:
+                  draft['qty'] != null
+                      ? int.tryParse(draft['qty'].toString())
+                      : 1,
+              gambarLayanan: null,
+              isDraft: true,
+              draftId: draft['id'] as int,
+              hasRating: false,
+              expiredAt: draft['expired_at']?.toString(),
+            );
+          }).toList();
 
       setState(() {
         _isLoading = false;
@@ -497,9 +518,12 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
         child: Row(
           children: [
             Icon(
-              _isDraftExpired(order) ? Icons.timer_off_outlined : Icons.timer_outlined,
+              _isDraftExpired(order)
+                  ? Icons.timer_off_outlined
+                  : Icons.timer_outlined,
               size: 14,
-              color: _isDraftExpired(order) ? HCColors.danger : HCColors.warning,
+              color:
+                  _isDraftExpired(order) ? HCColors.danger : HCColors.warning,
             ),
             const SizedBox(width: 6),
             Expanded(
@@ -510,7 +534,9 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                 style: TextStyle(
                   fontSize: 11,
                   color:
-                      _isDraftExpired(order) ? HCColors.danger : HCColors.warning,
+                      _isDraftExpired(order)
+                          ? HCColors.danger
+                          : HCColors.warning,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -526,107 +552,110 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
   Future<void> _confirmPaymentCod(OrderHistory order) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: HCColors.warning.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.payment,
-                  color: HCColors.warning,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Konfirmasi Pembayaran COD',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: HCColors.textDark,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Total: ${_formatRupiah(order.totalBayar)}',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: HCColors.primary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Pesanan ini menggunakan metode Bayar di Tempat (COD). Pembayaran akan dilakukan saat perawat datang.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: HCColors.textMuted,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Row(
+      builder:
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(
-                          color: HCColors.textMuted.withOpacity(0.3),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: HCColors.textDark,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: HCColors.warning.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.payment,
+                      color: HCColors.warning,
+                      size: 40,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HCColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'OK, Mengerti',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Konfirmasi Pembayaran COD',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: HCColors.textDark,
                     ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Total: ${_formatRupiah(order.totalBayar)}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: HCColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Pesanan ini menggunakan metode Bayar di Tempat (COD). Pembayaran akan dilakukan saat perawat datang.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: HCColors.textMuted,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: BorderSide(
+                              color: HCColors.textMuted.withOpacity(0.3),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Batal',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: HCColors.textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HCColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'OK, Mengerti',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
 
     if (confirmed != true) return;
@@ -635,9 +664,10 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(color: HCColors.primary),
-      ),
+      builder:
+          (context) => const Center(
+            child: CircularProgressIndicator(color: HCColors.primary),
+          ),
     );
 
     try {
@@ -960,10 +990,17 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
       decoration: BoxDecoration(
         color: HCColors.card,
         borderRadius: BorderRadius.circular(12),
-        border: isUnpaid
-            ? Border.all(color: HCColors.danger.withOpacity(0.3), width: 1.5)
-            : needsRating
-                ? Border.all(color: HCColors.accent.withOpacity(0.3), width: 1.5)
+        border:
+            isUnpaid
+                ? Border.all(
+                  color: HCColors.danger.withOpacity(0.3),
+                  width: 1.5,
+                )
+                : needsRating
+                ? Border.all(
+                  color: HCColors.accent.withOpacity(0.3),
+                  width: 1.5,
+                )
                 : null,
         boxShadow: [
           BoxShadow(
@@ -994,8 +1031,10 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      LihatDetailDraftPemesananPage(draftId: order.draftId!),
+                  builder:
+                      (_) => LihatDetailDraftPemesananPage(
+                        draftId: order.draftId!,
+                      ),
                 ),
               );
               if (result == true && mounted) {
@@ -1005,8 +1044,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      LihatDetailHistoriPemesananPage(orderId: order.id),
+                  builder:
+                      (_) => LihatDetailHistoriPemesananPage(orderId: order.id),
                 ),
               );
               if (mounted) {
@@ -1025,9 +1064,10 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: isUnpaid
-                            ? HCColors.danger.withOpacity(0.08)
-                            : needsRating
+                        color:
+                            isUnpaid
+                                ? HCColors.danger.withOpacity(0.08)
+                                : needsRating
                                 ? HCColors.accent.withOpacity(0.08)
                                 : HCColors.primary.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(10),
@@ -1036,30 +1076,33 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                           order.gambarLayanan != null &&
                                   order.gambarLayanan!.isNotEmpty
                               ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    order.gambarLayanan!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Icon(
-                                      Icons.medical_services_rounded,
-                                      color: isUnpaid
-                                          ? HCColors.danger
-                                          : needsRating
-                                              ? HCColors.accent
-                                              : HCColors.primary,
-                                      size: 24,
-                                    ),
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.medical_services_rounded,
-                                  color: isUnpaid
-                                      ? HCColors.danger
-                                      : needsRating
-                                          ? HCColors.accent
-                                          : HCColors.primary,
-                                  size: 24,
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  order.gambarLayanan!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (_, __, ___) => Icon(
+                                        Icons.medical_services_rounded,
+                                        color:
+                                            isUnpaid
+                                                ? HCColors.danger
+                                                : needsRating
+                                                ? HCColors.accent
+                                                : HCColors.primary,
+                                        size: 24,
+                                      ),
                                 ),
+                              )
+                              : Icon(
+                                Icons.medical_services_rounded,
+                                color:
+                                    isUnpaid
+                                        ? HCColors.danger
+                                        : needsRating
+                                        ? HCColors.accent
+                                        : HCColors.primary,
+                                size: 24,
+                              ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -1109,8 +1152,9 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _statusColor(order.statusOrder)
-                                      .withOpacity(0.12),
+                                  color: _statusColor(
+                                    order.statusOrder,
+                                  ).withOpacity(0.12),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -1240,9 +1284,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 17,
-                            color: isUnpaid
-                                ? HCColors.danger
-                                : HCColors.primary,
+                            color:
+                                isUnpaid ? HCColors.danger : HCColors.primary,
                           ),
                         ),
                       ],
@@ -1254,10 +1297,11 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => PaymentMethodPage(
-                                  draftId: order.draftId!,
-                                  totalBayar: order.totalBayar.toInt(),
-                                ),
+                                builder:
+                                    (_) => PaymentMethodPage(
+                                      draftId: order.draftId!,
+                                      totalBayar: order.totalBayar.toInt(),
+                                    ),
                               ),
                             ).then((_) {
                               _fetchHistory();
@@ -1383,10 +1427,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: HCColors.accent.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: HCColors.accent.withOpacity(0.2), width: 1),
       ),
       child: Row(
         children: [
@@ -1432,8 +1473,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      LihatDetailHistoriPemesananPage(orderId: order.id),
+                  builder:
+                      (_) => LihatDetailHistoriPemesananPage(orderId: order.id),
                 ),
               );
               if (mounted) {
@@ -1443,10 +1484,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 252, 177, 17),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -1454,10 +1492,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
             ),
             child: const Text(
               'Beri Rating',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ),
         ],

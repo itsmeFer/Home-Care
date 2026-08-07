@@ -256,15 +256,17 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     final total = list.length;
 
     // aktif/pending hanya valid kalau key tersedia.
-    final aktif = list.where((e) {
-      if (!e.containsKey('is_active')) return true; // fallback anggap aktif
-      return (e['is_active'] == true || e['is_active'] == 1);
-    }).length;
+    final aktif =
+        list.where((e) {
+          if (!e.containsKey('is_active')) return true; // fallback anggap aktif
+          return (e['is_active'] == true || e['is_active'] == 1);
+        }).length;
 
-    final pending = list.where((e) {
-      if (!e.containsKey('status_verifikasi')) return false;
-      return _s(e['status_verifikasi']) == 'pending';
-    }).length;
+    final pending =
+        list.where((e) {
+          if (!e.containsKey('status_verifikasi')) return false;
+          return _s(e['status_verifikasi']) == 'pending';
+        }).length;
 
     // avg rating fleksibel
     double avgRating = 0;
@@ -560,17 +562,18 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                             isExpanded: true,
                             value: selectedPerawatId,
                             hint: const Text('Pilih perawat...'),
-                            items: items.take(200).map((p) {
-                              final id = _toInt(p['id']);
-                              final name = _pickName(p);
-                              final kode = _pickKode(p);
-                              return DropdownMenuItem<int>(
-                                value: id,
-                                child: Text('$name ($kode)'),
-                              );
-                            }).toList(),
-                            onChanged: (v) =>
-                                setLocal(() => selectedPerawatId = v),
+                            items:
+                                items.take(200).map((p) {
+                                  final id = _toInt(p['id']);
+                                  final name = _pickName(p);
+                                  final kode = _pickKode(p);
+                                  return DropdownMenuItem<int>(
+                                    value: id,
+                                    child: Text('$name ($kode)'),
+                                  );
+                                }).toList(),
+                            onChanged:
+                                (v) => setLocal(() => selectedPerawatId = v),
                           ),
                         ),
                       ),
@@ -609,8 +612,8 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                 );
                               }).toList(),
                             ],
-                            onChanged: (v) =>
-                                setLocal(() => selectedKoorId = v),
+                            onChanged:
+                                (v) => setLocal(() => selectedKoorId = v),
                           ),
                         ),
                       ),
@@ -794,110 +797,114 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       title: 'Daftar Perawat',
       subtitle: 'Kelola koordinator, status aktif, dan performa rating.',
       child: Column(
-        children: items.take(50).map((m) {
-          final id = _toInt(m['id']);
-          final name = _pickName(m);
-          final kode = _pickKode(m);
-          final phone = _pickPhone(m);
-          final koor = _pickKoorName(m);
-          final verif = _pickVerif(m);
-          final active = _isActive(m);
-          final r = _rating(m);
-          final rc = _ratingCount(m);
-          final koorId = _pickKoorId(m);
+        children:
+            items.take(50).map((m) {
+              final id = _toInt(m['id']);
+              final name = _pickName(m);
+              final kode = _pickKode(m);
+              final phone = _pickPhone(m);
+              final koor = _pickKoorName(m);
+              final verif = _pickVerif(m);
+              final active = _isActive(m);
+              final r = _rating(m);
+              final rc = _ratingCount(m);
+              final koorId = _pickKoorId(m);
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              color: const Color(0xFFF8FAFC),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  color: const Color(0xFFF8FAFC),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0F172A),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
                         ),
+                        _StatusPill(text: verif, color: _verifColor(verif)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '$kode • $phone',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF334155),
                       ),
                     ),
-                    _StatusPill(text: verif, color: _verifColor(verif)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '$kode • $phone',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF334155),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Koordinator: $koor',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _MiniInfo(
-                      icon: Icons.star_rounded,
-                      text: '${r.toStringAsFixed(2)}  ($rc)',
-                      color: _cAmber,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Koordinator: $koor',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
-                    const SizedBox(width: 10),
-                    _MiniInfo(
-                      icon: active
-                          ? Icons.verified_outlined
-                          : Icons.block_outlined,
-                      text: active ? 'Aktif' : 'Nonaktif',
-                      color: active ? _cGreen : _cRed,
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _MiniInfo(
+                          icon: Icons.star_rounded,
+                          text: '${r.toStringAsFixed(2)}  ($rc)',
+                          color: _cAmber,
+                        ),
+                        const SizedBox(width: 10),
+                        _MiniInfo(
+                          icon:
+                              active
+                                  ? Icons.verified_outlined
+                                  : Icons.block_outlined,
+                          text: active ? 'Aktif' : 'Nonaktif',
+                          color: active ? _cGreen : _cRed,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    ActionChipX(
-                      icon: Icons.swap_horiz_outlined,
-                      label: 'Assign Koordinator',
-                      onTap: () =>
-                          _assignKoordinator(id, currentKoorId: koorId),
-                    ),
-                    ActionChipX(
-                      icon: Icons.swap_horiz_outlined,
-                      label: 'Assign Koordinator',
-                      onTap: () {
-                        _assignKoordinator(id, currentKoorId: koorId);
-                      },
-                    ),
-                    ActionChipX(
-                      icon: active
-                          ? Icons.pause_circle_outline
-                          : Icons.play_circle_outline,
-                      label: active ? 'Nonaktifkan' : 'Aktifkan',
-                      onTap: () {
-                        _toggleActive(id, !active);
-                      },
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        ActionChipX(
+                          icon: Icons.swap_horiz_outlined,
+                          label: 'Assign Koordinator',
+                          onTap:
+                              () =>
+                                  _assignKoordinator(id, currentKoorId: koorId),
+                        ),
+                        ActionChipX(
+                          icon: Icons.swap_horiz_outlined,
+                          label: 'Assign Koordinator',
+                          onTap: () {
+                            _assignKoordinator(id, currentKoorId: koorId);
+                          },
+                        ),
+                        ActionChipX(
+                          icon:
+                              active
+                                  ? Icons.pause_circle_outline
+                                  : Icons.play_circle_outline,
+                          label: active ? 'Nonaktifkan' : 'Aktifkan',
+                          onTap: () {
+                            _toggleActive(id, !active);
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
@@ -912,19 +919,20 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       );
     }
 
-    final rows = items.take(100).map((m) {
-      final id = _toInt(m['id']).toString();
-      final nama = _pickName(m);
-      final kode = _pickKode(m);
-      final koor = _pickKoorName(m);
-      final hp = _pickPhone(m);
-      final verif = _pickVerif(m);
-      final active = _isActive(m) ? 'aktif' : 'nonaktif';
-      final rating = _rating(m).toStringAsFixed(2);
-      final cnt = _ratingCount(m).toString();
+    final rows =
+        items.take(100).map((m) {
+          final id = _toInt(m['id']).toString();
+          final nama = _pickName(m);
+          final kode = _pickKode(m);
+          final koor = _pickKoorName(m);
+          final hp = _pickPhone(m);
+          final verif = _pickVerif(m);
+          final active = _isActive(m) ? 'aktif' : 'nonaktif';
+          final rating = _rating(m).toStringAsFixed(2);
+          final cnt = _ratingCount(m).toString();
 
-      return [id, nama, kode, koor, hp, verif, active, '$rating ($cnt)'];
-    }).toList();
+          return [id, nama, kode, koor, hp, verif, active, '$rating ($cnt)'];
+        }).toList();
 
     return XCard(
       title: 'Daftar Perawat',
@@ -1011,15 +1019,16 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                             isExpanded: true,
                             value: selectedId,
                             hint: const Text('Pilih perawat...'),
-                            items: items.take(100).map((p) {
-                              final id = _toInt(p['id']);
-                              final name = _pickName(p);
-                              final kode = _pickKode(p);
-                              return DropdownMenuItem<int>(
-                                value: id,
-                                child: Text('$name ($kode)'),
-                              );
-                            }).toList(),
+                            items:
+                                items.take(100).map((p) {
+                                  final id = _toInt(p['id']);
+                                  final name = _pickName(p);
+                                  final kode = _pickKode(p);
+                                  return DropdownMenuItem<int>(
+                                    value: id,
+                                    child: Text('$name ($kode)'),
+                                  );
+                                }).toList(),
                             onChanged: (v) => setLocal(() => selectedId = v),
                           ),
                         ),
@@ -1109,18 +1118,19 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                             isExpanded: true,
                             value: selectedId,
                             hint: const Text('Pilih perawat...'),
-                            items: items.take(100).map((p) {
-                              final id = _toInt(p['id']);
-                              final name = _pickName(p);
-                              final kode = _pickKode(p);
-                              final active = _isActive(p);
-                              return DropdownMenuItem<int>(
-                                value: id,
-                                child: Text(
-                                  '$name ($kode) • ${active ? 'Aktif' : 'Nonaktif'}',
-                                ),
-                              );
-                            }).toList(),
+                            items:
+                                items.take(100).map((p) {
+                                  final id = _toInt(p['id']);
+                                  final name = _pickName(p);
+                                  final kode = _pickKode(p);
+                                  final active = _isActive(p);
+                                  return DropdownMenuItem<int>(
+                                    value: id,
+                                    child: Text(
+                                      '$name ($kode) • ${active ? 'Aktif' : 'Nonaktif'}',
+                                    ),
+                                  );
+                                }).toList(),
                             onChanged: (v) {
                               setLocal(() {
                                 selectedId = v;
@@ -1236,9 +1246,10 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
         }
 
         final data = snap.data ?? {};
-        final items = (data['items'] is List)
-            ? _list(data['items'])
-            : <Map<String, dynamic>>[];
+        final items =
+            (data['items'] is List)
+                ? _list(data['items'])
+                : <Map<String, dynamic>>[];
         final kpi = _map(data['kpi']);
 
         final total = _toInt(kpi['total']).toString();

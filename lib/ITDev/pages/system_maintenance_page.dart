@@ -39,7 +39,7 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('auth_token') ?? prefs.getString('token');
-    
+
     if (_token != null && _token!.isNotEmpty) {
       await _loadStatus();
     } else {
@@ -107,9 +107,7 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
         },
-        body: json.encode({
-          'message': message,
-        }),
+        body: json.encode({'message': message}),
       );
 
       if (!mounted) return;
@@ -173,15 +171,15 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
   }
 
   void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.green),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.red),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
   @override
@@ -224,7 +222,8 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
                   controller: _messageController,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    hintText: 'Contoh: Sistem sedang maintenance untuk update fitur baru...',
+                    hintText:
+                        'Contoh: Sistem sedang maintenance untuk update fitur baru...',
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
@@ -251,7 +250,10 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
                         ),
                       ),
 
@@ -263,7 +265,10 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
                         ),
                       ),
 

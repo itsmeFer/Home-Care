@@ -58,73 +58,76 @@ class _AuditPageManagerState extends State<AuditPageManager> {
 
       await showDialog(
         context: context,
-        builder: (_) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Kelola Perawat',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Monitoring & manajemen perawat aktif.',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  if (list.isEmpty)
-                    const _EmptyState(text: 'Belum ada data perawat.')
-                  else
-                    ...list.map(
-                      (p) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          _pickName(p),
-                          style: const TextStyle(fontWeight: FontWeight.w800),
+        builder:
+            (_) => Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Kelola Perawat',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF0F172A),
                         ),
-                        subtitle: Text(
-                          'ID: ${_pickId(p)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF64748B),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Monitoring & manajemen perawat aktif.',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      if (list.isEmpty)
+                        const _EmptyState(text: 'Belum ada data perawat.')
+                      else
+                        ...list.map(
+                          (p) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              _pickName(p),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'ID: ${_pickId(p)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              // ⛳ nanti bisa diarahkan ke detail / edit
+                            },
                           ),
                         ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          // ⛳ nanti bisa diarahkan ke detail / edit
-                        },
-                      ),
-                    ),
 
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Tutup'),
-                    ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Tutup'),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
       );
     } catch (e) {
       if (mounted) Navigator.of(context).pop();
@@ -342,8 +345,8 @@ class _AuditPageManagerState extends State<AuditPageManager> {
               showDialog(
                 context: ctx,
                 barrierDismissible: false,
-                builder: (_) =>
-                    const Center(child: CircularProgressIndicator()),
+                builder:
+                    (_) => const Center(child: CircularProgressIndicator()),
               );
 
               try {
@@ -411,14 +414,15 @@ class _AuditPageManagerState extends State<AuditPageManager> {
                         label: 'Perawat',
                         requiredField: true,
                         value: selectedPerawatId,
-                        items: perawat
-                            .map(
-                              (p) => DropdownMenuItem<int>(
-                                value: _pickId(p),
-                                child: Text(_pickName(p)),
-                              ),
-                            )
-                            .toList(),
+                        items:
+                            perawat
+                                .map(
+                                  (p) => DropdownMenuItem<int>(
+                                    value: _pickId(p),
+                                    child: Text(_pickName(p)),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (v) => setLocal(() => selectedPerawatId = v),
                       ),
                       const SizedBox(height: 12),
@@ -440,8 +444,8 @@ class _AuditPageManagerState extends State<AuditPageManager> {
                             child: Text('Warning'),
                           ),
                         ],
-                        onChanged: (v) =>
-                            setLocal(() => tag = (v ?? 'training')),
+                        onChanged:
+                            (v) => setLocal(() => tag = (v ?? 'training')),
                       ),
                       const SizedBox(height: 12),
                       dropdown<int>(
@@ -554,9 +558,8 @@ class _AuditPageManagerState extends State<AuditPageManager> {
 
   double? _normalizeRating(dynamic raw) {
     if (raw == null) return null;
-    final d = (raw is num)
-        ? raw.toDouble()
-        : (double.tryParse(raw.toString()) ?? 0);
+    final d =
+        (raw is num) ? raw.toDouble() : (double.tryParse(raw.toString()) ?? 0);
     if (d.isNaN) return null;
 
     double r;
@@ -594,9 +597,8 @@ class _AuditPageManagerState extends State<AuditPageManager> {
   // EXPORT CSV
   // =========================
   Future<void> _exportAudit(Map<String, dynamic> data) async {
-    final kpi = (data['kpi'] is Map)
-        ? Map<String, dynamic>.from(data['kpi'])
-        : {};
+    final kpi =
+        (data['kpi'] is Map) ? Map<String, dynamic>.from(data['kpi']) : {};
     final List logsRaw = (data['logs'] is List) ? data['logs'] : const [];
 
     final sb = StringBuffer();
@@ -657,9 +659,8 @@ class _AuditPageManagerState extends State<AuditPageManager> {
         final isError = snap.hasError && snap.data == null;
 
         final data = snap.data ?? {};
-        final kpi = (data['kpi'] is Map)
-            ? Map<String, dynamic>.from(data['kpi'])
-            : {};
+        final kpi =
+            (data['kpi'] is Map) ? Map<String, dynamic>.from(data['kpi']) : {};
         final List logs = (data['logs'] is List) ? data['logs'] : const [];
 
         return Column(
@@ -713,24 +714,26 @@ class _AuditPageManagerState extends State<AuditPageManager> {
             XCard(
               title: 'Audit Log',
               subtitle: 'Aktivitas terbaru yang tercatat.',
-              child: logs.isEmpty
-                  ? const _EmptyState(
-                      text: 'Belum ada audit log pada range ini.',
-                    )
-                  : Column(
-                      children: logs.take(10).map((e) {
-                        final m = Map<String, dynamic>.from(e as Map);
-                        return _AuditRow(
-                          title: (m['title'] ?? 'Audit').toString(),
-                          desc: (m['desc'] ?? '-').toString(),
-                          time: (m['time'] ?? '-').toString(),
-                          icon: _iconFromName(
-                            (m['icon'] ?? 'security').toString(),
-                          ),
-                          rating: _normalizeRating(m['rating']),
-                        );
-                      }).toList(),
-                    ),
+              child:
+                  logs.isEmpty
+                      ? const _EmptyState(
+                        text: 'Belum ada audit log pada range ini.',
+                      )
+                      : Column(
+                        children:
+                            logs.take(10).map((e) {
+                              final m = Map<String, dynamic>.from(e as Map);
+                              return _AuditRow(
+                                title: (m['title'] ?? 'Audit').toString(),
+                                desc: (m['desc'] ?? '-').toString(),
+                                time: (m['time'] ?? '-').toString(),
+                                icon: _iconFromName(
+                                  (m['icon'] ?? 'security').toString(),
+                                ),
+                                rating: _normalizeRating(m['rating']),
+                              );
+                            }).toList(),
+                      ),
             ),
 
             const SizedBox(height: 12),

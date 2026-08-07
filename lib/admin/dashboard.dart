@@ -50,27 +50,28 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> _logout(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text('Logout'),
-        content: const Text('Yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text('Logout'),
+            title: const Text('Logout'),
+            content: const Text('Yakin ingin keluar?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Logout'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -114,8 +115,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         if (!mounted) return;
         setState(() {
           _roleStats = (data['data']?['by_role'] as List?) ?? [];
-          _summary =
-              (data['data']?['summary'] as Map<String, dynamic>?) ?? {};
+          _summary = (data['data']?['summary'] as Map<String, dynamic>?) ?? {};
         });
       } else {
         _showSnackBar(data['message']?.toString() ?? 'Gagal memuat statistik');
@@ -146,10 +146,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
     final response = await http.get(
       uri,
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
     final dynamic data = jsonDecode(response.body);
@@ -169,10 +166,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
     final response = await http.get(
       Uri.parse('$baseUrl/admin/fee/users-list/$userId'),
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
     final dynamic data = jsonDecode(response.body);
@@ -186,9 +180,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   void _showSnackBar(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   IconData _roleIcon(String slug) {
@@ -312,10 +304,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   List<Widget> _profileRows(Map<String, dynamic> profile) {
     final widgets = <Widget>[];
 
-    const onlyDateFields = {
-      'tanggal_lahir',
-      'verified_at',
-    };
+    const onlyDateFields = {'tanggal_lahir', 'verified_at'};
 
     const dateTimeFields = {
       'last_login_at',
@@ -391,11 +380,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       'sertifikat_lainnya',
     };
 
-    const medicalKeys = {
-      'alergi',
-      'penyakit_menahun',
-      'catatan',
-    };
+    const medicalKeys = {'alergi', 'penyakit_menahun', 'catatan'};
 
     List<Widget> buildSection(String title, Set<String> keys) {
       final section = <Widget>[];
@@ -418,11 +403,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
       if (!hasAny) return [];
 
-      return [
-        const SizedBox(height: 12),
-        _SectionTitle(title),
-        ...section,
-      ];
+      return [const SizedBox(height: 12), _SectionTitle(title), ...section];
     }
 
     widgets.addAll(buildSection('Data Pribadi', personalKeys));
@@ -506,187 +487,221 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       ),
                     ),
                     Expanded(
-                      child: users.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'Belum ada data user untuk role ini.',
-                                style: TextStyle(color: Color(0xFF6B7280)),
-                              ),
-                            )
-                          : ListView.builder(
-                              controller: scrollController,
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                              itemCount: users.length,
-                              itemBuilder: (context, index) {
-                                final user = users[index];
-                                final role =
-                                    (user['role']?['name'] ?? '-').toString();
-                                final isActive = user['is_active'] == true;
-                                final isFrozen = user['is_frozen'] == true;
-                                final isVerified = user['is_verified'] == true;
+                      child:
+                          users.isEmpty
+                              ? const Center(
+                                child: Text(
+                                  'Belum ada data user untuk role ini.',
+                                  style: TextStyle(color: Color(0xFF6B7280)),
+                                ),
+                              )
+                              : ListView.builder(
+                                controller: scrollController,
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  20,
+                                ),
+                                itemCount: users.length,
+                                itemBuilder: (context, index) {
+                                  final user = users[index];
+                                  final role =
+                                      (user['role']?['name'] ?? '-').toString();
+                                  final isActive = user['is_active'] == true;
+                                  final isFrozen = user['is_frozen'] == true;
+                                  final isVerified =
+                                      user['is_verified'] == true;
 
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  child: Material(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(18),
-                                    child: InkWell(
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    child: Material(
+                                      color: Colors.white,
                                       borderRadius: BorderRadius.circular(18),
-                                      onTap: () async {
-                                        Navigator.pop(context);
-                                        await _openUserDetail(
-                                          (user['id'] as num).toInt(),
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(14),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(18),
-                                          border: Border.all(
-                                            color: const Color(0xFFE9EEF5),
-                                          ),
-                                          boxShadow: const [
-                                            BoxShadow(
-                                              color: Color(0x0A000000),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 4),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(18),
+                                        onTap: () async {
+                                          Navigator.pop(context);
+                                          await _openUserDetail(
+                                            (user['id'] as num).toInt(),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(14),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              18,
                                             ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 24,
-                                              backgroundColor:
-                                                  const Color(0xFF2E7DFF)
-                                                      .withOpacity(0.12),
-                                              child: Text(
-                                                ((user['name'] ?? 'U')
-                                                        .toString()
-                                                        .trim()
-                                                        .isNotEmpty)
-                                                    ? (user['name'] ?? 'U')
-                                                        .toString()
-                                                        .trim()[0]
-                                                        .toUpperCase()
-                                                    : 'U',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF2E7DFF),
+                                            border: Border.all(
+                                              color: const Color(0xFFE9EEF5),
+                                            ),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Color(0x0A000000),
+                                                blurRadius: 10,
+                                                offset: Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 24,
+                                                backgroundColor: const Color(
+                                                  0xFF2E7DFF,
+                                                ).withOpacity(0.12),
+                                                child: Text(
+                                                  ((user['name'] ?? 'U')
+                                                          .toString()
+                                                          .trim()
+                                                          .isNotEmpty)
+                                                      ? (user['name'] ?? 'U')
+                                                          .toString()
+                                                          .trim()[0]
+                                                          .toUpperCase()
+                                                      : 'U',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF2E7DFF),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    (user['name'] ?? '-')
-                                                        .toString(),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontSize: 15.5,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: Color(0xFF111827),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    (user['email'] ?? '-')
-                                                        .toString(),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontSize: 12.5,
-                                                      color: Color(0xFF6B7280),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 6),
-                                                  Text(
-                                                    role,
-                                                    style: const TextStyle(
-                                                      fontSize: 12.5,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Color(0xFF374151),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Wrap(
-                                                    spacing: 6,
-                                                    runSpacing: 6,
-                                                    children: [
-                                                      _MiniChip(
-                                                        label: isActive
-                                                            ? 'Aktif'
-                                                            : 'Tidak Aktif',
-                                                        bg: isActive
-                                                            ? const Color(
-                                                                0xFFE8FFF1)
-                                                            : const Color(
-                                                                0xFFF3F4F6),
-                                                        fg: isActive
-                                                            ? const Color(
-                                                                0xFF15803D)
-                                                            : const Color(
-                                                                0xFF6B7280),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      (user['name'] ?? '-')
+                                                          .toString(),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontSize: 15.5,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: Color(
+                                                          0xFF111827,
+                                                        ),
                                                       ),
-                                                      _MiniChip(
-                                                        label: isFrozen
-                                                            ? 'Frozen'
-                                                            : 'Normal',
-                                                        bg: isFrozen
-                                                            ? const Color(
-                                                                0xFFFFEAEA)
-                                                            : const Color(
-                                                                0xFFEFF6FF),
-                                                        fg: isFrozen
-                                                            ? const Color(
-                                                                0xFFDC2626)
-                                                            : const Color(
-                                                                0xFF2563EB),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      (user['email'] ?? '-')
+                                                          .toString(),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontSize: 12.5,
+                                                        color: Color(
+                                                          0xFF6B7280,
+                                                        ),
                                                       ),
-                                                      _MiniChip(
-                                                        label: isVerified
-                                                            ? 'Verified'
-                                                            : 'Belum Verify',
-                                                        bg: isVerified
-                                                            ? const Color(
-                                                                0xFFEEFDF3)
-                                                            : const Color(
-                                                                0xFFFFF7ED),
-                                                        fg: isVerified
-                                                            ? const Color(
-                                                                0xFF16A34A)
-                                                            : const Color(
-                                                                0xFFEA580C),
+                                                    ),
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      role,
+                                                      style: const TextStyle(
+                                                        fontSize: 12.5,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: Color(
+                                                          0xFF374151,
+                                                        ),
                                                       ),
-                                                    ],
-                                                  ),
-                                                ],
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Wrap(
+                                                      spacing: 6,
+                                                      runSpacing: 6,
+                                                      children: [
+                                                        _MiniChip(
+                                                          label:
+                                                              isActive
+                                                                  ? 'Aktif'
+                                                                  : 'Tidak Aktif',
+                                                          bg:
+                                                              isActive
+                                                                  ? const Color(
+                                                                    0xFFE8FFF1,
+                                                                  )
+                                                                  : const Color(
+                                                                    0xFFF3F4F6,
+                                                                  ),
+                                                          fg:
+                                                              isActive
+                                                                  ? const Color(
+                                                                    0xFF15803D,
+                                                                  )
+                                                                  : const Color(
+                                                                    0xFF6B7280,
+                                                                  ),
+                                                        ),
+                                                        _MiniChip(
+                                                          label:
+                                                              isFrozen
+                                                                  ? 'Frozen'
+                                                                  : 'Normal',
+                                                          bg:
+                                                              isFrozen
+                                                                  ? const Color(
+                                                                    0xFFFFEAEA,
+                                                                  )
+                                                                  : const Color(
+                                                                    0xFFEFF6FF,
+                                                                  ),
+                                                          fg:
+                                                              isFrozen
+                                                                  ? const Color(
+                                                                    0xFFDC2626,
+                                                                  )
+                                                                  : const Color(
+                                                                    0xFF2563EB,
+                                                                  ),
+                                                        ),
+                                                        _MiniChip(
+                                                          label:
+                                                              isVerified
+                                                                  ? 'Verified'
+                                                                  : 'Belum Verify',
+                                                          bg:
+                                                              isVerified
+                                                                  ? const Color(
+                                                                    0xFFEEFDF3,
+                                                                  )
+                                                                  : const Color(
+                                                                    0xFFFFF7ED,
+                                                                  ),
+                                                          fg:
+                                                              isVerified
+                                                                  ? const Color(
+                                                                    0xFF16A34A,
+                                                                  )
+                                                                  : const Color(
+                                                                    0xFFEA580C,
+                                                                  ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            const Icon(
-                                              Icons.chevron_right_rounded,
-                                              color: Color(0xFF9CA3AF),
-                                            ),
-                                          ],
+                                              const SizedBox(width: 8),
+                                              const Icon(
+                                                Icons.chevron_right_rounded,
+                                                color: Color(0xFF9CA3AF),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                                  );
+                                },
+                              ),
                     ),
                   ],
                 );
@@ -801,37 +816,46 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                   fg: const Color(0xFF2563EB),
                                 ),
                                 _MiniChip(
-                                  label: data['is_active'] == true
-                                      ? 'Aktif'
-                                      : 'Tidak Aktif',
-                                  bg: (data['is_active'] == true)
-                                      ? const Color(0xFFE8FFF1)
-                                      : const Color(0xFFF3F4F6),
-                                  fg: (data['is_active'] == true)
-                                      ? const Color(0xFF15803D)
-                                      : const Color(0xFF6B7280),
+                                  label:
+                                      data['is_active'] == true
+                                          ? 'Aktif'
+                                          : 'Tidak Aktif',
+                                  bg:
+                                      (data['is_active'] == true)
+                                          ? const Color(0xFFE8FFF1)
+                                          : const Color(0xFFF3F4F6),
+                                  fg:
+                                      (data['is_active'] == true)
+                                          ? const Color(0xFF15803D)
+                                          : const Color(0xFF6B7280),
                                 ),
                                 _MiniChip(
-                                  label: data['is_frozen'] == true
-                                      ? 'Frozen'
-                                      : 'Normal',
-                                  bg: (data['is_frozen'] == true)
-                                      ? const Color(0xFFFFEAEA)
-                                      : const Color(0xFFEFF6FF),
-                                  fg: (data['is_frozen'] == true)
-                                      ? const Color(0xFFDC2626)
-                                      : const Color(0xFF2563EB),
+                                  label:
+                                      data['is_frozen'] == true
+                                          ? 'Frozen'
+                                          : 'Normal',
+                                  bg:
+                                      (data['is_frozen'] == true)
+                                          ? const Color(0xFFFFEAEA)
+                                          : const Color(0xFFEFF6FF),
+                                  fg:
+                                      (data['is_frozen'] == true)
+                                          ? const Color(0xFFDC2626)
+                                          : const Color(0xFF2563EB),
                                 ),
                                 _MiniChip(
-                                  label: data['is_verified'] == true
-                                      ? 'Verified'
-                                      : 'Belum Verify',
-                                  bg: (data['is_verified'] == true)
-                                      ? const Color(0xFFEEFDF3)
-                                      : const Color(0xFFFFF7ED),
-                                  fg: (data['is_verified'] == true)
-                                      ? const Color(0xFF16A34A)
-                                      : const Color(0xFFEA580C),
+                                  label:
+                                      data['is_verified'] == true
+                                          ? 'Verified'
+                                          : 'Belum Verify',
+                                  bg:
+                                      (data['is_verified'] == true)
+                                          ? const Color(0xFFEEFDF3)
+                                          : const Color(0xFFFFF7ED),
+                                  fg:
+                                      (data['is_verified'] == true)
+                                          ? const Color(0xFF16A34A)
+                                          : const Color(0xFFEA580C),
                                 ),
                               ],
                             ),
@@ -966,9 +990,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       body: SafeArea(
         child: Column(
           children: [
-            _SimpleHeader(
-              onLogout: () => _logout(context),
-            ),
+            _SimpleHeader(onLogout: () => _logout(context)),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _fetchStatistics,
@@ -1013,11 +1035,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 1.08,
-                          ),
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 1.08,
+                              ),
                           itemBuilder: (context, index) {
                             final item = menus[index];
                             return _MenuCard(
@@ -1048,9 +1070,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 class _SimpleHeader extends StatelessWidget {
   final VoidCallback onLogout;
 
-  const _SimpleHeader({
-    required this.onLogout,
-  });
+  const _SimpleHeader({required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
@@ -1168,10 +1188,7 @@ class _DashboardSummaryCard extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11.5,
-                color: Color(0xFF6B7280),
-              ),
+              style: const TextStyle(fontSize: 11.5, color: Color(0xFF6B7280)),
             ),
           ],
         ),
@@ -1195,66 +1212,67 @@ class _DashboardSummaryCard extends StatelessWidget {
           ),
         ],
       ),
-      child: isLoading
-          ? const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Ringkasan Pendaftar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1F2937),
+      child:
+          isLoading
+              ? const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+              : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Ringkasan Pendaftar',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1F2937),
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: onRefresh,
-                      icon: const Icon(Icons.refresh_rounded),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _buildItem(
-                      'Total User',
-                      '${summary['total_users'] ?? 0}',
-                      Icons.groups_rounded,
-                    ),
-                    const SizedBox(width: 10),
-                    _buildItem(
-                      'Aktif',
-                      '${summary['total_active'] ?? 0}',
-                      Icons.check_circle_rounded,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _buildItem(
-                      'Frozen',
-                      '${summary['total_frozen'] ?? 0}',
-                      Icons.ac_unit_rounded,
-                    ),
-                    const SizedBox(width: 10),
-                    _buildItem(
-                      'Verified',
-                      '${summary['total_verified'] ?? 0}',
-                      Icons.verified_rounded,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                      IconButton(
+                        onPressed: onRefresh,
+                        icon: const Icon(Icons.refresh_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _buildItem(
+                        'Total User',
+                        '${summary['total_users'] ?? 0}',
+                        Icons.groups_rounded,
+                      ),
+                      const SizedBox(width: 10),
+                      _buildItem(
+                        'Aktif',
+                        '${summary['total_active'] ?? 0}',
+                        Icons.check_circle_rounded,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _buildItem(
+                        'Frozen',
+                        '${summary['total_frozen'] ?? 0}',
+                        Icons.ac_unit_rounded,
+                      ),
+                      const SizedBox(width: 10),
+                      _buildItem(
+                        'Verified',
+                        '${summary['total_verified'] ?? 0}',
+                        Icons.verified_rounded,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
     );
   }
 }
@@ -1357,11 +1375,7 @@ class _RoleStatsSection extends StatelessWidget {
                             color: color.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Icon(
-                            roleIcon(slug),
-                            color: color,
-                            size: 23,
-                          ),
+                          child: Icon(roleIcon(slug), color: color, size: 23),
                         ),
                         const Spacer(),
                         Text(
@@ -1426,9 +1440,7 @@ class _MenuCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFE9EEF5),
-            ),
+            border: Border.all(color: const Color(0xFFE9EEF5)),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -1447,11 +1459,7 @@ class _MenuCard extends StatelessWidget {
                   color: HCColor.primary.withOpacity(0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  icon,
-                  color: HCColor.primary,
-                  size: 23,
-                ),
+                child: Icon(icon, color: HCColor.primary, size: 23),
               ),
               const Spacer(),
               Text(
@@ -1468,10 +1476,7 @@ class _MenuCard extends StatelessWidget {
               const SizedBox(height: 6),
               const Text(
                 'Buka menu',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF8A94A6),
-                ),
+                style: TextStyle(fontSize: 12, color: Color(0xFF8A94A6)),
               ),
             ],
           ),
@@ -1486,11 +1491,7 @@ class _DashboardMenu {
   final IconData icon;
   final Widget page;
 
-  _DashboardMenu({
-    required this.title,
-    required this.icon,
-    required this.page,
-  });
+  _DashboardMenu({required this.title, required this.icon, required this.page});
 }
 
 class _MiniChip extends StatelessWidget {
@@ -1498,11 +1499,7 @@ class _MiniChip extends StatelessWidget {
   final Color bg;
   final Color fg;
 
-  const _MiniChip({
-    required this.label,
-    required this.bg,
-    required this.fg,
-  });
+  const _MiniChip({required this.label, required this.bg, required this.fg});
 
   @override
   Widget build(BuildContext context) {
@@ -1546,11 +1543,12 @@ class _SectionTitle extends StatelessWidget {
 }
 
 Widget _detailRow(String label, dynamic value) {
-  final text = (value == null ||
-          value.toString().trim().isEmpty ||
-          value.toString() == 'null')
-      ? '-'
-      : value.toString();
+  final text =
+      (value == null ||
+              value.toString().trim().isEmpty ||
+              value.toString() == 'null')
+          ? '-'
+          : value.toString();
 
   return Padding(
     padding: const EdgeInsets.only(bottom: 10),

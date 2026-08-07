@@ -100,8 +100,8 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     if (oldWidget.range != widget.range) {
       _page = 1;
       setState(() {
-  _future = _fetchList();
-});
+        _future = _fetchList();
+      });
     }
   }
 
@@ -332,8 +332,8 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     _selected = null;
     _notesC.text = '';
     setState(() {
-  _future = _fetchList();
-});
+      _future = _fetchList();
+    });
   }
 
   // ===== parse paginator (FIX UTAMA) =====
@@ -388,251 +388,257 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (sheetContext) => _TicketDetailSheet(
-          ticket: t,
-          statusColor: _statusColor,
-          categoryIcon: _categoryIcon,
-          notesCtrl: _notesC,
-          myUserId: _myUserId ?? 0,
+        builder:
+            (sheetContext) => _TicketDetailSheet(
+              ticket: t,
+              statusColor: _statusColor,
+              categoryIcon: _categoryIcon,
+              notesCtrl: _notesC,
+              myUserId: _myUserId ?? 0,
 
-          // ✅ FIX: SYNC CALLBACK (tidak async), tapi tetap jalan async via then/catchError
-          onAssignMe: () {
-            Navigator.of(sheetContext).pop();
-            Future.delayed(const Duration(milliseconds: 100)).then((_) {
-              if (!mounted) return;
+              // ✅ FIX: SYNC CALLBACK (tidak async), tapi tetap jalan async via then/catchError
+              onAssignMe: () {
+                Navigator.of(sheetContext).pop();
+                Future.delayed(const Duration(milliseconds: 100)).then((_) {
+                  if (!mounted) return;
 
-              ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                const SnackBar(
-                  content: Row(
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                  ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                          SizedBox(width: 12),
+                          Text('Mengassign ticket...'),
+                        ],
                       ),
-                      SizedBox(width: 12),
-                      Text('Mengassign ticket...'),
-                    ],
-                  ),
-                  duration: Duration(seconds: 1),
-                ),
-              );
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
 
-              _assignToMe(id)
-                  .then((_) {
-                    if (!mounted) return;
+                  _assignToMe(id)
+                      .then((_) {
+                        if (!mounted) return;
 
-                    ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
-                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                      const SnackBar(
-                        content: Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                              size: 20,
+                        ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                          const SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 12),
+                                Text('✅ Ticket di-assign ke kamu'),
+                              ],
                             ),
-                            SizedBox(width: 12),
-                            Text('✅ Ticket di-assign ke kamu'),
-                          ],
-                        ),
-                        backgroundColor: Color(0xFF10B981),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-
-                    if (mounted) setState(() {
-  _future = _fetchList();
-});
-                  })
-                  .catchError((e) {
-                    if (!mounted) return;
-
-                    ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
-                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text('❌ Gagal assign: $e')),
-                          ],
-                        ),
-                        backgroundColor: const Color(0xFFEF4444),
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  });
-            });
-          },
-
-          onSaveNotes: () {
-            Navigator.of(sheetContext).pop();
-            Future.delayed(const Duration(milliseconds: 100)).then((_) {
-              if (!mounted) return;
-
-              ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                const SnackBar(
-                  content: Row(
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                            backgroundColor: Color(0xFF10B981),
+                            duration: Duration(seconds: 2),
                           ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Text('Menyimpan notes...'),
-                    ],
-                  ),
-                  duration: Duration(seconds: 1),
-                ),
-              );
+                        );
 
-              _saveNotes(id)
-                  .then((_) {
-                    if (!mounted) return;
+                        if (mounted)
+                          setState(() {
+                            _future = _fetchList();
+                          });
+                      })
+                      .catchError((e) {
+                        if (!mounted) return;
 
-                    ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
-                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                      const SnackBar(
-                        content: Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                              size: 20,
+                        ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(child: Text('❌ Gagal assign: $e')),
+                              ],
                             ),
-                            SizedBox(width: 12),
-                            Text('✅ IT notes tersimpan'),
-                          ],
-                        ),
-                        backgroundColor: Color(0xFF10B981),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-
-                    if (mounted) setState(() {
-  _future = _fetchList();
-});
-                  })
-                  .catchError((e) {
-                    if (!mounted) return;
-
-                    ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
-                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text('❌ Gagal simpan: $e')),
-                          ],
-                        ),
-                        backgroundColor: const Color(0xFFEF4444),
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  });
-            });
-          },
-
-          onSetStatus: (st) {
-            Navigator.of(sheetContext).pop();
-            Future.delayed(const Duration(milliseconds: 100)).then((_) {
-              if (!mounted) return;
-
-              ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                            backgroundColor: const Color(0xFFEF4444),
+                            duration: const Duration(seconds: 3),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text('Mengubah status ke $st...'),
-                    ],
-                  ),
-                  duration: const Duration(seconds: 1),
-                ),
-              );
+                        );
+                      });
+                });
+              },
 
-              _setStatus(id, st)
-                  .then((_) {
-                    if (!mounted) return;
+              onSaveNotes: () {
+                Navigator.of(sheetContext).pop();
+                Future.delayed(const Duration(milliseconds: 100)).then((_) {
+                  if (!mounted) return;
 
-                    ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
-                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                              size: 20,
+                  ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            Text('✅ Status → $st'),
-                          ],
-                        ),
-                        backgroundColor: const Color(0xFF10B981),
-                        duration: const Duration(seconds: 2),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Menyimpan notes...'),
+                        ],
                       ),
-                    );
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
 
-                    if (mounted) setState(() {
-  _future = _fetchList();
-});
-                  })
-                  .catchError((e) {
-                    if (!mounted) return;
+                  _saveNotes(id)
+                      .then((_) {
+                        if (!mounted) return;
 
-                    ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
-                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: Colors.white,
-                              size: 20,
+                        ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                          const SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 12),
+                                Text('✅ IT notes tersimpan'),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text('❌ Gagal ubah status: $e')),
-                          ],
-                        ),
-                        backgroundColor: const Color(0xFFEF4444),
-                        duration: const Duration(seconds: 3),
+                            backgroundColor: Color(0xFF10B981),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+
+                        if (mounted)
+                          setState(() {
+                            _future = _fetchList();
+                          });
+                      })
+                      .catchError((e) {
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(child: Text('❌ Gagal simpan: $e')),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFFEF4444),
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      });
+                });
+              },
+
+              onSetStatus: (st) {
+                Navigator.of(sheetContext).pop();
+                Future.delayed(const Duration(milliseconds: 100)).then((_) {
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text('Mengubah status ke $st...'),
+                        ],
                       ),
-                    );
-                  });
-            });
-          },
-        ),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+
+                  _setStatus(id, st)
+                      .then((_) {
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Text('✅ Status → $st'),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFF10B981),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+
+                        if (mounted)
+                          setState(() {
+                            _future = _fetchList();
+                          });
+                      })
+                      .catchError((e) {
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text('❌ Gagal ubah status: $e'),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFFEF4444),
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      });
+                });
+              },
+            ),
       );
     } else {
       if (mounted) setState(() {});
@@ -694,9 +700,8 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                   final isWide = constraints.maxWidth > 900;
                   final isMid = constraints.maxWidth > 640;
 
-                  final ddW = isWide
-                      ? 210.0
-                      : (isMid ? 200.0 : double.infinity);
+                  final ddW =
+                      isWide ? 210.0 : (isMid ? 200.0 : double.infinity);
 
                   return Wrap(
                     spacing: 10,
@@ -784,85 +789,85 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                     title: 'Tickets',
                     subtitle:
                         'Total: $total • page ${currentPage == 0 ? 1 : currentPage}/${lastPage == 0 ? 1 : lastPage}',
-                    child: items.isEmpty
-                        ? const _EmptyState(
-                            text: 'Belum ada ticket sesuai filter.',
-                          )
-                        : Column(
-                            children: [
-                              ...items.map((e) {
-                                final m = Map<String, dynamic>.from(e as Map);
-                                final id = _i(m['id']);
-                                final status = _s(m['status'], 'open');
-                                final pr = _s(m['priority'], 'medium');
-                                final cat = _s(m['category'], 'bug');
+                    child:
+                        items.isEmpty
+                            ? const _EmptyState(
+                              text: 'Belum ada ticket sesuai filter.',
+                            )
+                            : Column(
+                              children: [
+                                ...items.map((e) {
+                                  final m = Map<String, dynamic>.from(e as Map);
+                                  final id = _i(m['id']);
+                                  final status = _s(m['status'], 'open');
+                                  final pr = _s(m['priority'], 'medium');
+                                  final cat = _s(m['category'], 'bug');
 
-                                final reporter = _s(
-                                  m['reporter_name'],
-                                  _s(
-                                    m['user_name'],
+                                  final reporter = _s(
+                                    m['reporter_name'],
                                     _s(
-                                      m['username'],
-                                      'user_id=${_i(m['user_id'])}',
+                                      m['user_name'],
+                                      _s(
+                                        m['username'],
+                                        'user_id=${_i(m['user_id'])}',
+                                      ),
                                     ),
-                                  ),
-                                );
-                                final assignee = _s(
-                                  m['assignee_name'],
-                                  _s(m['assigned_to_name'], ''),
-                                );
+                                  );
+                                  final assignee = _s(
+                                    m['assignee_name'],
+                                    _s(m['assigned_to_name'], ''),
+                                  );
 
-                                final c = _statusColor(status);
-                                final isSelected =
-                                    widget.isDesktop &&
-                                    selectedMap != null &&
-                                    _i(selectedMap['id']) == id;
+                                  final c = _statusColor(status);
+                                  final isSelected =
+                                      widget.isDesktop &&
+                                      selectedMap != null &&
+                                      _i(selectedMap['id']) == id;
 
-                                final isAssignedOther = _isAssignedToOther(m);
-                                final isAssignedMe = _isAssignedToMe(m);
+                                  final isAssignedOther = _isAssignedToOther(m);
+                                  final isAssignedMe = _isAssignedToMe(m);
 
-                                return _TicketRow(
-                                  title: _titleOf(m),
-                                  subtitle:
-                                      '$reporter${assignee.isEmpty ? '' : ' • assigned: $assignee'}',
-                                  status: status,
-                                  priority: pr,
-                                  category: cat,
-                                  color: c,
-                                  icon: _categoryIcon(cat),
-                                  selected: isSelected,
-                                  isAssignedToOther: isAssignedOther,
-                                  isAssignedToMe: isAssignedMe,
-                                  assigneeName: assignee,
-                                  onTap: () => _openDetail(m),
-                                );
-                              }).toList(),
-                              const SizedBox(height: 10),
-                              _PaginationBarNative(
-                                page: _page,
-                                canPrev: _page > 1,
-                                canNext: lastPage == 0
-                                    ? false
-                                    : _page < lastPage,
-                                onPrev: () {
-                                  if (_page <= 1) return;
-                                  setState(() {
-                                    _page -= 1;
-                                    _future = _fetchList();
-                                  });
-                                },
-                                onNext: () {
-                                  if (lastPage != 0 && _page >= lastPage) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    _page += 1;
-                                    _future = _fetchList();
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
+                                  return _TicketRow(
+                                    title: _titleOf(m),
+                                    subtitle:
+                                        '$reporter${assignee.isEmpty ? '' : ' • assigned: $assignee'}',
+                                    status: status,
+                                    priority: pr,
+                                    category: cat,
+                                    color: c,
+                                    icon: _categoryIcon(cat),
+                                    selected: isSelected,
+                                    isAssignedToOther: isAssignedOther,
+                                    isAssignedToMe: isAssignedMe,
+                                    assigneeName: assignee,
+                                    onTap: () => _openDetail(m),
+                                  );
+                                }).toList(),
+                                const SizedBox(height: 10),
+                                _PaginationBarNative(
+                                  page: _page,
+                                  canPrev: _page > 1,
+                                  canNext:
+                                      lastPage == 0 ? false : _page < lastPage,
+                                  onPrev: () {
+                                    if (_page <= 1) return;
+                                    setState(() {
+                                      _page -= 1;
+                                      _future = _fetchList();
+                                    });
+                                  },
+                                  onNext: () {
+                                    if (lastPage != 0 && _page >= lastPage) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      _page += 1;
+                                      _future = _fetchList();
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
                   ),
                 ),
 
@@ -872,110 +877,116 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                     flex: 5,
                     child: XCard(
                       title: 'Detail Ticket',
-                      subtitle: selectedMap == null
-                          ? 'Pilih ticket di kiri.'
-                          : 'Aksi IT: assign, status, notes.',
-                      child: selectedMap == null
-                          ? const Padding(
-                              padding: EdgeInsets.all(14),
-                              child: Text(
-                                'Klik salah satu ticket untuk melihat detail.',
+                      subtitle:
+                          selectedMap == null
+                              ? 'Pilih ticket di kiri.'
+                              : 'Aksi IT: assign, status, notes.',
+                      child:
+                          selectedMap == null
+                              ? const Padding(
+                                padding: EdgeInsets.all(14),
+                                child: Text(
+                                  'Klik salah satu ticket untuk melihat detail.',
+                                ),
+                              )
+                              : _TicketDetailPanel(
+                                ticket: selectedMap,
+                                statusColor: _statusColor,
+                                categoryIcon: _categoryIcon,
+                                notesCtrl: _notesC,
+                                myUserId: _myUserId ?? 0,
+
+                                onAssignMe: () {
+                                  _assignToMe(_i(selectedMap['id']))
+                                      .then((_) {
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Ticket di-assign ke kamu.',
+                                            ),
+                                          ),
+                                        );
+                                        setState(() {
+                                          _future = _fetchList();
+                                        });
+                                      })
+                                      .catchError((e) {
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Gagal assign: $e'),
+                                          ),
+                                        );
+                                      });
+                                },
+
+                                // ✅ FIXED: SYNC callback (bukan async)
+                                onSaveNotes: () {
+                                  _saveNotes(_i(selectedMap['id']))
+                                      .then((_) {
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'IT notes tersimpan.',
+                                            ),
+                                          ),
+                                        );
+                                        setState(() {
+                                          _future = _fetchList();
+                                        });
+                                      })
+                                      .catchError((e) {
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Gagal simpan notes: $e',
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                },
+
+                                // ✅ FIXED: SYNC callback (bukan async)
+                                onSetStatus: (st) {
+                                  _setStatus(_i(selectedMap['id']), st)
+                                      .then((_) {
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Status → $st'),
+                                          ),
+                                        );
+                                        setState(() {
+                                          _future = _fetchList();
+                                        });
+                                      })
+                                      .catchError((e) {
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Gagal ubah status: $e',
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                },
                               ),
-                            )
-                          : _TicketDetailPanel(
-                              ticket: selectedMap,
-                              statusColor: _statusColor,
-                              categoryIcon: _categoryIcon,
-                              notesCtrl: _notesC,
-                              myUserId: _myUserId ?? 0,
-
-                              onAssignMe: () {
-                                _assignToMe(_i(selectedMap['id']))
-                                    .then((_) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Ticket di-assign ke kamu.',
-                                          ),
-                                        ),
-                                      );
-                                      setState(() {
-  _future = _fetchList();
-});
-                                    })
-                                    .catchError((e) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Gagal assign: $e'),
-                                        ),
-                                      );
-                                    });
-                              },
-
-                              // ✅ FIXED: SYNC callback (bukan async)
-                              onSaveNotes: () {
-                                _saveNotes(_i(selectedMap['id']))
-                                    .then((_) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('IT notes tersimpan.'),
-                                        ),
-                                      );
-                                      setState(() {
-  _future = _fetchList();
-});
-                                    })
-                                    .catchError((e) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Gagal simpan notes: $e',
-                                          ),
-                                        ),
-                                      );
-                                    });
-                              },
-
-                              // ✅ FIXED: SYNC callback (bukan async)
-                              onSetStatus: (st) {
-                                _setStatus(_i(selectedMap['id']), st)
-                                    .then((_) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text('Status → $st')),
-                                      );
-                                      setState(() {
-  _future = _fetchList();
-});
-                                    })
-                                    .catchError((e) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Gagal ubah status: $e',
-                                          ),
-                                        ),
-                                      );
-                                    });
-                              },
-                            ),
                     ),
                   ),
                 ],
@@ -1045,14 +1056,18 @@ class _TicketRow extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isLocked
-                  ? const Color(0xFF94A3B8)
-                  : (selected ? c.withOpacity(.35) : const Color(0xFFE2E8F0)),
+              color:
+                  isLocked
+                      ? const Color(0xFF94A3B8)
+                      : (selected
+                          ? c.withOpacity(.35)
+                          : const Color(0xFFE2E8F0)),
               width: isLocked ? 2 : 1,
             ),
-            color: isLocked
-                ? const Color(0xFFF1F5F9)
-                : (selected ? c.withOpacity(.06) : const Color(0xFFF8FAFC)),
+            color:
+                isLocked
+                    ? const Color(0xFFF1F5F9)
+                    : (selected ? c.withOpacity(.06) : const Color(0xFFF8FAFC)),
           ),
           child: Row(
             children: [
@@ -1622,20 +1637,25 @@ class _StatusDropdown extends StatelessWidget {
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
       style: const TextStyle(fontSize: 12.5),
-      selectedItemBuilder: (context) =>
-          const ['Status: All', 'open', 'in_progress', 'solved', 'closed'].map((
-            t,
-          ) {
-            return Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                t,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12.5),
-              ),
-            );
-          }).toList(),
+      selectedItemBuilder:
+          (context) =>
+              const [
+                'Status: All',
+                'open',
+                'in_progress',
+                'solved',
+                'closed',
+              ].map((t) {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    t,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12.5),
+                  ),
+                );
+              }).toList(),
       items: const [
         DropdownMenuItem(value: 'all', child: Text('Status: All')),
         DropdownMenuItem(value: 'open', child: Text('open')),
@@ -1666,18 +1686,19 @@ class _PriorityDropdown extends StatelessWidget {
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
       style: const TextStyle(fontSize: 12.5),
-      selectedItemBuilder: (context) =>
-          const ['Priority: All', 'low', 'medium', 'high'].map((t) {
-            return Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                t,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12.5),
-              ),
-            );
-          }).toList(),
+      selectedItemBuilder:
+          (context) =>
+              const ['Priority: All', 'low', 'medium', 'high'].map((t) {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    t,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12.5),
+                  ),
+                );
+              }).toList(),
       items: const [
         DropdownMenuItem(value: 'all', child: Text('Priority: All')),
         DropdownMenuItem(value: 'low', child: Text('low')),
@@ -1707,25 +1728,26 @@ class _CategoryDropdown extends StatelessWidget {
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
       style: const TextStyle(fontSize: 12.5),
-      selectedItemBuilder: (context) =>
-          const [
-            'Category: All',
-            'bug',
-            'error',
-            'performance',
-            'access',
-            'other',
-          ].map((t) {
-            return Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                t,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12.5),
-              ),
-            );
-          }).toList(),
+      selectedItemBuilder:
+          (context) =>
+              const [
+                'Category: All',
+                'bug',
+                'error',
+                'performance',
+                'access',
+                'other',
+              ].map((t) {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    t,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12.5),
+                  ),
+                );
+              }).toList(),
       items: const [
         DropdownMenuItem(value: 'all', child: Text('Category: All')),
         DropdownMenuItem(value: 'bug', child: Text('bug')),

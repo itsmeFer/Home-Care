@@ -249,13 +249,13 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
         final data = snap.data ?? {};
         final rangeLabel = _s(data['range'], widget.range);
 
-        final itemsObj = (data['items'] is Map)
-            ? Map<String, dynamic>.from(data['items'])
-            : <String, dynamic>{};
+        final itemsObj =
+            (data['items'] is Map)
+                ? Map<String, dynamic>.from(data['items'])
+                : <String, dynamic>{};
 
-        final List items = (itemsObj['data'] is List)
-            ? itemsObj['data']
-            : const [];
+        final List items =
+            (itemsObj['data'] is List) ? itemsObj['data'] : const [];
 
         final currentPage = _i(itemsObj['current_page']);
         final lastPage = _i(itemsObj['last_page']);
@@ -409,59 +409,60 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
               title: 'Audit Logs',
               subtitle:
                   'Total: $total • page ${currentPage == 0 ? 1 : currentPage}/${lastPage == 0 ? 1 : lastPage}',
-              child: items.isEmpty
-                  ? const _EmptyState(
-                      text: 'Belum ada audit log pada range ini.',
-                    )
-                  : Column(
-                      children: [
-                        ...items.map((e) {
-                          final m = Map<String, dynamic>.from(e as Map);
+              child:
+                  items.isEmpty
+                      ? const _EmptyState(
+                        text: 'Belum ada audit log pada range ini.',
+                      )
+                      : Column(
+                        children: [
+                          ...items.map((e) {
+                            final m = Map<String, dynamic>.from(e as Map);
 
-                          final action = _s(m['action'], 'audit');
-                          final title = _s(m['title'], action);
-                          final desc = _s(m['description'], '-');
-                          final risk = _s(m['risk_level'], 'low');
-                          final timeRaw = _s(
-                            m['created_at'],
-                            _s(m['time'], '-'),
-                          );
-                          final time = _formatWaktuID(timeRaw);
-                          final ip = _s(m['ip'], '-');
-                          final ua = _s(m['user_agent'], '-');
+                            final action = _s(m['action'], 'audit');
+                            final title = _s(m['title'], action);
+                            final desc = _s(m['description'], '-');
+                            final risk = _s(m['risk_level'], 'low');
+                            final timeRaw = _s(
+                              m['created_at'],
+                              _s(m['time'], '-'),
+                            );
+                            final time = _formatWaktuID(timeRaw);
+                            final ip = _s(m['ip'], '-');
+                            final ua = _s(m['user_agent'], '-');
 
-                          return _AuditRow(
-                            title: title,
-                            desc:
-                                '$desc\nIP: $ip • UA: ${ua.length > 60 ? ua.substring(0, 60) + '…' : ua}',
-                            time: time,
-                            risk: _riskLabel(risk),
-                            color: _riskColor(risk),
-                            onTap: () => _showDetailDialog(m),
-                          );
-                        }).toList(),
-                        const SizedBox(height: 10),
-                        _PaginationBarNative(
-                          page: _page,
-                          canPrev: _page > 1,
-                          canNext: lastPage == 0 ? false : _page < lastPage,
-                          onPrev: () {
-                            if (_page <= 1) return;
-                            setState(() {
-                              _page -= 1;
-                              _future = _fetch();
-                            });
-                          },
-                          onNext: () {
-                            if (lastPage != 0 && _page >= lastPage) return;
-                            setState(() {
-                              _page += 1;
-                              _future = _fetch();
-                            });
-                          },
-                        ),
-                      ],
-                    ),
+                            return _AuditRow(
+                              title: title,
+                              desc:
+                                  '$desc\nIP: $ip • UA: ${ua.length > 60 ? ua.substring(0, 60) + '…' : ua}',
+                              time: time,
+                              risk: _riskLabel(risk),
+                              color: _riskColor(risk),
+                              onTap: () => _showDetailDialog(m),
+                            );
+                          }).toList(),
+                          const SizedBox(height: 10),
+                          _PaginationBarNative(
+                            page: _page,
+                            canPrev: _page > 1,
+                            canNext: lastPage == 0 ? false : _page < lastPage,
+                            onPrev: () {
+                              if (_page <= 1) return;
+                              setState(() {
+                                _page -= 1;
+                                _future = _fetch();
+                              });
+                            },
+                            onNext: () {
+                              if (lastPage != 0 && _page >= lastPage) return;
+                              setState(() {
+                                _page += 1;
+                                _future = _fetch();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
             ),
           ],
         );

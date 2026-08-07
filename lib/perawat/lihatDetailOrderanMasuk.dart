@@ -24,7 +24,7 @@ class DetailOrderanMasukPerawatPage extends StatefulWidget {
   final int orderId;
 
   const DetailOrderanMasukPerawatPage({Key? key, required this.orderId})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<DetailOrderanMasukPerawatPage> createState() =>
@@ -32,7 +32,8 @@ class DetailOrderanMasukPerawatPage extends StatefulWidget {
 }
 
 class _DetailOrderanMasukPerawatPageState
-    extends State<DetailOrderanMasukPerawatPage> with SingleTickerProviderStateMixin {
+    extends State<DetailOrderanMasukPerawatPage>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   String? _error;
 
@@ -47,7 +48,7 @@ class _DetailOrderanMasukPerawatPageState
 
   final ImagePicker _picker = ImagePicker();
   Map<String, dynamic>? _order;
-  
+
   TabController? _tabController;
 
   @override
@@ -69,7 +70,7 @@ class _DetailOrderanMasukPerawatPageState
   }
 
   // ===== API CALLS =====
-  
+
   Future<void> _fetchDetail() async {
     setState(() {
       _isLoading = true;
@@ -86,7 +87,9 @@ class _DetailOrderanMasukPerawatPageState
     }
 
     try {
-      final uri = Uri.parse('$kBaseUrl/perawat/order-layanan/${widget.orderId}');
+      final uri = Uri.parse(
+        '$kBaseUrl/perawat/order-layanan/${widget.orderId}',
+      );
       final response = await http.get(
         uri,
         headers: {
@@ -104,7 +107,8 @@ class _DetailOrderanMasukPerawatPageState
         if (!success) {
           setState(() {
             _isLoading = false;
-            _error = decoded['message']?.toString() ?? 'Gagal memuat detail order.';
+            _error =
+                decoded['message']?.toString() ?? 'Gagal memuat detail order.';
           });
           return;
         }
@@ -113,7 +117,7 @@ class _DetailOrderanMasukPerawatPageState
           _order = decoded['data'] as Map<String, dynamic>;
           _isLoading = false;
         });
-        
+
         // ✅ Debug print untuk cek addons
         print('📦 Order Addons: ${_order?['order_addons']}');
       } else {
@@ -202,7 +206,10 @@ class _DetailOrderanMasukPerawatPageState
 
   Future<void> _onSelesaiTindakan() async {
     if (_fotoSelesai == null) {
-      _showSnackBar('Silakan ambil foto setelah tindakan terlebih dahulu.', isError: true);
+      _showSnackBar(
+        'Silakan ambil foto setelah tindakan terlebih dahulu.',
+        isError: true,
+      );
       return;
     }
 
@@ -225,7 +232,10 @@ class _DetailOrderanMasukPerawatPageState
 
   Future<void> _onUploadBuktiPembayaran() async {
     if (_fotoBuktiPembayaran == null) {
-      _showSnackBar('Silakan ambil foto bukti pembayaran terlebih dahulu.', isError: true);
+      _showSnackBar(
+        'Silakan ambil foto bukti pembayaran terlebih dahulu.',
+        isError: true,
+      );
       return;
     }
 
@@ -255,77 +265,89 @@ class _DetailOrderanMasukPerawatPageState
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: HCColor.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Text(confirmText),
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HCColor.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(confirmText),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
   Future<String?> _showReasonDialog() async {
     final controller = TextEditingController();
-    
+
     return showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Alasan Menolak'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Silakan isi alasan kenapa Anda menolak order ini.'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Contoh: Jadwal bentrok, lokasi terlalu jauh...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text('Alasan Menolak'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Silakan isi alasan kenapa Anda menolak order ini.'),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: Jadwal bentrok, lokasi terlalu jauh...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(null),
+                child: const Text('Batal'),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(null),
-            child: const Text('Batal'),
+              ElevatedButton(
+                onPressed: () {
+                  final text = controller.text.trim();
+                  if (text.isEmpty) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text('Alasan tidak boleh kosong'),
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.of(ctx).pop(text);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HCColor.error,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Kirim'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              final text = controller.text.trim();
-              if (text.isEmpty) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Alasan tidak boleh kosong')),
-                );
-                return;
-              }
-              Navigator.of(ctx).pop(text);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: HCColor.error,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Kirim'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -407,80 +429,81 @@ class _DetailOrderanMasukPerawatPageState
   }
 
   Future<void> _uploadPhoto({
-  required String endpoint,
-  required String fieldName,
-  required XFile photo,
-  required bool Function() isUploadingFlag,
-  required Function(bool) setUploadingFlag,
-}) async {
-  final token = await _getToken();
-  if (token == null) return;
+    required String endpoint,
+    required String fieldName,
+    required XFile photo,
+    required bool Function() isUploadingFlag,
+    required Function(bool) setUploadingFlag,
+  }) async {
+    final token = await _getToken();
+    if (token == null) return;
 
-  setUploadingFlag(true);
+    setUploadingFlag(true);
 
-  try {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$kBaseUrl/perawat/order-layanan/$endpoint'),
-    )
-      ..headers['Accept'] = 'application/json'
-      ..headers['Authorization'] = 'Bearer $token';
+    try {
+      final request =
+          http.MultipartRequest(
+              'POST',
+              Uri.parse('$kBaseUrl/perawat/order-layanan/$endpoint'),
+            )
+            ..headers['Accept'] = 'application/json'
+            ..headers['Authorization'] = 'Bearer $token';
 
-    if (kIsWeb) {
-      final bytes = await photo.readAsBytes();
-      request.files.add(
-        http.MultipartFile.fromBytes(fieldName, bytes, filename: photo.name),
-      );
-    } else {
-      request.files.add(
-        await http.MultipartFile.fromPath(fieldName, photo.path),
-      );
-    }
-
-    final streamed = await request.send();
-    final response = await http.Response.fromStream(streamed);
-
-    if (!mounted) return;
-
-    setUploadingFlag(false);
-
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      
-      // ✅ DEBUG: Print response untuk lihat struktur
-      print('📦 Upload Response: ${response.body}');
-      
-      if (decoded['success'] == true) {
-        setState(() {
-          var data = decoded['data'];
-          
-          // ✅ PERBAIKAN: Cek struktur response
-          if (data is Map<String, dynamic>) {
-            // Jika data punya key 'order', ambil itu (format upload-bukti-bayar)
-            if (data.containsKey('order')) {
-              _order = data['order'] as Map<String, dynamic>;
-              print('✅ Using data.order');
-            } 
-            // Jika tidak, data langsung adalah order (format sampai/selesai)
-            else {
-              _order = data;
-              print('✅ Using data directly');
-            }
-          }
-        });
-        
-        _showSnackBar('Berhasil');
-        
-        // ✅ PENTING: Refresh data untuk sync dengan backend
-        await _fetchDetail();
+      if (kIsWeb) {
+        final bytes = await photo.readAsBytes();
+        request.files.add(
+          http.MultipartFile.fromBytes(fieldName, bytes, filename: photo.name),
+        );
+      } else {
+        request.files.add(
+          await http.MultipartFile.fromPath(fieldName, photo.path),
+        );
       }
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+
+      if (!mounted) return;
+
+      setUploadingFlag(false);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        // ✅ DEBUG: Print response untuk lihat struktur
+        print('📦 Upload Response: ${response.body}');
+
+        if (decoded['success'] == true) {
+          setState(() {
+            var data = decoded['data'];
+
+            // ✅ PERBAIKAN: Cek struktur response
+            if (data is Map<String, dynamic>) {
+              // Jika data punya key 'order', ambil itu (format upload-bukti-bayar)
+              if (data.containsKey('order')) {
+                _order = data['order'] as Map<String, dynamic>;
+                print('✅ Using data.order');
+              }
+              // Jika tidak, data langsung adalah order (format sampai/selesai)
+              else {
+                _order = data;
+                print('✅ Using data directly');
+              }
+            }
+          });
+
+          _showSnackBar('Berhasil');
+
+          // ✅ PENTING: Refresh data untuk sync dengan backend
+          await _fetchDetail();
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setUploadingFlag(false);
+      _showSnackBar('Terjadi kesalahan: $e', isError: true);
     }
-  } catch (e) {
-    if (!mounted) return;
-    setUploadingFlag(false);
-    _showSnackBar('Terjadi kesalahan: $e', isError: true);
   }
-}
 
   Future<XFile?> _pickImage() async {
     try {
@@ -494,23 +517,30 @@ class _DetailOrderanMasukPerawatPageState
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          builder: (ctx) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.camera_alt, color: HCColor.primary),
-                  title: const Text('Kamera'),
-                  onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+          builder:
+              (ctx) => SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.camera_alt,
+                        color: HCColor.primary,
+                      ),
+                      title: const Text('Kamera'),
+                      onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+                    ),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.photo_library,
+                        color: HCColor.primary,
+                      ),
+                      title: const Text('Galeri'),
+                      onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+                    ),
+                  ],
                 ),
-                ListTile(
-                  leading: const Icon(Icons.photo_library, color: HCColor.primary),
-                  title: const Text('Galeri'),
-                  onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
-                ),
-              ],
-            ),
-          ),
+              ),
         );
       }
 
@@ -562,8 +592,13 @@ class _DetailOrderanMasukPerawatPageState
 
   String _fmtUang(dynamic val) {
     if (val == null) return 'Rp 0';
-    double d = val is num ? val.toDouble() : (double.tryParse(val.toString()) ?? 0);
-    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    double d =
+        val is num ? val.toDouble() : (double.tryParse(val.toString()) ?? 0);
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     return formatter.format(d);
   }
 
@@ -653,13 +688,9 @@ class _DetailOrderanMasukPerawatPageState
               ),
             )
           else if (_error != null)
-            SliverFillRemaining(
-              child: _buildError(),
-            )
+            SliverFillRemaining(child: _buildError())
           else if (_order != null)
-            SliverToBoxAdapter(
-              child: _buildContent(),
-            ),
+            SliverToBoxAdapter(child: _buildContent()),
         ],
       ),
       bottomNavigationBar: _buildBottomBar(),
@@ -685,10 +716,7 @@ class _DetailOrderanMasukPerawatPageState
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           kodeOrder,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         background: Container(
           decoration: const BoxDecoration(
@@ -743,7 +771,9 @@ class _DetailOrderanMasukPerawatPageState
               label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: HCColor.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -773,7 +803,7 @@ class _DetailOrderanMasukPerawatPageState
   Widget _buildQuickInfo() {
     final o = _order!;
     final pasien = o['pasien'] as Map<String, dynamic>?;
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -798,7 +828,11 @@ class _DetailOrderanMasukPerawatPageState
                   color: HCColor.lightTeal,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.medical_services, color: HCColor.primary, size: 28),
+                child: const Icon(
+                  Icons.medical_services,
+                  color: HCColor.primary,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -815,10 +849,7 @@ class _DetailOrderanMasukPerawatPageState
                     const SizedBox(height: 4),
                     Text(
                       'Pasien: ${_getNama(pasien)}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: HCColor.textMuted,
-                      ),
+                      style: TextStyle(fontSize: 13, color: HCColor.textMuted),
                     ),
                   ],
                 ),
@@ -996,11 +1027,11 @@ class _DetailOrderanMasukPerawatPageState
         _infoRow('Subtotal', _fmtUang(o['subtotal'])),
         _infoRow('Diskon', _fmtUang(o['diskon'])),
         _infoRow('Biaya Tambahan', _fmtUang(o['biaya_tambahan'])),
-        
+
         // ✅ Addons Total (jika ada)
         if (o['addons_total'] != null && o['addons_total'] != 0)
           _infoRow('Total Addons', _fmtUang(o['addons_total'])),
-        
+
         const Divider(height: 24),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1039,14 +1070,15 @@ class _DetailOrderanMasukPerawatPageState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_bag_outlined, size: 64, color: HCColor.textMuted),
+            Icon(
+              Icons.shopping_bag_outlined,
+              size: 64,
+              color: HCColor.textMuted,
+            ),
             const SizedBox(height: 16),
             Text(
               'Tidak ada addon',
-              style: TextStyle(
-                fontSize: 14,
-                color: HCColor.textMuted,
-              ),
+              style: TextStyle(fontSize: 14, color: HCColor.textMuted),
             ),
           ],
         ),
@@ -1060,10 +1092,11 @@ class _DetailOrderanMasukPerawatPageState
       itemBuilder: (context, index) {
         final addon = addons[index] as Map<String, dynamic>;
         final addonDetail = addon['addon'] as Map<String, dynamic>?;
-        
-        final namaAddon = addon['nama_addon']?.toString() ?? 
-                         addonDetail?['nama_addon']?.toString() ?? 
-                         '-';
+
+        final namaAddon =
+            addon['nama_addon']?.toString() ??
+            addonDetail?['nama_addon']?.toString() ??
+            '-';
         final hargaSatuan = addon['harga_satuan'];
         final qty = addon['qty'] ?? 1;
         final subtotal = addon['subtotal'];
@@ -1126,11 +1159,11 @@ class _DetailOrderanMasukPerawatPageState
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 12),
-              
+
               // Details
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1226,13 +1259,17 @@ class _DetailOrderanMasukPerawatPageState
         _fotoPreview('Kondisi Pasien', _mediaUrl(o['kondisi_pasien'])),
         _fotoPreview('Foto Hadir', _mediaUrl(o['foto_hadir'])),
         _fotoPreview('Foto Selesai', _mediaUrl(o['foto_selesai'])),
-        _fotoPreview('Bukti Pembayaran', _mediaUrl(paymentInfo?['bukti_pembayaran'])),
+        _fotoPreview(
+          'Bukti Pembayaran',
+          _mediaUrl(paymentInfo?['bukti_pembayaran']),
+        ),
       ],
     );
   }
 
   Widget _infoRow(String label, dynamic value) {
-    final text = (value == null || value.toString().isEmpty) ? '-' : value.toString();
+    final text =
+        (value == null || value.toString().isEmpty) ? '-' : value.toString();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -1254,10 +1291,7 @@ class _DetailOrderanMasukPerawatPageState
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -1273,10 +1307,7 @@ class _DetailOrderanMasukPerawatPageState
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           if (url == null)
@@ -1305,12 +1336,13 @@ class _DetailOrderanMasukPerawatPageState
               onTap: () {
                 showDialog(
                   context: context,
-                  builder: (ctx) => Dialog(
-                    backgroundColor: Colors.transparent,
-                    child: InteractiveViewer(
-                      child: Image.network(url, fit: BoxFit.contain),
-                    ),
-                  ),
+                  builder:
+                      (ctx) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: InteractiveViewer(
+                          child: Image.network(url, fit: BoxFit.contain),
+                        ),
+                      ),
                 );
               },
               child: ClipRRect(
@@ -1332,8 +1364,10 @@ class _DetailOrderanMasukPerawatPageState
     if (_isLoading || _order == null) return const SizedBox.shrink();
 
     final status = _order!['status_order']?.toString() ?? 'pending';
-    final metodeBayar = _order!['metode_pembayaran']?.toString().toLowerCase() ?? '';
-    final statusPembayaran = _order!['status_pembayaran']?.toString().toLowerCase() ?? '';
+    final metodeBayar =
+        _order!['metode_pembayaran']?.toString().toLowerCase() ?? '';
+    final statusPembayaran =
+        _order!['status_pembayaran']?.toString().toLowerCase() ?? '';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1353,7 +1387,11 @@ class _DetailOrderanMasukPerawatPageState
     );
   }
 
-  Widget _getBottomBarContent(String status, String metodeBayar, String statusPembayaran) {
+  Widget _getBottomBarContent(
+    String status,
+    String metodeBayar,
+    String statusPembayaran,
+  ) {
     switch (status) {
       case 'mendapatkan_perawat':
         return Row(
@@ -1365,9 +1403,14 @@ class _DetailOrderanMasukPerawatPageState
                   side: const BorderSide(color: HCColor.error),
                   foregroundColor: HCColor.error,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text('Tolak', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Tolak',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -1378,7 +1421,9 @@ class _DetailOrderanMasukPerawatPageState
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HCColor.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text(
                   'Terima Order',
@@ -1403,12 +1448,19 @@ class _DetailOrderanMasukPerawatPageState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: HCColor.success, size: 20),
+                    const Icon(
+                      Icons.check_circle,
+                      color: HCColor.success,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
                         'Foto hadir sudah dipilih',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -1418,20 +1470,25 @@ class _DetailOrderanMasukPerawatPageState
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _isUploadingSampai
-                        ? null
-                        : () async {
-                            final picked = await _pickImage();
-                            if (picked != null) {
-                              setState(() => _fotoHadir = picked);
-                            }
-                          },
+                    onPressed:
+                        _isUploadingSampai
+                            ? null
+                            : () async {
+                              final picked = await _pickImage();
+                              if (picked != null) {
+                                setState(() => _fotoHadir = picked);
+                              }
+                            },
                     icon: const Icon(Icons.camera_alt, size: 20),
-                    label: Text(_fotoHadir == null ? 'Ambil Foto' : 'Ganti Foto'),
+                    label: Text(
+                      _fotoHadir == null ? 'Ambil Foto' : 'Ganti Foto',
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: HCColor.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -1439,27 +1496,34 @@ class _DetailOrderanMasukPerawatPageState
                 Expanded(
                   flex: 2,
                   child: ElevatedButton(
-                    onPressed: (_isUploadingSampai || _fotoHadir == null)
-                        ? null
-                        : _onSudahSampaiDiTempat,
+                    onPressed:
+                        (_isUploadingSampai || _fotoHadir == null)
+                            ? null
+                            : _onSudahSampaiDiTempat,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: HCColor.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: _isUploadingSampai
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                    child:
+                        _isUploadingSampai
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : const Text(
+                              'Sudah Sampai',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'Sudah Sampai',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                          ),
                   ),
                 ),
               ],
@@ -1475,7 +1539,9 @@ class _DetailOrderanMasukPerawatPageState
             style: ElevatedButton.styleFrom(
               backgroundColor: HCColor.primary,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text(
               'Mulai Tindakan',
@@ -1498,12 +1564,19 @@ class _DetailOrderanMasukPerawatPageState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: HCColor.success, size: 20),
+                    const Icon(
+                      Icons.check_circle,
+                      color: HCColor.success,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
                         'Foto dokumentasi sudah dipilih',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -1513,20 +1586,25 @@ class _DetailOrderanMasukPerawatPageState
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _isUploadingSelesai
-                        ? null
-                        : () async {
-                            final picked = await _pickImage();
-                            if (picked != null) {
-                              setState(() => _fotoSelesai = picked);
-                            }
-                          },
+                    onPressed:
+                        _isUploadingSelesai
+                            ? null
+                            : () async {
+                              final picked = await _pickImage();
+                              if (picked != null) {
+                                setState(() => _fotoSelesai = picked);
+                              }
+                            },
                     icon: const Icon(Icons.camera_alt, size: 20),
-                    label: Text(_fotoSelesai == null ? 'Ambil Foto' : 'Ganti Foto'),
+                    label: Text(
+                      _fotoSelesai == null ? 'Ambil Foto' : 'Ganti Foto',
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: HCColor.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -1534,27 +1612,34 @@ class _DetailOrderanMasukPerawatPageState
                 Expanded(
                   flex: 2,
                   child: ElevatedButton(
-                    onPressed: (_isUploadingSelesai || _fotoSelesai == null)
-                        ? null
-                        : _onSelesaiTindakan,
+                    onPressed:
+                        (_isUploadingSelesai || _fotoSelesai == null)
+                            ? null
+                            : _onSelesaiTindakan,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: HCColor.success,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: _isUploadingSelesai
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                    child:
+                        _isUploadingSelesai
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : const Text(
+                              'Selesai',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'Selesai',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                          ),
                   ),
                 ),
               ],
@@ -1577,12 +1662,19 @@ class _DetailOrderanMasukPerawatPageState
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: HCColor.success, size: 20),
+                      const Icon(
+                        Icons.check_circle,
+                        color: HCColor.success,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
                           'Foto bukti pembayaran sudah dipilih',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -1592,17 +1684,20 @@ class _DetailOrderanMasukPerawatPageState
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: _isUploadingBuktiBayar
-                          ? null
-                          : () async {
-                              final picked = await _pickImage();
-                              if (picked != null) {
-                                setState(() => _fotoBuktiPembayaran = picked);
-                              }
-                            },
+                      onPressed:
+                          _isUploadingBuktiBayar
+                              ? null
+                              : () async {
+                                final picked = await _pickImage();
+                                if (picked != null) {
+                                  setState(() => _fotoBuktiPembayaran = picked);
+                                }
+                              },
                       icon: const Icon(Icons.receipt_long, size: 20),
                       label: Text(
-                        _fotoBuktiPembayaran == null ? 'Ambil Bukti' : 'Ganti Bukti',
+                        _fotoBuktiPembayaran == null
+                            ? 'Ambil Bukti'
+                            : 'Ganti Bukti',
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: HCColor.primary,
@@ -1618,7 +1713,8 @@ class _DetailOrderanMasukPerawatPageState
                     flex: 2,
                     child: ElevatedButton(
                       onPressed:
-                          (_isUploadingBuktiBayar || _fotoBuktiPembayaran == null)
+                          (_isUploadingBuktiBayar ||
+                                  _fotoBuktiPembayaran == null)
                               ? null
                               : _onUploadBuktiPembayaran,
                       style: ElevatedButton.styleFrom(
@@ -1628,22 +1724,23 @@ class _DetailOrderanMasukPerawatPageState
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: _isUploadingBuktiBayar
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                      child:
+                          _isUploadingBuktiBayar
+                              ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                              : const Text(
+                                'Upload Bukti',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            )
-                          : const Text(
-                              'Upload Bukti',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                     ),
                   ),
                 ],

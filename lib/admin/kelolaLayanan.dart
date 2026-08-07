@@ -62,10 +62,11 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
       final List data = (body['data'] as List?) ?? [];
 
       setState(() {
-        _kategoriList = data
-            .map((e) => KategoriLayananItem.fromJson(e))
-            .where((e) => e.slug.trim().isNotEmpty)
-            .toList();
+        _kategoriList =
+            data
+                .map((e) => KategoriLayananItem.fromJson(e))
+                .where((e) => e.slug.trim().isNotEmpty)
+                .toList();
       });
     } catch (e) {
       if (!mounted) return;
@@ -289,22 +290,23 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
   Future<void> _deleteLayanan(Layanan layanan) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Hapus Layanan'),
-        content: Text(
-          'Yakin ingin menghapus layanan "${layanan.namaLayanan}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Hapus Layanan'),
+            content: Text(
+              'Yakin ingin menghapus layanan "${layanan.namaLayanan}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -367,10 +369,9 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _LayananFormDialog(
-        layanan: layanan,
-        kategoriList: _kategoriList,
-      ),
+      builder:
+          (_) =>
+              _LayananFormDialog(layanan: layanan, kategoriList: _kategoriList),
     );
 
     if (result == null) return;
@@ -409,169 +410,151 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
         icon: const Icon(Icons.add),
         label: const Text('Tambah Layanan'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _isError
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _isError
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      _errorMessage ?? 'Terjadi kesalahan',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _errorMessage ?? 'Terjadi kesalahan',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
                   ),
-                )
+                ),
+              )
               : _layananList.isEmpty
-                  ? const Center(
-                      child: Text('Belum ada layanan, tambahkan dulu.'),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _layananList.length,
-                      itemBuilder: (_, i) {
-                        final l = _layananList[i];
+              ? const Center(child: Text('Belum ada layanan, tambahkan dulu.'))
+              : ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _layananList.length,
+                itemBuilder: (_, i) {
+                  final l = _layananList[i];
 
-                        return InkWell(
-                          onTap: () async {
-                            if (l.id == null) return;
+                  return InkWell(
+                    onTap: () async {
+                      if (l.id == null) return;
 
-                            final changed = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => DetailLayananPage(
-                                  layananId: l.id!,
-                                ),
-                              ),
-                            );
+                      final changed = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DetailLayananPage(layananId: l.id!),
+                        ),
+                      );
 
-                            if (changed == true) {
-                              await _fetchKategori();
-                              await _fetchLayanan();
-                            }
-                          },
-                          child: Card(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            elevation: 2,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Row(
+                      if (changed == true) {
+                        await _fetchKategori();
+                        await _fetchLayanan();
+                      }
+                    },
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundColor: HCColor.primary.withOpacity(.1),
+                              backgroundImage:
+                                  (l.gambarUrl != null &&
+                                          l.gambarUrl!.isNotEmpty)
+                                      ? NetworkImage(l.gambarUrl!)
+                                      : null,
+                              child:
+                                  (l.gambarUrl == null || l.gambarUrl!.isEmpty)
+                                      ? Icon(
+                                        Icons.medical_services_outlined,
+                                        color: HCColor.primaryDark,
+                                      )
+                                      : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 22,
-                                    backgroundColor:
-                                        HCColor.primary.withOpacity(.1),
-                                    backgroundImage:
-                                        (l.gambarUrl != null &&
-                                                l.gambarUrl!.isNotEmpty)
-                                            ? NetworkImage(l.gambarUrl!)
-                                            : null,
-                                    child:
-                                        (l.gambarUrl == null ||
-                                                l.gambarUrl!.isEmpty)
-                                            ? Icon(
-                                                Icons.medical_services_outlined,
-                                                color: HCColor.primaryDark,
-                                              )
-                                            : null,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          l.namaLayanan ?? '-',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        if (l.kategori != null &&
-                                            l.kategori!.isNotEmpty)
-                                          Text(
-                                            'Kategori: ${_kategoriLabel(l.kategori)}',
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                        Text(
-                                          'Tipe: ${l.tipeLayananLabel} • Syarat: ${l.syaratPerawatLabel}',
-                                          style:
-                                              const TextStyle(fontSize: 12),
-                                        ),
-                                        Text(
-                                          'Lokasi: ${l.lokasiLabel}',
-                                          style:
-                                              const TextStyle(fontSize: 12),
-                                        ),
-                                        if (l.hargaDasar != null)
-                                          Text(
-                                            'Harga: Rp ${l.hargaDasar!.toStringAsFixed(0)}',
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                        if (l.durasiMenit != null)
-                                          Text(
-                                            'Durasi: ${l.durasiMenit} menit',
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                      ],
+                                  Text(
+                                    l.namaLayanan ?? '-',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Transform.scale(
-                                        scale: 0.9,
-                                        child: Switch(
-                                          value: l.aktif ?? true,
-                                          onChanged: (val) {
-                                            _updateLayanan(
-                                              l.id!,
-                                              {'aktif': val},
-                                            );
-                                          },
-                                          activeColor: HCColor.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.edit,
-                                              size: 20,
-                                            ),
-                                            onPressed: () =>
-                                                _openForm(layanan: l),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.delete_outline,
-                                              size: 20,
-                                              color: Colors.red,
-                                            ),
-                                            onPressed: () => _deleteLayanan(l),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                  const SizedBox(height: 4),
+                                  if (l.kategori != null &&
+                                      l.kategori!.isNotEmpty)
+                                    Text(
+                                      'Kategori: ${_kategoriLabel(l.kategori)}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  Text(
+                                    'Tipe: ${l.tipeLayananLabel} • Syarat: ${l.syaratPerawatLabel}',
+                                    style: const TextStyle(fontSize: 12),
                                   ),
+                                  Text(
+                                    'Lokasi: ${l.lokasiLabel}',
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  if (l.hargaDasar != null)
+                                    Text(
+                                      'Harga: Rp ${l.hargaDasar!.toStringAsFixed(0)}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  if (l.durasiMenit != null)
+                                    Text(
+                                      'Durasi: ${l.durasiMenit} menit',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
                                 ],
                               ),
                             ),
-                          ),
-                        );
-                      },
+                            const SizedBox(width: 8),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Transform.scale(
+                                  scale: 0.9,
+                                  child: Switch(
+                                    value: l.aktif ?? true,
+                                    onChanged: (val) {
+                                      _updateLayanan(l.id!, {'aktif': val});
+                                    },
+                                    activeColor: HCColor.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, size: 20),
+                                      onPressed: () => _openForm(layanan: l),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () => _deleteLayanan(l),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                  );
+                },
+              ),
     );
   }
 }
@@ -675,21 +658,24 @@ class Layanan {
       deskripsi: json['deskripsi']?.toString(),
       kategori: json['kategori']?.toString(),
       tipeLayanan: json['tipe_layanan']?.toString(),
-      jumlahVisit: json['jumlah_visit'] != null
-          ? int.tryParse(json['jumlah_visit'].toString())
-          : null,
+      jumlahVisit:
+          json['jumlah_visit'] != null
+              ? int.tryParse(json['jumlah_visit'].toString())
+              : null,
       hargaDasar: harga?.toDouble(),
-      durasiMenit: json['durasi_menit'] != null
-          ? int.tryParse(json['durasi_menit'].toString())
-          : null,
+      durasiMenit:
+          json['durasi_menit'] != null
+              ? int.tryParse(json['durasi_menit'].toString())
+              : null,
       syaratPerawat: json['syarat_perawat']?.toString(),
       lokasiTersedia: json['lokasi_tersedia']?.toString(),
-      aktif: json['aktif'] == null
-          ? null
-          : (json['aktif'] is bool
-              ? json['aktif']
-              : json['aktif'].toString() == '1' ||
-                  json['aktif'].toString().toLowerCase() == 'true'),
+      aktif:
+          json['aktif'] == null
+              ? null
+              : (json['aktif'] is bool
+                  ? json['aktif']
+                  : json['aktif'].toString() == '1' ||
+                      json['aktif'].toString().toLowerCase() == 'true'),
       gambarUrl: json['gambar_url']?.toString(),
     );
   }
@@ -739,10 +725,7 @@ class _LayananFormDialog extends StatefulWidget {
   final Layanan? layanan;
   final List<KategoriLayananItem> kategoriList;
 
-  const _LayananFormDialog({
-    this.layanan,
-    required this.kategoriList,
-  });
+  const _LayananFormDialog({this.layanan, required this.kategoriList});
 
   @override
   State<_LayananFormDialog> createState() => _LayananFormDialogState();
@@ -811,9 +794,8 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
 
     final payload = <String, dynamic>{
       'nama_layanan': _namaC.text.trim(),
-      'deskripsi': _deskripsiC.text.trim().isEmpty
-          ? null
-          : _deskripsiC.text.trim(),
+      'deskripsi':
+          _deskripsiC.text.trim().isEmpty ? null : _deskripsiC.text.trim(),
       'kategori': _selectedKategoriSlug,
       'tipe_layanan': _tipeLayanan,
       'jumlah_visit': _tipeLayanan == 'paket' ? jVisit : null,
@@ -862,15 +844,16 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                     labelText: 'Kategori Layanan',
                     border: OutlineInputBorder(),
                   ),
-                  items: widget.kategoriList
-                      .where((e) => e.slug.trim().isNotEmpty)
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e.slug,
-                          child: Text(e.namaKategori),
-                        ),
-                      )
-                      .toList(),
+                  items:
+                      widget.kategoriList
+                          .where((e) => e.slug.trim().isNotEmpty)
+                          .map(
+                            (e) => DropdownMenuItem<String>(
+                              value: e.slug,
+                              child: Text(e.namaKategori),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (val) {
                     setState(() {
                       _selectedKategoriSlug = val;
@@ -983,10 +966,7 @@ class _LayananFormDialogState extends State<_LayananFormDialog> {
                       value: 'anak',
                       child: Text('Perawat Anak'),
                     ),
-                    DropdownMenuItem(
-                      value: 'lainnya',
-                      child: Text('Lainnya'),
-                    ),
+                    DropdownMenuItem(value: 'lainnya', child: Text('Lainnya')),
                   ],
                   onChanged: (val) {
                     setState(() => _syaratPerawat = val ?? 'umum');

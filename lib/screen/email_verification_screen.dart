@@ -9,10 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class EmailVerificationScreen extends StatefulWidget {
   final String email;
 
-  const EmailVerificationScreen({
-    super.key,
-    required this.email,
-  });
+  const EmailVerificationScreen({super.key, required this.email});
 
   @override
   State<EmailVerificationScreen> createState() =>
@@ -61,19 +58,19 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
       if (res.statusCode == 200) {
         final body = json.decode(res.body);
-        
+
         // Jika email sudah verified
         if (body['verified'] == true) {
           _pollingTimer?.cancel(); // Stop polling
-          
+
           if (!mounted) return;
-          
+
           // Simpan token jika ada
           if (body['token'] != null) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('token', body['token']);
             await prefs.setString('auth_token', body['token']);
-            
+
             // Simpan data user
             if (body['data'] != null) {
               final data = body['data'] as Map<String, dynamic>;
@@ -84,7 +81,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               await prefs.setString('role', data['role'] ?? 'pasien');
             }
           }
-          
+
           // Tampilkan success message
           _showSuccessDialog();
         }
@@ -100,53 +97,51 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 80,
-              width: 80,
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 50,
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Email Terverifikasi!',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E3A8A),
-              ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 80,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 50,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Email Terverifikasi!',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E3A8A),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Selamat datang! Anda akan diarahkan ke halaman utama.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Selamat datang! Anda akan diarahkan ke halaman utama.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
 
     // Auto redirect setelah 2 detik
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
@@ -235,11 +230,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1E3A8A),
-              Color(0xFF3B82F6),
-              Color(0xFF1E3A8A),
-            ],
+            colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6), Color(0xFF1E3A8A)],
             stops: [0.0, 0.5, 1.0],
           ),
         ),
@@ -361,11 +352,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildStep('1', 'Buka email Anda (cek folder Inbox atau Spam)'),
+                      _buildStep(
+                        '1',
+                        'Buka email Anda (cek folder Inbox atau Spam)',
+                      ),
                       const SizedBox(height: 12),
                       _buildStep('2', 'Klik link "Verifikasi Email Saya"'),
                       const SizedBox(height: 12),
-                      _buildStep('3', 'Anda akan otomatis login setelah verifikasi'),
+                      _buildStep(
+                        '3',
+                        'Anda akan otomatis login setelah verifikasi',
+                      ),
                       const SizedBox(height: 16),
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -409,33 +406,40 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   height: 56,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: canResend ? Colors.white : Colors.grey[300],
-                      foregroundColor: canResend ? const Color(0xFF1E3A8A) : Colors.grey[600],
+                      backgroundColor:
+                          canResend ? Colors.white : Colors.grey[300],
+                      foregroundColor:
+                          canResend
+                              ? const Color(0xFF1E3A8A)
+                              : Colors.grey[600],
                       elevation: canResend ? 4 : 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     onPressed: canResend ? _resendVerification : null,
-                    icon: _isResending
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: Color(0xFF1E3A8A),
+                    icon:
+                        _isResending
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Color(0xFF1E3A8A),
+                              ),
+                            )
+                            : Icon(
+                              _cooldownSeconds > 0
+                                  ? Icons.timer
+                                  : Icons.refresh,
+                              size: 24,
                             ),
-                          )
-                        : Icon(
-                            _cooldownSeconds > 0 ? Icons.timer : Icons.refresh,
-                            size: 24,
-                          ),
                     label: Text(
                       _isResending
                           ? 'Mengirim...'
                           : _cooldownSeconds > 0
-                              ? 'Tunggu $_cooldownSeconds detik'
-                              : 'Kirim Ulang Email',
+                          ? 'Tunggu $_cooldownSeconds detik'
+                          : 'Kirim Ulang Email',
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
@@ -452,9 +456,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const LoginPage(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
                     );
                   },
                   style: TextButton.styleFrom(

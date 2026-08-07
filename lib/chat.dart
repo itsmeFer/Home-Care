@@ -35,8 +35,7 @@ class ChatRoomPage extends StatefulWidget {
 class _ChatRoomPageState extends State<ChatRoomPage> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _tawarHargaController = TextEditingController();
-  final TextEditingController _tawarCatatanController =
-      TextEditingController();
+  final TextEditingController _tawarCatatanController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
 
@@ -184,7 +183,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     return _lastSentText == text && diff < 2000;
   }
 
-  bool _isSameMessageList(List<ChatMessage> oldList, List<ChatMessage> newList) {
+  bool _isSameMessageList(
+    List<ChatMessage> oldList,
+    List<ChatMessage> newList,
+  ) {
     if (oldList.length != newList.length) return false;
 
     for (int i = 0; i < oldList.length; i++) {
@@ -254,14 +256,15 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       final body = json.decode(res.body) as Map<String, dynamic>;
       final data = (body['data'] as List?) ?? [];
 
-      final newMessages = data
-          .map(
-            (e) => ChatMessage.fromJson(
-              e as Map<String, dynamic>,
-              currentUserId: _currentUserId,
-            ),
-          )
-          .toList();
+      final newMessages =
+          data
+              .map(
+                (e) => ChatMessage.fromJson(
+                  e as Map<String, dynamic>,
+                  currentUserId: _currentUserId,
+                ),
+              )
+              .toList();
 
       final canSendFromApi = body['can_send'];
       final hasOrderFromApi = body['has_order'];
@@ -413,28 +416,29 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _GlassBottomSheet(
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 8),
-              _SheetActionTile(
-                icon: CupertinoIcons.photo_on_rectangle,
-                title: 'Pilih dari galeri',
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
+      builder:
+          (context) => _GlassBottomSheet(
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 8),
+                  _SheetActionTile(
+                    icon: CupertinoIcons.photo_on_rectangle,
+                    title: 'Pilih dari galeri',
+                    onTap: () => Navigator.pop(context, ImageSource.gallery),
+                  ),
+                  _SheetActionTile(
+                    icon: CupertinoIcons.camera,
+                    title: 'Ambil dari kamera',
+                    onTap: () => Navigator.pop(context, ImageSource.camera),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
-              _SheetActionTile(
-                icon: CupertinoIcons.camera,
-                title: 'Ambil dari kamera',
-                onTap: () => Navigator.pop(context, ImageSource.camera),
-              ),
-              const SizedBox(height: 8),
-            ],
+            ),
           ),
-        ),
-      ),
     );
 
     if (source == null) return;
@@ -456,12 +460,17 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     setState(() => _isUploadingImage = true);
 
     try {
-      final uri = Uri.parse('$kBaseUrl$_apiPrefixForRole/${widget.roomId}/messages');
-      final request = http.MultipartRequest('POST', uri)
-        ..headers['Accept'] = 'application/json'
-        ..headers['Authorization'] = 'Bearer $token'
-        ..fields['message'] = _messageController.text.trim()
-        ..files.add(await http.MultipartFile.fromPath('image', picked.path));
+      final uri = Uri.parse(
+        '$kBaseUrl$_apiPrefixForRole/${widget.roomId}/messages',
+      );
+      final request =
+          http.MultipartRequest('POST', uri)
+            ..headers['Accept'] = 'application/json'
+            ..headers['Authorization'] = 'Bearer $token'
+            ..fields['message'] = _messageController.text.trim()
+            ..files.add(
+              await http.MultipartFile.fromPath('image', picked.path),
+            );
 
       final streamed = await request.send();
       final res = await http.Response.fromStream(streamed);
@@ -526,24 +535,26 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       final host = kBaseUrl.replaceFirst('/api', '');
 
       setState(() {
-        _etalaseLayanan = list.map<Map<String, dynamic>>((e) {
-          final item = e as Map<String, dynamic>;
-          String? gambarUrl;
-          final raw = item['gambar']?.toString();
-          if (raw != null && raw.isNotEmpty) {
-            gambarUrl = '$host/api/media/${raw.replaceFirst('storage/', '')}';
-          }
-          return {
-            'id': item['id'],
-            'nama_layanan': item['nama_layanan'] ?? 'Layanan',
-            'deskripsi': item['deskripsi'],
-            'durasi_menit': item['durasi_menit'],
-            'kategori': item['kategori'],
-            'syarat_perawat': item['syarat_perawat'],
-            'lokasi_tersedia': item['lokasi_tersedia'],
-            'gambar': gambarUrl,
-          };
-        }).toList();
+        _etalaseLayanan =
+            list.map<Map<String, dynamic>>((e) {
+              final item = e as Map<String, dynamic>;
+              String? gambarUrl;
+              final raw = item['gambar']?.toString();
+              if (raw != null && raw.isNotEmpty) {
+                gambarUrl =
+                    '$host/api/media/${raw.replaceFirst('storage/', '')}';
+              }
+              return {
+                'id': item['id'],
+                'nama_layanan': item['nama_layanan'] ?? 'Layanan',
+                'deskripsi': item['deskripsi'],
+                'durasi_menit': item['durasi_menit'],
+                'kategori': item['kategori'],
+                'syarat_perawat': item['syarat_perawat'],
+                'lokasi_tersedia': item['lokasi_tersedia'],
+                'gambar': gambarUrl,
+              };
+            }).toList();
         _isLoadingEtalase = false;
       });
     } catch (e) {
@@ -621,14 +632,15 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                             child: SizedBox(
                               width: 58,
                               height: 58,
-                              child: image != null && image.isNotEmpty
-                                  ? Image.network(
-                                      image,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          _imageFallback(),
-                                    )
-                                  : _imageFallback(),
+                              child:
+                                  image != null && image.isNotEmpty
+                                      ? Image.network(
+                                        image,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (_, __, ___) => _imageFallback(),
+                                      )
+                                      : _imageFallback(),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -715,8 +727,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   bool _isTawarHargaText(String text) =>
       text.trim().startsWith('[PENAWARAN HARGA]');
 
-  bool _isDealHargaText(String text) =>
-      text.trim().startsWith('[DEAL HARGA]');
+  bool _isDealHargaText(String text) => text.trim().startsWith('[DEAL HARGA]');
 
   String? _extractNominalFromText(String text) {
     final lines = text.split('\n');
@@ -744,9 +755,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       return false;
     }
 
-    final buffer = StringBuffer()
-      ..writeln('[PENAWARAN HARGA]')
-      ..writeln('Nominal: Rp $harga');
+    final buffer =
+        StringBuffer()
+          ..writeln('[PENAWARAN HARGA]')
+          ..writeln('Nominal: Rp $harga');
 
     if (catatan != null && catatan.trim().isNotEmpty) {
       buffer.writeln('Catatan: ${catatan.trim()}');
@@ -802,10 +814,11 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       return false;
     }
 
-    final buffer = StringBuffer()
-      ..writeln('[DEAL HARGA]')
-      ..writeln('Disepakati: Rp $nominal')
-      ..writeln('Disepakati oleh: ${widget.role}');
+    final buffer =
+        StringBuffer()
+          ..writeln('[DEAL HARGA]')
+          ..writeln('Disepakati: Rp $nominal')
+          ..writeln('Disepakati oleh: ${widget.role}');
 
     final messageText = buffer.toString();
 
@@ -849,7 +862,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   Future<void> _approveTawarFromMessage(ChatMessage msg) async {
     if (widget.role != 'koordinator') return;
     if (!_canSend) {
-      _showSnack('Chat ini sudah ditutup oleh pasien. Tidak bisa menyetujui harga.');
+      _showSnack(
+        'Chat ini sudah ditutup oleh pasien. Tidak bisa menyetujui harga.',
+      );
       return;
     }
 
@@ -870,24 +885,25 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
     final confirm = await showCupertinoDialog<bool>(
       context: context,
-      builder: (_) => CupertinoAlertDialog(
-        title: const Text('Setujui Harga'),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Text('Setujui penawaran sebesar Rp $formatted?'),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder:
+          (_) => CupertinoAlertDialog(
+            title: const Text('Setujui Harga'),
+            content: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text('Setujui penawaran sebesar Rp $formatted?'),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Setujui'),
+              ),
+            ],
           ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Setujui'),
-          ),
-        ],
-      ),
     );
 
     if (confirm == true) {
@@ -903,69 +919,67 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _GlassBottomSheet(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: SizedBox(
-                  width: 42,
-                  child: Divider(
-                    thickness: 4,
-                    color: Color(0xFFD1D1D6),
+      builder:
+          (ctx) => _GlassBottomSheet(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 12,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(
+                    child: SizedBox(
+                      width: 42,
+                      child: Divider(thickness: 4, color: Color(0xFFD1D1D6)),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Tawar Harga',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Tulis nominal dan catatan singkat untuk koordinator.',
+                    style: TextStyle(color: Color(0xFF636366)),
+                  ),
+                  const SizedBox(height: 16),
+                  _frostField(
+                    controller: _tawarHargaController,
+                    keyboardType: TextInputType.number,
+                    hint: 'Nominal tawaran',
+                    prefix: 'Rp ',
+                  ),
+                  const SizedBox(height: 10),
+                  _frostField(
+                    controller: _tawarCatatanController,
+                    hint: 'Catatan opsional',
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CupertinoButton.filled(
+                      borderRadius: BorderRadius.circular(16),
+                      onPressed: () async {
+                        final ok = await _sendTawarHarga(
+                          _tawarHargaController.text,
+                          _tawarCatatanController.text,
+                        );
+                        if (ok && mounted) Navigator.pop(ctx);
+                      },
+                      child: const Text('Kirim Penawaran'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'Tawar Harga',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Tulis nominal dan catatan singkat untuk koordinator.',
-                style: TextStyle(color: Color(0xFF636366)),
-              ),
-              const SizedBox(height: 16),
-              _frostField(
-                controller: _tawarHargaController,
-                keyboardType: TextInputType.number,
-                hint: 'Nominal tawaran',
-                prefix: 'Rp ',
-              ),
-              const SizedBox(height: 10),
-              _frostField(
-                controller: _tawarCatatanController,
-                hint: 'Catatan opsional',
-                maxLines: 3,
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: CupertinoButton.filled(
-                  borderRadius: BorderRadius.circular(16),
-                  onPressed: () async {
-                    final ok = await _sendTawarHarga(
-                      _tawarHargaController.text,
-                      _tawarCatatanController.text,
-                    );
-                    if (ok && mounted) Navigator.pop(ctx);
-                  },
-                  child: const Text('Kirim Penawaran'),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -1013,11 +1027,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BuatOrderDariChatPage(
-          layananId: _currentLayananIdFromChat!,
-          roomId: widget.roomId,
-          kesepakatanHarga: _dealHarga!,
-        ),
+        builder:
+            (_) => BuatOrderDariChatPage(
+              layananId: _currentLayananIdFromChat!,
+              roomId: widget.roomId,
+              kesepakatanHarga: _dealHarga!,
+            ),
       ),
     );
 
@@ -1029,9 +1044,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
   void _showSnack(String message) {
     if (!mounted || _isDisposed) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -1077,9 +1092,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
         if (dealNominal != null) {
           _dealHarga = int.tryParse(dealNominal);
-          final formatted = NumberFormat.decimalPattern('id_ID').format(
-            _dealHarga ?? 0,
-          );
+          final formatted = NumberFormat.decimalPattern(
+            'id_ID',
+          ).format(_dealHarga ?? 0);
           dealHargaDisplay = 'Rp $formatted';
         }
       }
@@ -1104,10 +1119,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
               widget.roomTitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 2),
             Text(
@@ -1137,45 +1149,48 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
               ),
             ),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CupertinoActivityIndicator(radius: 14))
-                  : _error != null
+              child:
+                  _isLoading
+                      ? const Center(
+                        child: CupertinoActivityIndicator(radius: 14),
+                      )
+                      : _error != null
                       ? Center(child: Text(_error!))
                       : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.fromLTRB(14, 8, 14, 18),
-                          itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            final msg = _messages[index];
-                            final timeText = msg.createdAt == null
-                                ? ''
-                                : DateFormat('HH:mm').format(msg.createdAt!);
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(14, 8, 14, 18),
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final msg = _messages[index];
+                          final timeText =
+                              msg.createdAt == null
+                                  ? ''
+                                  : DateFormat('HH:mm').format(msg.createdAt!);
 
-                            if (_negoEnabled &&
-                                msg.isEtalase &&
-                                msg.etalaseData != null) {
-                              return _EtalaseBubble(
-                                msg: msg,
-                                timeText: timeText,
-                              );
-                            }
+                          if (_negoEnabled &&
+                              msg.isEtalase &&
+                              msg.etalaseData != null) {
+                            return _EtalaseBubble(msg: msg, timeText: timeText);
+                          }
 
-                            final isTawar = _isTawarHargaText(msg.text);
-                            final imageUrl = _safeFileUrl(msg);
+                          final isTawar = _isTawarHargaText(msg.text);
+                          final imageUrl = _safeFileUrl(msg);
 
-                            return _ChatBubble(
-                              message: msg,
-                              timeText: timeText,
-                              imageUrl: imageUrl,
-                              onImageTap: imageUrl == null
-                                  ? null
-                                  : () => _openImagePreview(imageUrl),
-                              extra: _negoEnabled &&
-                                      !hasDeal &&
-                                      widget.role == 'koordinator' &&
-                                      isTawar &&
-                                      !msg.isMine
-                                  ? Padding(
+                          return _ChatBubble(
+                            message: msg,
+                            timeText: timeText,
+                            imageUrl: imageUrl,
+                            onImageTap:
+                                imageUrl == null
+                                    ? null
+                                    : () => _openImagePreview(imageUrl),
+                            extra:
+                                _negoEnabled &&
+                                        !hasDeal &&
+                                        widget.role == 'koordinator' &&
+                                        isTawar &&
+                                        !msg.isMine
+                                    ? Padding(
                                       padding: const EdgeInsets.only(top: 8),
                                       child: CupertinoButton(
                                         padding: const EdgeInsets.symmetric(
@@ -1185,8 +1200,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                         color: const Color(0xFF007AFF),
                                         borderRadius: BorderRadius.circular(12),
                                         minSize: 0,
-                                        onPressed: () =>
-                                            _approveTawarFromMessage(msg),
+                                        onPressed:
+                                            () => _approveTawarFromMessage(msg),
                                         child: const Text(
                                           'Setujui harga ini',
                                           style: TextStyle(
@@ -1196,10 +1211,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                         ),
                                       ),
                                     )
-                                  : null,
-                            );
-                          },
-                        ),
+                                    : null,
+                          );
+                        },
+                      ),
             ),
             if (_negoEnabled && canShowOrderButton)
               Padding(
@@ -1223,11 +1238,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
               onTawarTap: _openTawarHargaSheet,
               onImageTap: _pickAndSendImage,
               onSendTap: _sendMessage,
-              hintText: _isCoordinatorBlocked
-                  ? 'Chat ini sudah ditutup oleh pasien.'
-                  : (hasDeal
-                        ? 'Harga sudah final, lanjutkan komunikasi…'
-                        : 'Tulis pesan…'),
+              hintText:
+                  _isCoordinatorBlocked
+                      ? 'Chat ini sudah ditutup oleh pasien.'
+                      : (hasDeal
+                          ? 'Harga sudah final, lanjutkan komunikasi…'
+                          : 'Tulis pesan…'),
             ),
           ],
         ),
@@ -1392,9 +1408,10 @@ class _ChatBubble extends StatelessWidget {
           ),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: isMine
-                  ? const Color(0xFF007AFF)
-                  : Colors.white.withOpacity(0.88),
+              color:
+                  isMine
+                      ? const Color(0xFF007AFF)
+                      : Colors.white.withOpacity(0.88),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -1412,9 +1429,8 @@ class _ChatBubble extends StatelessWidget {
                 10,
               ),
               child: Column(
-                crossAxisAlignment: isMine
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   if (imageUrl != null) ...[
                     GestureDetector(
@@ -1426,12 +1442,16 @@ class _ChatBubble extends StatelessWidget {
                           width: 220,
                           height: 220,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            width: 220,
-                            height: 220,
-                            color: Colors.black12,
-                            child: const Icon(CupertinoIcons.photo, size: 40),
-                          ),
+                          errorBuilder:
+                              (_, __, ___) => Container(
+                                width: 220,
+                                height: 220,
+                                color: Colors.black12,
+                                child: const Icon(
+                                  CupertinoIcons.photo,
+                                  size: 40,
+                                ),
+                              ),
                         ),
                       ),
                     ),
@@ -1443,9 +1463,7 @@ class _ChatBubble extends StatelessWidget {
                       message.text,
                       style: TextStyle(
                         height: 1.35,
-                        color: isMine
-                            ? Colors.white
-                            : const Color(0xFF111111),
+                        color: isMine ? Colors.white : const Color(0xFF111111),
                         fontSize: 15,
                       ),
                     ),
@@ -1455,9 +1473,7 @@ class _ChatBubble extends StatelessWidget {
                     timeText,
                     style: TextStyle(
                       fontSize: 11,
-                      color: isMine
-                          ? Colors.white70
-                          : const Color(0xFF8E8E93),
+                      color: isMine ? Colors.white70 : const Color(0xFF8E8E93),
                     ),
                   ),
                 ],
@@ -1511,10 +1527,11 @@ class _EtalaseBubble extends StatelessWidget {
                   height: 150,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 150,
-                    color: const Color(0xFFF2F2F7),
-                  ),
+                  errorBuilder:
+                      (_, __, ___) => Container(
+                        height: 150,
+                        color: const Color(0xFFF2F2F7),
+                      ),
                 ),
               ),
             Padding(
@@ -1532,11 +1549,15 @@ class _EtalaseBubble extends StatelessWidget {
                   const SizedBox(height: 8),
                   _MetaText(
                     label: 'Durasi',
-                    value: e['durasi_menit'] != null
-                        ? '${e['durasi_menit']} menit'
-                        : null,
+                    value:
+                        e['durasi_menit'] != null
+                            ? '${e['durasi_menit']} menit'
+                            : null,
                   ),
-                  _MetaText(label: 'Kategori', value: e['kategori']?.toString()),
+                  _MetaText(
+                    label: 'Kategori',
+                    value: e['kategori']?.toString(),
+                  ),
                   _MetaText(
                     label: 'Perawat',
                     value: e['syarat_perawat']?.toString(),
@@ -1615,9 +1636,7 @@ class _InputComposer extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.72),
-        border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.04)),
-        ),
+        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.04))),
       ),
       child: SafeArea(
         top: false,
@@ -1675,19 +1694,20 @@ class _InputComposer extends StatelessWidget {
                 color: const Color(0xFF007AFF),
                 borderRadius: BorderRadius.circular(999),
                 onPressed: isBlocked || isSending ? null : onSendTap,
-                child: isSending
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CupertinoActivityIndicator(
+                child:
+                    isSending
+                        ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CupertinoActivityIndicator(
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Icon(
+                          CupertinoIcons.arrow_up,
                           color: Colors.white,
+                          size: 20,
                         ),
-                      )
-                    : const Icon(
-                        CupertinoIcons.arrow_up,
-                        color: Colors.white,
-                        size: 20,
-                      ),
               ),
             ),
           ],
@@ -1712,9 +1732,8 @@ class _ComposerAction extends StatelessWidget {
       child: Icon(
         icon,
         size: 22,
-        color: onTap == null
-            ? const Color(0xFFB0B0B5)
-            : const Color(0xFF007AFF),
+        color:
+            onTap == null ? const Color(0xFFB0B0B5) : const Color(0xFF007AFF),
       ),
     );
   }
@@ -1762,10 +1781,7 @@ class _SheetActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: const Color(0xFF007AFF)),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       onTap: onTap,
     );
   }

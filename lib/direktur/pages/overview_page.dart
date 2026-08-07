@@ -179,9 +179,8 @@ class _OverviewPageState extends State<OverviewPage>
   Map<String, dynamic> _map(dynamic v) =>
       (v is Map) ? Map<String, dynamic>.from(v) : <String, dynamic>{};
 
-  List<Map<String, dynamic>> _list(dynamic v) => (v is List)
-      ? v.map((e) => _map(e)).toList()
-      : <Map<String, dynamic>>[];
+  List<Map<String, dynamic>> _list(dynamic v) =>
+      (v is List) ? v.map((e) => _map(e)).toList() : <Map<String, dynamic>>[];
 
   Map<String, dynamic> _getKpi(Map<String, dynamic> data) {
     if (data['kpi'] is Map) return _map(data['kpi']);
@@ -223,7 +222,7 @@ class _OverviewPageState extends State<OverviewPage>
       'leaderboard',
       'leaderboard_tim',
       'top_team',
-      'team_leaderboard'
+      'team_leaderboard',
     ];
     for (final k in keys) {
       if (data[k] is List) return _list(data[k]);
@@ -298,12 +297,11 @@ class _OverviewPageState extends State<OverviewPage>
                   show: true,
                   drawVerticalLine: true,
                   drawHorizontalLine: true,
-                  getDrawingHorizontalLine: (v) =>
-                      const FlLine(color: _grid, strokeWidth: 1),
-                  getDrawingVerticalLine: (v) => FlLine(
-                    color: _grid.withOpacity(.7),
-                    strokeWidth: 1,
-                  ),
+                  getDrawingHorizontalLine:
+                      (v) => const FlLine(color: _grid, strokeWidth: 1),
+                  getDrawingVerticalLine:
+                      (v) =>
+                          FlLine(color: _grid.withOpacity(.7), strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
@@ -315,22 +313,21 @@ class _OverviewPageState extends State<OverviewPage>
                         final label = labels[idx];
                         final v = t.y;
 
-                        final name = t.barIndex == 0
-                            ? 'Income'
-                            : t.barIndex == 1
+                        final name =
+                            t.barIndex == 0
+                                ? 'Income'
+                                : t.barIndex == 1
                                 ? 'Fee'
                                 : 'Profit';
 
-                        final color = t.barIndex == 0
-                            ? _cIncome
-                            : (t.barIndex == 1 ? _cFee : _cProfit);
+                        final color =
+                            t.barIndex == 0
+                                ? _cIncome
+                                : (t.barIndex == 1 ? _cFee : _cProfit);
 
                         return LineTooltipItem(
                           '$label\n$name: ${rupiah(v, withPrefix: true)}',
-                          TextStyle(
-                            fontWeight: FontWeight.w900,
-                            color: color,
-                          ),
+                          TextStyle(fontWeight: FontWeight.w900, color: color),
                         );
                       }).toList();
                     },
@@ -385,14 +382,15 @@ class _OverviewPageState extends State<OverviewPage>
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 64,
-                      getTitlesWidget: (v, meta) => Text(
-                        rupiahCompact(v),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _axis,
-                        ),
-                      ),
+                      getTitlesWidget:
+                          (v, meta) => Text(
+                            rupiahCompact(v),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: _axis,
+                            ),
+                          ),
                     ),
                   ),
                   bottomTitles: AxisTitles(
@@ -442,12 +440,15 @@ class _OverviewPageState extends State<OverviewPage>
       );
     }
 
-    final rows = items.map((m) {
-      final nama = (m['nama'] ?? m['name'] ?? m['layanan'] ?? '-').toString();
-      final omset =
-          _toDouble(m['omset'] ?? m['income'] ?? m['total'] ?? m['value'] ?? 0);
-      return {'nama': nama, 'omset': omset};
-    }).toList();
+    final rows =
+        items.map((m) {
+          final nama =
+              (m['nama'] ?? m['name'] ?? m['layanan'] ?? '-').toString();
+          final omset = _toDouble(
+            m['omset'] ?? m['income'] ?? m['total'] ?? m['value'] ?? 0,
+          );
+          return {'nama': nama, 'omset': omset};
+        }).toList();
 
     rows.sort((a, b) => (b['omset'] as double).compareTo(a['omset'] as double));
     final top = rows.take(6).toList();
@@ -457,55 +458,56 @@ class _OverviewPageState extends State<OverviewPage>
       title: 'Top Layanan',
       subtitle: 'Omset per layanan.',
       child: Column(
-        children: top.map((m) {
-          final nama = m['nama'] as String;
-          final v = m['omset'] as double;
-          final pct = (v / maxVal).clamp(0.0, 1.0);
+        children:
+            top.map((m) {
+              final nama = m['nama'] as String;
+              final v = m['omset'] as double;
+              final pct = (v / maxVal).clamp(0.0, 1.0);
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        nama,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0F172A),
-                          fontSize: 13,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            nama,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0F172A),
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        Text(
+                          rupiah(v, withPrefix: false),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF334155),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      rupiah(v, withPrefix: false),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF334155),
-                        fontSize: 13,
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        value: pct,
+                        minHeight: 8,
+                        backgroundColor: const Color(0xFFE2E8F0),
+                        valueColor: const AlwaysStoppedAnimation(_cIncome),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 8,
-                    backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: const AlwaysStoppedAnimation(_cIncome),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
@@ -522,16 +524,21 @@ class _OverviewPageState extends State<OverviewPage>
       );
     }
 
-    final rows = items.map((m) {
-      final nama = (m['nama'] ?? m['name'] ?? '-').toString();
-      final role = (m['role'] ?? m['jabatan'] ?? '-').toString();
-      final order =
-          (m['order'] ?? m['orders'] ?? m['total_order'] ?? 0).toString();
-      final rating =
-          (_toDouble(m['rating'] ?? m['avg_rating'] ?? 0)).toStringAsFixed(0);
-      final fee = rupiah(m['fee'] ?? m['total_fee'] ?? 0, withPrefix: false);
-      return [nama, role, order, rating, fee];
-    }).toList();
+    final rows =
+        items.map((m) {
+          final nama = (m['nama'] ?? m['name'] ?? '-').toString();
+          final role = (m['role'] ?? m['jabatan'] ?? '-').toString();
+          final order =
+              (m['order'] ?? m['orders'] ?? m['total_order'] ?? 0).toString();
+          final rating = (_toDouble(
+            m['rating'] ?? m['avg_rating'] ?? 0,
+          )).toStringAsFixed(0);
+          final fee = rupiah(
+            m['fee'] ?? m['total_fee'] ?? 0,
+            withPrefix: false,
+          );
+          return [nama, role, order, rating, fee];
+        }).toList();
 
     return XCard(
       title: 'Leaderboard Tim',
@@ -554,7 +561,8 @@ class _OverviewPageState extends State<OverviewPage>
       future: _future,
       builder: (context, snap) {
         final isLoading =
-            snap.connectionState == ConnectionState.waiting && snap.data == null;
+            snap.connectionState == ConnectionState.waiting &&
+            snap.data == null;
         final isError = snap.hasError && snap.data == null;
 
         if (isLoading) {

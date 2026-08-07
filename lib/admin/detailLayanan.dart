@@ -95,9 +95,8 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       final List data = (body['data'] as List?) ?? [];
 
       setState(() {
-        _kategoriList = data
-            .map((e) => KategoriLayananItem.fromJson(e))
-            .toList();
+        _kategoriList =
+            data.map((e) => KategoriLayananItem.fromJson(e)).toList();
       });
     } catch (_) {}
   }
@@ -279,9 +278,8 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       final List data = (body['data'] as List?) ?? [];
 
       setState(() {
-        _koordinatorLayanan = data
-            .map((e) => KoordinatorItem.fromJson(e))
-            .toList();
+        _koordinatorLayanan =
+            data.map((e) => KoordinatorItem.fromJson(e)).toList();
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -332,10 +330,11 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       final result = await showDialog<List<int>>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => _KoordinatorMultiSelectDialog(
-          allKoordinator: _allKoordinator,
-          selectedIds: selectedIds,
-        ),
+        builder:
+            (_) => _KoordinatorMultiSelectDialog(
+              allKoordinator: _allKoordinator,
+              selectedIds: selectedIds,
+            ),
       );
 
       if (result == null) return;
@@ -531,22 +530,23 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Hapus Layanan'),
-        content: Text(
-          'Yakin ingin menghapus layanan "${_layanan!.namaLayanan}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Hapus Layanan'),
+            content: Text(
+              'Yakin ingin menghapus layanan "${_layanan!.namaLayanan}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -599,10 +599,11 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _LayananFormDialogDetail(
-        layanan: _layanan!,
-        kategoriList: _kategoriList,
-      ),
+      builder:
+          (_) => _LayananFormDialogDetail(
+            layanan: _layanan!,
+            kategoriList: _kategoriList,
+          ),
     );
 
     if (result == null) return;
@@ -631,464 +632,464 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _isError
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _isError
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      _errorMessage ?? 'Terjadi kesalahan',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _errorMessage ?? 'Terjadi kesalahan',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
                   ),
-                )
+                ),
+              )
               : _layanan == null
-                  ? const Center(child: Text('Data layanan tidak ditemukan'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (_layanan!.gambarUrl != null &&
-                                      _layanan!.gambarUrl!.isNotEmpty) ...[
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        _layanan!.gambarUrl!,
-                                        height: 180,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                  ],
-                                  Row(
+              ? const Center(child: Text('Data layanan tidak ditemukan'))
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_layanan!.gambarUrl != null &&
+                                _layanan!.gambarUrl!.isNotEmpty) ...[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  _layanan!.gambarUrl!,
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(
+                                  radius: 28,
+                                  backgroundColor: HCColor.primary.withOpacity(
+                                    .1,
+                                  ),
+                                  backgroundImage:
+                                      (_layanan!.gambarUrl != null &&
+                                              _layanan!.gambarUrl!.isNotEmpty)
+                                          ? NetworkImage(_layanan!.gambarUrl!)
+                                          : null,
+                                  child:
+                                      (_layanan!.gambarUrl == null ||
+                                              _layanan!.gambarUrl!.isEmpty)
+                                          ? Icon(
+                                            Icons.medical_services_outlined,
+                                            size: 26,
+                                            color: HCColor.primaryDark,
+                                          )
+                                          : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      CircleAvatar(
-                                        radius: 28,
-                                        backgroundColor:
-                                            HCColor.primary.withOpacity(.1),
-                                        backgroundImage:
-                                            (_layanan!.gambarUrl != null &&
-                                                    _layanan!.gambarUrl!
-                                                        .isNotEmpty)
-                                                ? NetworkImage(
-                                                    _layanan!.gambarUrl!,
-                                                  )
-                                                : null,
-                                        child:
-                                            (_layanan!.gambarUrl == null ||
-                                                    _layanan!.gambarUrl!.isEmpty)
-                                                ? Icon(
-                                                    Icons
-                                                        .medical_services_outlined,
-                                                    size: 26,
-                                                    color: HCColor.primaryDark,
-                                                  )
-                                                : null,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              _layanan!.namaLayanan ?? '-',
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            if (_layanan!.kodeLayanan != null)
-                                              Text(
-                                                'Kode: ${_layanan!.kodeLayanan}',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                          ],
+                                      Text(
+                                        _layanan!.namaLayanan ?? '-',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          const Text(
-                                            'Aktif',
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                          Switch(
-                                            value: _layanan!.aktif ?? true,
-                                            onChanged: (val) {
-                                              _updateLayanan({'aktif': val});
-                                            },
-                                            activeColor: HCColor.primary,
-                                          ),
-                                        ],
-                                      ),
+                                      if (_layanan!.kodeLayanan != null)
+                                        Text(
+                                          'Kode: ${_layanan!.kodeLayanan}',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
                                     ],
                                   ),
-                                  const SizedBox(height: 12),
-                                  _infoRow(
-                                    'Kategori',
-                                    _kategoriLabel(_layanan!.kategori),
-                                  ),
-                                  _infoRow(
-                                    'Tipe Layanan',
-                                    _layanan!.tipeLayananLabel,
-                                  ),
-                                  _infoRow(
-                                    'Syarat Perawat',
-                                    _layanan!.syaratPerawatLabel,
-                                  ),
-                                  _infoRow(
-                                    'Lokasi Tersedia',
-                                    _layanan!.lokasiLabel,
-                                  ),
-                                  if (_layanan!.hargaDasar != null)
-                                    _infoRow(
-                                      'Harga Dasar',
-                                      'Rp ${_layanan!.hargaDasar!.toStringAsFixed(0)}',
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    const Text(
+                                      'Aktif',
+                                      style: TextStyle(fontSize: 12),
                                     ),
-                                  if (_layanan!.durasiMenit != null)
-                                    _infoRow(
-                                      'Durasi',
-                                      '${_layanan!.durasiMenit} menit',
+                                    Switch(
+                                      value: _layanan!.aktif ?? true,
+                                      onChanged: (val) {
+                                        _updateLayanan({'aktif': val});
+                                      },
+                                      activeColor: HCColor.primary,
                                     ),
-                                  if (_layanan!.jumlahVisit != null)
-                                    _infoRow(
-                                      'Jumlah Visit (paket)',
-                                      '${_layanan!.jumlahVisit}',
-                                    ),
-                                  if (_layanan!.deskripsi != null &&
-                                      _layanan!.deskripsi!.isNotEmpty)
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(height: 12),
-                                        const Text(
-                                          'Deskripsi',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _layanan!.deskripsi!,
-                                          style: const TextStyle(fontSize: 13),
-                                        ),
-                                      ],
-                                    ),
-                                ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _infoRow(
+                              'Kategori',
+                              _kategoriLabel(_layanan!.kategori),
+                            ),
+                            _infoRow(
+                              'Tipe Layanan',
+                              _layanan!.tipeLayananLabel,
+                            ),
+                            _infoRow(
+                              'Syarat Perawat',
+                              _layanan!.syaratPerawatLabel,
+                            ),
+                            _infoRow('Lokasi Tersedia', _layanan!.lokasiLabel),
+                            if (_layanan!.hargaDasar != null)
+                              _infoRow(
+                                'Harga Dasar',
+                                'Rp ${_layanan!.hargaDasar!.toStringAsFixed(0)}',
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
+                            if (_layanan!.durasiMenit != null)
+                              _infoRow(
+                                'Durasi',
+                                '${_layanan!.durasiMenit} menit',
+                              ),
+                            if (_layanan!.jumlahVisit != null)
+                              _infoRow(
+                                'Jumlah Visit (paket)',
+                                '${_layanan!.jumlahVisit}',
+                              ),
+                            if (_layanan!.deskripsi != null &&
+                                _layanan!.deskripsi!.isNotEmpty)
+                              Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Text(
-                                          'Koordinator Penanggung Jawab',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                      ElevatedButton.icon(
-                                        onPressed: _isSavingKoordinator
-                                            ? null
-                                            : _openKelolaKoordinatorDialog,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: HCColor.primary,
-                                        ),
-                                        icon: _isSavingKoordinator
-                                            ? const SizedBox(
-                                                width: 14,
-                                                height: 14,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: Colors.white,
-                                                ),
-                                              )
-                                            : const Icon(Icons.people_alt),
-                                        label: Text(
-                                          _isSavingKoordinator
-                                              ? 'Memproses...'
-                                              : 'Kelola',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                   const SizedBox(height: 12),
-                                  if (_isLoadingKoordinator)
-                                    const Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(12),
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    )
-                                  else if (_koordinatorLayanan.isEmpty)
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.orange.shade100,
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        'Belum ada koordinator yang ditugaskan ke layanan ini.',
-                                      ),
-                                    )
-                                  else
-                                    Column(
-                                      children: _koordinatorLayanan.map((k) {
-                                        final pivotAktif = k.pivotAktif ?? true;
-                                        return Container(
-                                          margin: const EdgeInsets.only(
-                                            bottom: 10,
-                                          ),
-                                          padding: const EdgeInsets.all(12),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: Colors.grey.shade300,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              CircleAvatar(
-                                                backgroundColor: HCColor.primary
-                                                    .withOpacity(.1),
-                                                child: Icon(
-                                                  Icons.person,
-                                                  color: HCColor.primaryDark,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      k.namaLengkap,
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                    if ((k.kodeKoordinator ?? '')
-                                                        .isNotEmpty)
-                                                      Text(
-                                                        'Kode: ${k.kodeKoordinator}',
-                                                        style: const TextStyle(
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                    if ((k.wilayah ?? '')
-                                                        .isNotEmpty)
-                                                      Text(
-                                                        'Wilayah: ${k.wilayah}',
-                                                        style: const TextStyle(
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                    const SizedBox(height: 6),
-                                                    Wrap(
-                                                      spacing: 8,
-                                                      runSpacing: 8,
-                                                      children: [
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                            horizontal: 10,
-                                                            vertical: 5,
-                                                          ),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: k.isActive
-                                                                ? Colors.green
-                                                                    .shade50
-                                                                : Colors
-                                                                    .red
-                                                                    .shade50,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                              20,
-                                                            ),
-                                                          ),
-                                                          child: Text(
-                                                            k.isActive
-                                                                ? 'Akun aktif'
-                                                                : 'Akun nonaktif',
-                                                            style: TextStyle(
-                                                              fontSize: 12,
-                                                              color: k.isActive
-                                                                  ? Colors.green
-                                                                      .shade800
-                                                                  : Colors.red
-                                                                      .shade800,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                            horizontal: 10,
-                                                            vertical: 5,
-                                                          ),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: pivotAktif
-                                                                ? Colors.blue
-                                                                    .shade50
-                                                                : Colors.grey
-                                                                    .shade200,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                              20,
-                                                            ),
-                                                          ),
-                                                          child: Text(
-                                                            pivotAktif
-                                                                ? 'Ditugaskan aktif'
-                                                                : 'Ditugaskan nonaktif',
-                                                            style: TextStyle(
-                                                              fontSize: 12,
-                                                              color: pivotAktif
-                                                                  ? Colors.blue
-                                                                      .shade800
-                                                                  : Colors.grey
-                                                                      .shade800,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    if ((k.pivotCatatan ?? '')
-                                                        .trim()
-                                                        .isNotEmpty) ...[
-                                                      const SizedBox(height: 8),
-                                                      Text(
-                                                        'Catatan: ${k.pivotCatatan}',
-                                                        style: const TextStyle(
-                                                          fontSize: 12,
-                                                          fontStyle:
-                                                              FontStyle.italic,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ],
-                                                ),
-                                              ),
-                                              Switch(
-                                                value: pivotAktif,
-                                                onChanged: (val) {
-                                                  _updateKoordinatorPivot(
-                                                    koordinatorId: k.id,
-                                                    aktif: val,
-                                                    catatan: k.pivotCatatan,
-                                                  );
-                                                },
-                                                activeColor: HCColor.primary,
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }).toList(),
+                                  const Text(
+                                    'Deskripsi',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
                                     ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _layanan!.deskripsi!,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
                                 ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _deleteLayanan,
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Koordinator Penanggung Jawab',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                  icon: const Icon(Icons.delete_outline),
-                                  label: const Text('Hapus'),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _openEditForm,
+                                ElevatedButton.icon(
+                                  onPressed:
+                                      _isSavingKoordinator
+                                          ? null
+                                          : _openKelolaKoordinatorDialog,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: HCColor.primary,
                                   ),
-                                  icon: const Icon(Icons.edit),
-                                  label: const Text('Edit'),
+                                  icon:
+                                      _isSavingKoordinator
+                                          ? const SizedBox(
+                                            width: 14,
+                                            height: 14,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                          : const Icon(Icons.people_alt),
+                                  label: Text(
+                                    _isSavingKoordinator
+                                        ? 'Memproses...'
+                                        : 'Kelola',
+                                  ),
                                 ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (_isLoadingKoordinator)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            else if (_koordinatorLayanan.isEmpty)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.orange.shade100,
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Belum ada koordinator yang ditugaskan ke layanan ini.',
+                                ),
+                              )
+                            else
+                              Column(
+                                children:
+                                    _koordinatorLayanan.map((k) {
+                                      final pivotAktif = k.pivotAktif ?? true;
+                                      return Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 10,
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: HCColor.primary
+                                                  .withOpacity(.1),
+                                              child: Icon(
+                                                Icons.person,
+                                                color: HCColor.primaryDark,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    k.namaLengkap,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                  if ((k.kodeKoordinator ?? '')
+                                                      .isNotEmpty)
+                                                    Text(
+                                                      'Kode: ${k.kodeKoordinator}',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  if ((k.wilayah ?? '')
+                                                      .isNotEmpty)
+                                                    Text(
+                                                      'Wilayah: ${k.wilayah}',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  const SizedBox(height: 6),
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: [
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 10,
+                                                              vertical: 5,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              k.isActive
+                                                                  ? Colors
+                                                                      .green
+                                                                      .shade50
+                                                                  : Colors
+                                                                      .red
+                                                                      .shade50,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                20,
+                                                              ),
+                                                        ),
+                                                        child: Text(
+                                                          k.isActive
+                                                              ? 'Akun aktif'
+                                                              : 'Akun nonaktif',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color:
+                                                                k.isActive
+                                                                    ? Colors
+                                                                        .green
+                                                                        .shade800
+                                                                    : Colors
+                                                                        .red
+                                                                        .shade800,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 10,
+                                                              vertical: 5,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              pivotAktif
+                                                                  ? Colors
+                                                                      .blue
+                                                                      .shade50
+                                                                  : Colors
+                                                                      .grey
+                                                                      .shade200,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                20,
+                                                              ),
+                                                        ),
+                                                        child: Text(
+                                                          pivotAktif
+                                                              ? 'Ditugaskan aktif'
+                                                              : 'Ditugaskan nonaktif',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color:
+                                                                pivotAktif
+                                                                    ? Colors
+                                                                        .blue
+                                                                        .shade800
+                                                                    : Colors
+                                                                        .grey
+                                                                        .shade800,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  if ((k.pivotCatatan ?? '')
+                                                      .trim()
+                                                      .isNotEmpty) ...[
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      'Catatan: ${k.pivotCatatan}',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ),
+                                            Switch(
+                                              value: pivotAktif,
+                                              onChanged: (val) {
+                                                _updateKoordinatorPivot(
+                                                  koordinatorId: k.id,
+                                                  aktif: val,
+                                                  catatan: k.pivotCatatan,
+                                                );
+                                              },
+                                              activeColor: HCColor.primary,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton.icon(
-                            onPressed:
-                                _isUploadingImage ? null : _pickAndUploadImage,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: HCColor.primaryDark,
-                            ),
-                            icon: _isUploadingImage
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(Icons.image),
-                            label: Text(
-                              _isUploadingImage
-                                  ? 'Mengupload...'
-                                  : 'Ubah Gambar Layanan',
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _deleteLayanan,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
+                            ),
+                            icon: const Icon(Icons.delete_outline),
+                            label: const Text('Hapus'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _openEditForm,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HCColor.primary,
+                            ),
+                            icon: const Icon(Icons.edit),
+                            label: const Text('Edit'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: _isUploadingImage ? null : _pickAndUploadImage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: HCColor.primaryDark,
+                      ),
+                      icon:
+                          _isUploadingImage
+                              ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Icon(Icons.image),
+                      label: Text(
+                        _isUploadingImage
+                            ? 'Mengupload...'
+                            : 'Ubah Gambar Layanan',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
     );
   }
 
@@ -1213,21 +1214,24 @@ class LayananDetail {
       deskripsi: json['deskripsi']?.toString(),
       kategori: json['kategori']?.toString(),
       tipeLayanan: json['tipe_layanan']?.toString(),
-      jumlahVisit: json['jumlah_visit'] != null
-          ? int.tryParse(json['jumlah_visit'].toString())
-          : null,
+      jumlahVisit:
+          json['jumlah_visit'] != null
+              ? int.tryParse(json['jumlah_visit'].toString())
+              : null,
       hargaDasar: harga?.toDouble(),
-      durasiMenit: json['durasi_menit'] != null
-          ? int.tryParse(json['durasi_menit'].toString())
-          : null,
+      durasiMenit:
+          json['durasi_menit'] != null
+              ? int.tryParse(json['durasi_menit'].toString())
+              : null,
       syaratPerawat: json['syarat_perawat']?.toString(),
       lokasiTersedia: json['lokasi_tersedia']?.toString(),
-      aktif: json['aktif'] == null
-          ? null
-          : (json['aktif'] is bool
-              ? json['aktif']
-              : json['aktif'].toString() == '1' ||
-                  json['aktif'].toString().toLowerCase() == 'true'),
+      aktif:
+          json['aktif'] == null
+              ? null
+              : (json['aktif'] is bool
+                  ? json['aktif']
+                  : json['aktif'].toString() == '1' ||
+                      json['aktif'].toString().toLowerCase() == 'true'),
       gambarUrl: json['gambar_url']?.toString(),
     );
   }
@@ -1296,7 +1300,8 @@ class KoordinatorItem {
     final pivot = json['pivot'] as Map<String, dynamic>?;
     final koordinator = json['koordinator'] as Map<String, dynamic>?;
 
-    final rawNama = json['nama_lengkap'] ??
+    final rawNama =
+        json['nama_lengkap'] ??
         json['nama'] ??
         json['full_name'] ??
         json['name'] ??
@@ -1315,7 +1320,8 @@ class KoordinatorItem {
       kodeKoordinator:
           json['kode_koordinator']?.toString() ??
           koordinator?['kode_koordinator']?.toString(),
-      wilayah: json['wilayah']?.toString() ?? koordinator?['wilayah']?.toString(),
+      wilayah:
+          json['wilayah']?.toString() ?? koordinator?['wilayah']?.toString(),
       isActive: parseBool(json['is_active'] ?? koordinator?['is_active']),
       pivotAktif: pivot == null ? null : parseBool(pivot['aktif']),
       pivotCatatan: pivot?['catatan']?.toString(),
@@ -1373,8 +1379,7 @@ class _LayananFormDialogDetailState extends State<_LayananFormDialogDetail> {
 
     const allowedSyarat = ['umum', 'icu', 'luka', 'fisio', 'anak', 'lainnya'];
     final rawSyarat = l.syaratPerawat ?? 'umum';
-    _syaratPerawat =
-        allowedSyarat.contains(rawSyarat) ? rawSyarat : 'umum';
+    _syaratPerawat = allowedSyarat.contains(rawSyarat) ? rawSyarat : 'umum';
 
     _lokasi = l.lokasiTersedia ?? 'rumah';
     _aktif = l.aktif ?? true;
@@ -1398,18 +1403,15 @@ class _LayananFormDialogDetailState extends State<_LayananFormDialogDetail> {
     if (!_formKey.currentState!.validate()) return;
 
     final harga = double.tryParse(_hargaC.text.replaceAll('.', ''));
-    final durasi = _durasiC.text.isEmpty
-        ? null
-        : int.tryParse(_durasiC.text.trim());
-    final jVisit = _jumlahVisitC.text.isEmpty
-        ? null
-        : int.tryParse(_jumlahVisitC.text);
+    final durasi =
+        _durasiC.text.isEmpty ? null : int.tryParse(_durasiC.text.trim());
+    final jVisit =
+        _jumlahVisitC.text.isEmpty ? null : int.tryParse(_jumlahVisitC.text);
 
     final payload = {
       'nama_layanan': _namaC.text.trim(),
-      'deskripsi': _deskripsiC.text.trim().isEmpty
-          ? null
-          : _deskripsiC.text.trim(),
+      'deskripsi':
+          _deskripsiC.text.trim().isEmpty ? null : _deskripsiC.text.trim(),
       'kategori': _selectedKategoriSlug,
       'tipe_layanan': _tipeLayanan,
       'jumlah_visit': _tipeLayanan == 'paket' ? jVisit : null,
@@ -1456,15 +1458,16 @@ class _LayananFormDialogDetailState extends State<_LayananFormDialogDetail> {
                     labelText: 'Kategori Layanan',
                     border: OutlineInputBorder(),
                   ),
-                  items: widget.kategoriList
-                      .where((e) => e.slug.trim().isNotEmpty)
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e.slug,
-                          child: Text(e.namaKategori),
-                        ),
-                      )
-                      .toList(),
+                  items:
+                      widget.kategoriList
+                          .where((e) => e.slug.trim().isNotEmpty)
+                          .map(
+                            (e) => DropdownMenuItem<String>(
+                              value: e.slug,
+                              child: Text(e.namaKategori),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (val) {
                     setState(() {
                       _selectedKategoriSlug = val;
@@ -1577,10 +1580,7 @@ class _LayananFormDialogDetailState extends State<_LayananFormDialogDetail> {
                       value: 'anak',
                       child: Text('Perawat Anak'),
                     ),
-                    DropdownMenuItem(
-                      value: 'lainnya',
-                      child: Text('Lainnya'),
-                    ),
+                    DropdownMenuItem(value: 'lainnya', child: Text('Lainnya')),
                   ],
                   onChanged: (val) {
                     setState(() => _syaratPerawat = val ?? 'umum');
@@ -1676,39 +1676,40 @@ class _KoordinatorMultiSelectDialogState
       title: const Text('Kelola Koordinator'),
       content: SizedBox(
         width: 420,
-        child: widget.allKoordinator.isEmpty
-            ? const Center(child: Text('Belum ada data koordinator'))
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: widget.allKoordinator.length,
-                itemBuilder: (_, i) {
-                  final item = widget.allKoordinator[i];
-                  final checked = _selected.contains(item.id);
+        child:
+            widget.allKoordinator.isEmpty
+                ? const Center(child: Text('Belum ada data koordinator'))
+                : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: widget.allKoordinator.length,
+                  itemBuilder: (_, i) {
+                    final item = widget.allKoordinator[i];
+                    final checked = _selected.contains(item.id);
 
-                  return CheckboxListTile(
-                    value: checked,
-                    onChanged: (val) {
-                      setState(() {
-                        if (val == true) {
-                          _selected.add(item.id);
-                        } else {
-                          _selected.remove(item.id);
-                        }
-                      });
-                    },
-                    title: Text(item.namaLengkap),
-                    subtitle: Text(
-                      [
-                        if ((item.kodeKoordinator ?? '').isNotEmpty)
-                          'Kode: ${item.kodeKoordinator}',
-                        if ((item.wilayah ?? '').isNotEmpty)
-                          'Wilayah: ${item.wilayah}',
-                      ].join(' • '),
-                    ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                  );
-                },
-              ),
+                    return CheckboxListTile(
+                      value: checked,
+                      onChanged: (val) {
+                        setState(() {
+                          if (val == true) {
+                            _selected.add(item.id);
+                          } else {
+                            _selected.remove(item.id);
+                          }
+                        });
+                      },
+                      title: Text(item.namaLengkap),
+                      subtitle: Text(
+                        [
+                          if ((item.kodeKoordinator ?? '').isNotEmpty)
+                            'Kode: ${item.kodeKoordinator}',
+                          if ((item.wilayah ?? '').isNotEmpty)
+                            'Wilayah: ${item.wilayah}',
+                        ].join(' • '),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    );
+                  },
+                ),
       ),
       actions: [
         TextButton(

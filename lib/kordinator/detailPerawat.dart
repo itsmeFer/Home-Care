@@ -166,24 +166,26 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
                     CircleAvatar(
                       radius: 28,
                       backgroundColor: HCColor.primary.withOpacity(.1),
-                      backgroundImage: (() {
-                        final url = _resolveMediaUrl(perawat.foto);
-                        return (url != null && url.isNotEmpty)
-                            ? NetworkImage(url)
-                            : null;
-                      })(),
-                      child: (() {
-                        final url = _resolveMediaUrl(perawat.foto);
-                        if (url != null && url.isNotEmpty) return null;
-                        return Text(
-                          perawat.inisial ?? '?',
-                          style: TextStyle(
-                            color: HCColor.primaryDark,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        );
-                      })(),
+                      backgroundImage:
+                          (() {
+                            final url = _resolveMediaUrl(perawat.foto);
+                            return (url != null && url.isNotEmpty)
+                                ? NetworkImage(url)
+                                : null;
+                          })(),
+                      child:
+                          (() {
+                            final url = _resolveMediaUrl(perawat.foto);
+                            if (url != null && url.isNotEmpty) return null;
+                            return Text(
+                              perawat.inisial ?? '?',
+                              style: TextStyle(
+                                color: HCColor.primaryDark,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            );
+                          })(),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -221,9 +223,10 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
                                       : 'Tidak Aktif',
                                   style: const TextStyle(fontSize: 12),
                                 ),
-                                backgroundColor: (perawat.isActive ?? true)
-                                    ? Colors.green.withOpacity(.15)
-                                    : Colors.red.withOpacity(.15),
+                                backgroundColor:
+                                    (perawat.isActive ?? true)
+                                        ? Colors.green.withOpacity(.15)
+                                        : Colors.red.withOpacity(.15),
                                 visualDensity: VisualDensity.compact,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
@@ -396,9 +399,7 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePwd
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                        _obscurePwd ? Icons.visibility_off : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() => _obscurePwd = !_obscurePwd);
@@ -412,16 +413,17 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
                   height: 42,
                   child: ElevatedButton.icon(
                     onPressed: _isSavingPassword ? null : _updatePassword,
-                    icon: _isSavingPassword
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.save),
+                    icon:
+                        _isSavingPassword
+                            ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : const Icon(Icons.save),
                     label: Text(
                       _isSavingPassword
                           ? 'Menyimpan...'
@@ -494,21 +496,18 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(context)
-        .textTheme
-        .bodySmall
-        ?.copyWith(color: Colors.grey[700]);
-    final valueStyle = Theme.of(context)
-        .textTheme
-        .bodyMedium
-        ?.copyWith(fontWeight: FontWeight.w500);
+    final labelStyle = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: Colors.grey[700]);
+    final valueStyle = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        crossAxisAlignment: isMultiline
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
+        crossAxisAlignment:
+            isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           SizedBox(width: 140, child: Text(label, style: labelStyle)),
           Expanded(
@@ -542,36 +541,37 @@ class _DocImageTile extends StatelessWidget {
         children: [
           Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           AspectRatio(
             aspectRatio: 16 / 9,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: hasImage
-                  ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+              child:
+                  hasImage
+                      ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (_, __, ___) => Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Text('Gagal memuat gambar'),
+                              ),
+                            ),
+                      )
+                      : Container(
                         color: Colors.grey[200],
                         child: const Center(
-                          child: Text('Gagal memuat gambar'),
+                          child: Text(
+                            'Belum ada file',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                       ),
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Text(
-                          'Belum ada file',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
             ),
           ),
         ],

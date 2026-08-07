@@ -228,7 +228,8 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
   }
 
   double? _readRating(Map<String, dynamic> m) {
-    final raw = m['rating'] ??
+    final raw =
+        m['rating'] ??
         m['rating_avg'] ??
         m['avg_rating'] ??
         m['nilai_rating'] ??
@@ -269,9 +270,12 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       final v = data[k];
       if (v is List) {
         return v
-            .map((e) => (e is Map)
-                ? Map<String, dynamic>.from(e)
-                : <String, dynamic>{})
+            .map(
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
+            )
             .toList();
       }
     }
@@ -289,9 +293,12 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       final v = data[k];
       if (v is List) {
         return v
-            .map((e) => (e is Map)
-                ? Map<String, dynamic>.from(e)
-                : <String, dynamic>{})
+            .map(
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
+            )
             .toList();
       }
     }
@@ -306,13 +313,14 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
 
     for (int i = 0; i < trend.length; i++) {
       final m = trend[i];
-      final label = (m['label'] ??
-              m['period'] ??
-              m['date'] ??
-              m['bulan'] ??
-              m['month'] ??
-              '')
-          .toString();
+      final label =
+          (m['label'] ??
+                  m['period'] ??
+                  m['date'] ??
+                  m['bulan'] ??
+                  m['month'] ??
+                  '')
+              .toString();
       labels.add(label.isEmpty ? '${i + 1}' : label);
 
       final y = _toDouble(
@@ -339,7 +347,10 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
 
   String _esc(String s) {
     final needsQuote =
-        s.contains(';') || s.contains('\n') || s.contains('\r') || s.contains('"');
+        s.contains(';') ||
+        s.contains('\n') ||
+        s.contains('\r') ||
+        s.contains('"');
     if (!needsQuote) return s;
     final escaped = s.replaceAll('"', '""');
     return '"$escaped"';
@@ -354,15 +365,17 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
 
   Future<void> _exportTim(Map<String, dynamic> data) async {
     try {
-      final kpi = (data['kpi'] is Map)
-          ? Map<String, dynamic>.from(data['kpi'])
-          : <String, dynamic>{};
+      final kpi =
+          (data['kpi'] is Map)
+              ? Map<String, dynamic>.from(data['kpi'])
+              : <String, dynamic>{};
 
       final trend = _extractTrend(data);
 
-      final List lb = (data['leaderboard_perawat'] is List)
-          ? data['leaderboard_perawat']
-          : const [];
+      final List lb =
+          (data['leaderboard_perawat'] is List)
+              ? data['leaderboard_perawat']
+              : const [];
 
       final sb = StringBuffer();
       sb.writeln('sep=;');
@@ -380,13 +393,14 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       // ✅ TREND: 3 kolom konsisten SECTION;label;order
       sb.writeln('TREND;label;order');
       for (final m in trend) {
-        final label = (m['label'] ??
-                m['period'] ??
-                m['date'] ??
-                m['bulan'] ??
-                m['month'] ??
-                '-')
-            .toString();
+        final label =
+            (m['label'] ??
+                    m['period'] ??
+                    m['date'] ??
+                    m['bulan'] ??
+                    m['month'] ??
+                    '-')
+                .toString();
         final val = _toDouble(
           m['order'] ?? m['total_order'] ?? m['value'] ?? m['count'] ?? 0,
         );
@@ -398,9 +412,8 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       // ✅ LEADERBOARD: 5 kolom konsisten SECTION;nama;order;rating;fee
       sb.writeln('LEADERBOARD_PERAWAT;nama;order;rating;fee');
       for (final e in lb) {
-        final m = (e is Map)
-            ? Map<String, dynamic>.from(e)
-            : <String, dynamic>{};
+        final m =
+            (e is Map) ? Map<String, dynamic>.from(e) : <String, dynamic>{};
 
         final rating = _readRating(m);
         final ratingTxt = rating == null ? '' : rating.toStringAsFixed(2);
@@ -469,47 +482,64 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
-      children: TimChartMode.values.map((m) {
-        final active = _mode == m;
-        return InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => setState(() {
-            _mode = m;
-            _chartAnimKey = UniqueKey();
-            _replayChart();
-          }),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
+      children:
+          TimChartMode.values.map((m) {
+            final active = _mode == m;
+            return InkWell(
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: active ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
-                width: active ? 1.4 : 1,
-              ),
-              color: active ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon(m),
-                  size: 18,
-                  color: active ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+              onTap:
+                  () => setState(() {
+                    _mode = m;
+                    _chartAnimKey = UniqueKey();
+                    _replayChart();
+                  }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  label(m),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12.8,
-                    color: active ? const Color(0xFF2563EB) : const Color(0xFF334155),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color:
+                        active
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFFE2E8F0),
+                    width: active ? 1.4 : 1,
                   ),
+                  color:
+                      active
+                          ? const Color(0xFFEFF6FF)
+                          : const Color(0xFFF8FAFC),
                 ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon(m),
+                      size: 18,
+                      color:
+                          active
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      label(m),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12.8,
+                        color:
+                            active
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF334155),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -562,8 +592,12 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                   ),
                 ],
                 titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -591,7 +625,10 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                           return const SizedBox.shrink();
                         }
                         final label = labels[idx];
-                        final short = label.length > 8 ? '${label.substring(0, 8)}…' : label;
+                        final short =
+                            label.length > 8
+                                ? '${label.substring(0, 8)}…'
+                                : label;
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
@@ -624,11 +661,15 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       );
     }
 
-    final items = lb
-        .map((e) => (e is Map)
-            ? Map<String, dynamic>.from(e)
-            : <String, dynamic>{})
-        .toList();
+    final items =
+        lb
+            .map(
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
+            )
+            .toList();
 
     // ✅ sort by order desc, tie-break by rating desc
     items.sort((a, b) {
@@ -644,7 +685,9 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
     final top = items.take(8).toList();
     final maxY = max(
       1,
-      top.map((m) => _toDouble(m['order'])).fold<double>(0, (p, v) => max(p, v)),
+      top
+          .map((m) => _toDouble(m['order']))
+          .fold<double>(0, (p, v) => max(p, v)),
     );
 
     return XCard(
@@ -695,8 +738,12 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                     ),
                 ],
                 titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -719,9 +766,13 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                       reservedSize: 40,
                       getTitlesWidget: (v, meta) {
                         final idx = v.toInt();
-                        if (idx < 0 || idx >= top.length) return const SizedBox.shrink();
+                        if (idx < 0 || idx >= top.length)
+                          return const SizedBox.shrink();
                         final name = (top[idx]['nama'] ?? '-').toString();
-                        final short = name.length > 10 ? '${name.substring(0, 10)}…' : name;
+                        final short =
+                            name.length > 10
+                                ? '${name.substring(0, 10)}…'
+                                : name;
                         return Padding(
                           padding: const EdgeInsets.only(top: 10),
                           child: Text(
@@ -748,27 +799,36 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
   Widget _pieComplaintsChart(Map<String, dynamic> dataRoot) {
     final raw = _extractComplaintsPie(dataRoot);
 
-    final list = raw.isNotEmpty
-        ? raw
-        : [
-            {
-              'name': 'Komplain',
-              'total': _toDouble(
-                ((dataRoot['kpi'] ?? {}) is Map)
-                    ? (Map<String, dynamic>.from(dataRoot['kpi'])['komplain'] ?? 0)
-                    : 0,
-              ),
-            }
-          ];
+    final list =
+        raw.isNotEmpty
+            ? raw
+            : [
+              {
+                'name': 'Komplain',
+                'total': _toDouble(
+                  ((dataRoot['kpi'] ?? {}) is Map)
+                      ? (Map<String, dynamic>.from(
+                            dataRoot['kpi'],
+                          )['komplain'] ??
+                          0)
+                      : 0,
+                ),
+              },
+            ];
 
-    final data = list
-        .map((m) {
-          final name = (m['name'] ?? m['label'] ?? m['tipe'] ?? 'Komplain').toString();
-          final val = _toDouble(m['total'] ?? m['value'] ?? m['amount'] ?? 0);
-          return {'name': name, 'value': val};
-        })
-        .where((m) => (m['value'] as double) > 0)
-        .toList();
+    final data =
+        list
+            .map((m) {
+              final name =
+                  (m['name'] ?? m['label'] ?? m['tipe'] ?? 'Komplain')
+                      .toString();
+              final val = _toDouble(
+                m['total'] ?? m['value'] ?? m['amount'] ?? 0,
+              );
+              return {'name': name, 'value': val};
+            })
+            .where((m) => (m['value'] as double) > 0)
+            .toList();
 
     if (data.isEmpty) {
       return const XCard(
@@ -835,10 +895,11 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                       animation: _t,
                       builder: (context, _) {
                         final tt = _t.value;
-                        final sections = baseSections.map((s) {
-                          final v = s.value * tt;
-                          return s.copyWith(value: v <= 0 ? 0.0001 : v);
-                        }).toList();
+                        final sections =
+                            baseSections.map((s) {
+                              final v = s.value * tt;
+                              return s.copyWith(value: v <= 0 ? 0.0001 : v);
+                            }).toList();
 
                         return PieChart(
                           PieChartData(
@@ -853,8 +914,13 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                                   setInner(() => touchedIndex = -1);
                                   return;
                                 }
-                                setInner(() => touchedIndex =
-                                    resp!.touchedSection!.touchedSectionIndex);
+                                setInner(
+                                  () =>
+                                      touchedIndex =
+                                          resp!
+                                              .touchedSection!
+                                              .touchedSectionIndex,
+                                );
                               },
                             ),
                           ),
@@ -897,7 +963,9 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
                   ],
                 );
               }
-              return Column(children: [chart, const SizedBox(height: 12), legend]);
+              return Column(
+                children: [chart, const SizedBox(height: 12), legend],
+              );
             },
           );
         },
@@ -979,13 +1047,17 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
   }) {
     final trend = _extractTrend(data);
 
-    final lb = (data['leaderboard_perawat'] is List)
-        ? (data['leaderboard_perawat'] as List)
-            .map((e) => (e is Map)
-                ? Map<String, dynamic>.from(e)
-                : <String, dynamic>{})
-            .toList()
-        : <Map<String, dynamic>>[];
+    final lb =
+        (data['leaderboard_perawat'] is List)
+            ? (data['leaderboard_perawat'] as List)
+                .map(
+                  (e) =>
+                      (e is Map)
+                          ? Map<String, dynamic>.from(e)
+                          : <String, dynamic>{},
+                )
+                .toList()
+            : <Map<String, dynamic>>[];
 
     switch (mode) {
       case TimChartMode.lineOrders:
@@ -1008,48 +1080,50 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
       future: _future,
       builder: (context, snap) {
         final isLoading =
-            snap.connectionState == ConnectionState.waiting && snap.data == null;
+            snap.connectionState == ConnectionState.waiting &&
+            snap.data == null;
         final isError = snap.hasError && snap.data == null;
 
         final data = snap.data ?? {};
-        final kpi = (data['kpi'] is Map)
-            ? Map<String, dynamic>.from(data['kpi'])
-            : <String, dynamic>{};
+        final kpi =
+            (data['kpi'] is Map)
+                ? Map<String, dynamic>.from(data['kpi'])
+                : <String, dynamic>{};
 
         final perawatAktif = _toInt(kpi['perawat_aktif']).toString();
         final koordinatorAktif = _toInt(kpi['koordinator_aktif']).toString();
         final dokterAktif = _toInt(kpi['dokter_aktif']).toString();
         final komplain = _toInt(kpi['komplain']).toString();
 
-        final List lb = (data['leaderboard_perawat'] is List)
-            ? data['leaderboard_perawat']
-            : const [];
+        final List lb =
+            (data['leaderboard_perawat'] is List)
+                ? data['leaderboard_perawat']
+                : const [];
 
-        final rows = lb.isNotEmpty
-            ? lb.take(8).map((e) {
-                final m = (e is Map)
-                    ? Map<String, dynamic>.from(e)
-                    : <String, dynamic>{};
+        final rows =
+            lb.isNotEmpty
+                ? lb.take(8).map((e) {
+                  final m =
+                      (e is Map)
+                          ? Map<String, dynamic>.from(e)
+                          : <String, dynamic>{};
 
-                final r = _readRating(m);
+                  final r = _readRating(m);
 
-                return [
-                  (m['nama'] ?? '-').toString(),
-                  _toInt(m['order']).toString(),
-                  _ratingText(r), // ✅ bintang + angka (0..5)
-                  rupiah(m['fee'], withPrefix: true), // ✅ Rp
-                ];
-              }).toList()
-            : const <List<String>>[];
+                  return [
+                    (m['nama'] ?? '-').toString(),
+                    _toInt(m['order']).toString(),
+                    _ratingText(r), // ✅ bintang + angka (0..5)
+                    rupiah(m['fee'], withPrefix: true), // ✅ Rp
+                  ];
+                }).toList()
+                : const <List<String>>[];
 
         if (isLoading) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
-              SectionHeader(
-                title: 'Kinerja Tim',
-                subtitle: 'Memuat data...',
-              ),
+              SectionHeader(title: 'Kinerja Tim', subtitle: 'Memuat data...'),
               SizedBox(height: 12),
               LoadingCard(title: 'Kinerja Tim'),
             ],
@@ -1085,7 +1159,8 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
           children: [
             SectionHeader(
               title: 'Kinerja Tim',
-              subtitle: 'Performa perawat/koordinator/dokter (${widget.range}).',
+              subtitle:
+                  'Performa perawat/koordinator/dokter (${widget.range}).',
             ),
             const SizedBox(height: 12),
 
@@ -1144,25 +1219,28 @@ class _TimPageState extends State<TimPage> with SingleTickerProviderStateMixin {
             XCard(
               title: 'Leaderboard Perawat',
               subtitle: 'Produktivitas & rating (${widget.range}).',
-              child: rows.isEmpty
-                  ? const _EmptyBox(text: 'Belum ada data leaderboard pada range ini.')
-                  : Column(
-                      children: [
-                        TableCard(
-                          columns: const ['Nama', 'Order', 'Rating', 'Fee'],
-                          rows: rows,
-                        ),
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: OutlineButtonX(
-                            icon: Icons.download_outlined,
-                            label: 'Export Kinerja Tim',
-                            onTap: () => _exportTim(data),
+              child:
+                  rows.isEmpty
+                      ? const _EmptyBox(
+                        text: 'Belum ada data leaderboard pada range ini.',
+                      )
+                      : Column(
+                        children: [
+                          TableCard(
+                            columns: const ['Nama', 'Order', 'Rating', 'Fee'],
+                            rows: rows,
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: OutlineButtonX(
+                              icon: Icons.download_outlined,
+                              label: 'Export Kinerja Tim',
+                              onTap: () => _exportTim(data),
+                            ),
+                          ),
+                        ],
+                      ),
             ),
 
             const SizedBox(height: 12),

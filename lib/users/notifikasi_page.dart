@@ -72,9 +72,13 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
       final body = json.decode(res.body);
       final List data = (body['data'] ?? []) as List;
 
-      final items = data
-          .map((e) => AppNotificationItem.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      final items =
+          data
+              .map(
+                (e) =>
+                    AppNotificationItem.fromJson(Map<String, dynamic>.from(e)),
+              )
+              .toList();
 
       if (!mounted) return;
       setState(() {
@@ -135,19 +139,20 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
         if (!mounted) return;
 
         setState(() {
-          _items = _items
-              .map(
-                (e) => AppNotificationItem(
-                  id: e.id,
-                  title: e.title,
-                  body: e.body,
-                  type: e.type,
-                  isRead: true,
-                  createdAt: e.createdAt,
-                  data: e.data,
-                ),
-              )
-              .toList();
+          _items =
+              _items
+                  .map(
+                    (e) => AppNotificationItem(
+                      id: e.id,
+                      title: e.title,
+                      body: e.body,
+                      type: e.type,
+                      isRead: true,
+                      createdAt: e.createdAt,
+                      data: e.data,
+                    ),
+                  )
+                  .toList();
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -158,17 +163,17 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal menandai semua notifikasi (${res.statusCode})'),
+            content: Text(
+              'Gagal menandai semua notifikasi (${res.statusCode})',
+            ),
           ),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Terjadi kesalahan: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
     } finally {
       if (!mounted) return;
       setState(() {
@@ -297,11 +302,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                     color: color.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Icon(
-                    _iconForType(item.type),
-                    color: color,
-                    size: 28,
-                  ),
+                  child: Icon(_iconForType(item.type), color: color, size: 28),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -390,11 +391,13 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: TextButton(
-                onPressed: (!hasUnread || _isMarkingAll) ? null : _markAllAsRead,
+                onPressed:
+                    (!hasUnread || _isMarkingAll) ? null : _markAllAsRead,
                 style: TextButton.styleFrom(
-                  backgroundColor: hasUnread
-                      ? const Color(0xFF0F172A)
-                      : Colors.grey.shade300,
+                  backgroundColor:
+                      hasUnread
+                          ? const Color(0xFF0F172A)
+                          : Colors.grey.shade300,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
@@ -404,155 +407,157 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: _isMarkingAll
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                child:
+                    _isMarkingAll
+                        ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Text(
+                          'Tandai semua',
+                          style: TextStyle(fontWeight: FontWeight.w700),
                         ),
-                      )
-                    : const Text(
-                        'Tandai semua',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
               ),
             ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _fetchNotifications,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
                 ? ListView(
-                    padding: const EdgeInsets.all(24),
-                    children: [
-                      const SizedBox(height: 80),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.error_outline_rounded,
-                              size: 48,
-                              color: Colors.redAccent,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              _error!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFF475569),
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _fetchNotifications,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0F172A),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              child: const Text('Coba lagi'),
-                            ),
-                          ],
-                        ),
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    const SizedBox(height: 80),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  )
-                : _items.isEmpty
-                    ? ListView(
-                        padding: const EdgeInsets.all(24),
+                      child: Column(
                         children: [
-                          const SizedBox(height: 80),
-                          Container(
-                            padding: const EdgeInsets.all(28),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            size: 48,
+                            color: Colors.redAccent,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xFF475569),
+                              fontSize: 14,
                             ),
-                            child: const Column(
-                              children: [
-                                Icon(
-                                  Icons.notifications_off_rounded,
-                                  size: 56,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                                SizedBox(height: 14),
-                                Text(
-                                  'Belum ada notifikasi',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Semua pemberitahuan akan muncul di sini.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _fetchNotifications,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0F172A),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text('Coba lagi'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+                : _items.isEmpty
+                ? ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    const SizedBox(height: 80),
+                    Container(
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(
+                            Icons.notifications_off_rounded,
+                            size: 56,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          SizedBox(height: 14),
+                          Text(
+                            'Belum ada notifikasi',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Semua pemberitahuan akan muncul di sini.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
                             ),
                           ),
                         ],
-                      )
-                    : ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                        children: [
-                          _buildSummaryCard(),
-                          const SizedBox(height: 16),
-                          ..._items.map((item) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _NotificationCard(
-                                item: item,
-                                color: _colorForType(item.type),
-                                icon: _iconForType(item.type),
-                                timeAgo: _timeAgo(item.createdAt),
-                                fullDate: _formatDate(item.createdAt),
-                                onTap: () async {
-                                  if (!item.isRead) {
-                                    _setItemAsReadLocally(item.id);
-                                    await _markAsRead(item.id);
-                                  }
-
-                                  if (!mounted) return;
-                                  _showNotificationDetail(item);
-                                },
-                              ),
-                            );
-                          }),
-                        ],
                       ),
+                    ),
+                  ],
+                )
+                : ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    _buildSummaryCard(),
+                    const SizedBox(height: 16),
+                    ..._items.map((item) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _NotificationCard(
+                          item: item,
+                          color: _colorForType(item.type),
+                          icon: _iconForType(item.type),
+                          timeAgo: _timeAgo(item.createdAt),
+                          fullDate: _formatDate(item.createdAt),
+                          onTap: () async {
+                            if (!item.isRead) {
+                              _setItemAsReadLocally(item.id);
+                              await _markAsRead(item.id);
+                            }
+
+                            if (!mounted) return;
+                            _showNotificationDetail(item);
+                          },
+                        ),
+                      );
+                    }),
+                  ],
+                ),
       ),
     );
   }
@@ -562,10 +567,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFF0F172A),
-            Color(0xFF1E293B),
-          ],
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -652,9 +654,10 @@ class _NotificationCard extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: item.isRead
-                  ? const Color(0xFFE2E8F0)
-                  : color.withOpacity(0.28),
+              color:
+                  item.isRead
+                      ? const Color(0xFFE2E8F0)
+                      : color.withOpacity(0.28),
             ),
             boxShadow: [
               BoxShadow(
@@ -708,9 +711,10 @@ class _NotificationCard extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 15,
                                       height: 1.35,
-                                      fontWeight: item.isRead
-                                          ? FontWeight.w700
-                                          : FontWeight.w800,
+                                      fontWeight:
+                                          item.isRead
+                                              ? FontWeight.w700
+                                              : FontWeight.w800,
                                       color: const Color(0xFF0F172A),
                                     ),
                                   ),
@@ -783,10 +787,7 @@ class _InfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-  });
+  const _InfoChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -799,11 +800,7 @@ class _InfoChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: const Color(0xFF64748B),
-          ),
+          Icon(icon, size: 14, color: const Color(0xFF64748B)),
           const SizedBox(width: 6),
           Text(
             label,

@@ -85,8 +85,9 @@ class FirebaseNotificationService {
   }
 
   Future<void> _setupLocalNotifications() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/launcher_icon',
+    );
 
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -122,7 +123,8 @@ class FirebaseNotificationService {
 
       await _localNotifications
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.createNotificationChannel(channel);
 
       debugPrint('✅ Android notification channel created');
@@ -134,9 +136,8 @@ class FirebaseNotificationService {
       _fcmToken = await _firebaseMessaging.getToken();
 
       if (_fcmToken != null && _fcmToken!.isNotEmpty) {
-        final shortToken = _fcmToken!.length > 20
-            ? _fcmToken!.substring(0, 20)
-            : _fcmToken!;
+        final shortToken =
+            _fcmToken!.length > 20 ? _fcmToken!.substring(0, 20) : _fcmToken!;
         debugPrint('✅ FCM Token: $shortToken...');
       } else {
         debugPrint('❌ Failed to get FCM token');
@@ -286,11 +287,12 @@ class FirebaseNotificationService {
         return;
       }
 
-      final deviceId = (_fcmToken != null && _fcmToken!.isNotEmpty)
-          ? (_fcmToken!.length >= 32
-              ? _fcmToken!.substring(0, 32)
-              : _fcmToken!)
-          : '';
+      final deviceId =
+          (_fcmToken != null && _fcmToken!.isNotEmpty)
+              ? (_fcmToken!.length >= 32
+                  ? _fcmToken!.substring(0, 32)
+                  : _fcmToken!)
+              : '';
 
       final response = await http.post(
         Uri.parse('$kBaseUrl/fcm/token/deactivate'),
@@ -299,9 +301,7 @@ class FirebaseNotificationService {
           'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'device_id': deviceId,
-        }),
+        body: jsonEncode({'device_id': deviceId}),
       );
 
       if (response.statusCode == 200) {

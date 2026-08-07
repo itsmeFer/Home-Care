@@ -22,7 +22,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class FirebaseMessagingService {
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
@@ -47,16 +48,16 @@ class FirebaseMessagingService {
       print('🔥 Initializing Firebase Messaging...');
 
       // 1️⃣ Request Permission
-      final NotificationSettings settings =
-          await _firebaseMessaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-        announcement: false,
-        carPlay: false,
-        criticalAlert: false,
-      );
+      final NotificationSettings settings = await _firebaseMessaging
+          .requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+            provisional: false,
+            announcement: false,
+            carPlay: false,
+            criticalAlert: false,
+          );
 
       print('✅ Permission Status: ${settings.authorizationStatus}');
 
@@ -117,11 +118,12 @@ class FirebaseMessagingService {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings(_androidSmallIcon);
 
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
@@ -145,7 +147,8 @@ class FirebaseMessagingService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
   }
 
@@ -339,10 +342,7 @@ class FirebaseMessagingService {
           'Authorization': 'Bearer $authToken',
           'Accept': 'application/json',
         },
-        body: jsonEncode({
-          'token': token,
-          ...deviceInfo,
-        }),
+        body: jsonEncode({'token': token, ...deviceInfo}),
       );
 
       if (response.statusCode == 200) {
@@ -375,9 +375,7 @@ class FirebaseMessagingService {
           'Authorization': 'Bearer $authToken',
           'Accept': 'application/json',
         },
-        body: jsonEncode({
-          'device_id': deviceInfo['device_id'],
-        }),
+        body: jsonEncode({'device_id': deviceInfo['device_id']}),
       );
 
       if (response.statusCode == 200) {

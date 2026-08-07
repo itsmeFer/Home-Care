@@ -244,13 +244,15 @@ class _KeuanganPageState extends State<KeuanganPage>
 
   Future<void> _exportKeuangan(Map<String, dynamic> data) async {
     try {
-      final kpi = (data['kpi'] is Map)
-          ? Map<String, dynamic>.from(data['kpi'])
-          : <String, dynamic>{};
+      final kpi =
+          (data['kpi'] is Map)
+              ? Map<String, dynamic>.from(data['kpi'])
+              : <String, dynamic>{};
 
-      final List perLayanan = (data['profit_per_layanan'] is List)
-          ? data['profit_per_layanan']
-          : const [];
+      final List perLayanan =
+          (data['profit_per_layanan'] is List)
+              ? data['profit_per_layanan']
+              : const [];
 
       final trend = _extractTrend(data);
       final feePie = _extractFeeComposition(data);
@@ -294,8 +296,9 @@ class _KeuanganPageState extends State<KeuanganPage>
       sb.writeln('');
       sb.writeln('FEE_COMPOSITION;name;total');
       for (final m in feePie) {
-        final name = (m['name'] ?? m['label'] ?? m['tipe'] ?? m['role'] ?? '-')
-            .toString();
+        final name =
+            (m['name'] ?? m['label'] ?? m['tipe'] ?? m['role'] ?? '-')
+                .toString();
         final val =
             (m['total'] ?? m['value'] ?? m['amount'] ?? m['nominal'] ?? 0);
 
@@ -307,9 +310,8 @@ class _KeuanganPageState extends State<KeuanganPage>
       sb.writeln('');
       sb.writeln('PROFIT_PER_LAYANAN;nama;omset;fee;profit');
       for (final e in perLayanan) {
-        final m = (e is Map)
-            ? Map<String, dynamic>.from(e)
-            : <String, dynamic>{};
+        final m =
+            (e is Map) ? Map<String, dynamic>.from(e) : <String, dynamic>{};
 
         sb.writeln(
           'PROFIT_PER_LAYANAN;'
@@ -362,9 +364,10 @@ class _KeuanganPageState extends State<KeuanganPage>
       if (v is List) {
         return v
             .map(
-              (e) => (e is Map)
-                  ? Map<String, dynamic>.from(e)
-                  : <String, dynamic>{},
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
             )
             .toList();
       }
@@ -379,9 +382,10 @@ class _KeuanganPageState extends State<KeuanganPage>
       if (v is List) {
         return v
             .map(
-              (e) => (e is Map)
-                  ? Map<String, dynamic>.from(e)
-                  : <String, dynamic>{},
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
             )
             .toList();
       }
@@ -450,53 +454,64 @@ class _KeuanganPageState extends State<KeuanganPage>
     return Wrap(
       spacing: 10,
       runSpacing: 10,
-      children: KeuanganChartMode.values.map((m) {
-        final active = _mode == m;
-        return InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => setState(() {
-            _mode = m;
-            _chartAnimKey = UniqueKey();
-            _replayChart(); // ✅ animasi 0->nilai tiap ganti tab
-          }),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
+      children:
+          KeuanganChartMode.values.map((m) {
+            final active = _mode == m;
+            return InkWell(
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: active
-                    ? const Color(0xFF2563EB)
-                    : const Color(0xFFE2E8F0),
-                width: active ? 1.4 : 1,
-              ),
-              color: active ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon(m),
-                  size: 18,
-                  color: active
-                      ? const Color(0xFF2563EB)
-                      : const Color(0xFF64748B),
+              onTap:
+                  () => setState(() {
+                    _mode = m;
+                    _chartAnimKey = UniqueKey();
+                    _replayChart(); // ✅ animasi 0->nilai tiap ganti tab
+                  }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  label(m),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12.8,
-                    color: active
-                        ? const Color(0xFF2563EB)
-                        : const Color(0xFF334155),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color:
+                        active
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFFE2E8F0),
+                    width: active ? 1.4 : 1,
                   ),
+                  color:
+                      active
+                          ? const Color(0xFFEFF6FF)
+                          : const Color(0xFFF8FAFC),
                 ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon(m),
+                      size: 18,
+                      color:
+                          active
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      label(m),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12.8,
+                        color:
+                            active
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF334155),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -653,9 +668,8 @@ class _KeuanganPageState extends State<KeuanganPage>
                           return const SizedBox.shrink();
                         }
                         final label = labels[idx];
-                        final short = label.length > 8
-                            ? label.substring(0, 8)
-                            : label;
+                        final short =
+                            label.length > 8 ? label.substring(0, 8) : label;
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
@@ -689,22 +703,25 @@ class _KeuanganPageState extends State<KeuanganPage>
     }
 
     // normalize + sort
-    final data = items
-        .map(
-          (e) =>
-              (e is Map) ? Map<String, dynamic>.from(e) : <String, dynamic>{},
-        )
-        .map((m) {
-          final name =
-              (m['name'] ?? m['label'] ?? m['tipe'] ?? m['role'] ?? '-')
-                  .toString();
-          final val = _toDouble(
-            m['total'] ?? m['value'] ?? m['amount'] ?? m['nominal'] ?? 0,
-          );
-          return {'name': name, 'value': val};
-        })
-        .where((m) => (m['value'] as double) > 0)
-        .toList();
+    final data =
+        items
+            .map(
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
+            )
+            .map((m) {
+              final name =
+                  (m['name'] ?? m['label'] ?? m['tipe'] ?? m['role'] ?? '-')
+                      .toString();
+              final val = _toDouble(
+                m['total'] ?? m['value'] ?? m['amount'] ?? m['nominal'] ?? 0,
+              );
+              return {'name': name, 'value': val};
+            })
+            .where((m) => (m['value'] as double) > 0)
+            .toList();
 
     data.sort((a, b) => (b['value'] as double).compareTo(a['value'] as double));
 
@@ -770,10 +787,11 @@ class _KeuanganPageState extends State<KeuanganPage>
                       builder: (context, _) {
                         final tt = _t.value;
 
-                        final sections = baseSections.map((s) {
-                          final v = s.value * tt;
-                          return s.copyWith(value: v <= 0 ? 0.0001 : v);
-                        }).toList();
+                        final sections =
+                            baseSections.map((s) {
+                              final v = s.value * tt;
+                              return s.copyWith(value: v <= 0 ? 0.0001 : v);
+                            }).toList();
 
                         return PieChart(
                           PieChartData(
@@ -789,8 +807,11 @@ class _KeuanganPageState extends State<KeuanganPage>
                                   return;
                                 }
                                 setInner(
-                                  () => touchedIndex =
-                                      resp!.touchedSection!.touchedSectionIndex,
+                                  () =>
+                                      touchedIndex =
+                                          resp!
+                                              .touchedSection!
+                                              .touchedSectionIndex,
                                 );
                               },
                             ),
@@ -855,12 +876,15 @@ class _KeuanganPageState extends State<KeuanganPage>
       );
     }
 
-    final items = perLayanan
-        .map(
-          (e) =>
-              (e is Map) ? Map<String, dynamic>.from(e) : <String, dynamic>{},
-        )
-        .toList();
+    final items =
+        perLayanan
+            .map(
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
+            )
+            .toList();
 
     items.sort(
       (a, b) => _toDouble(b['profit']).compareTo(_toDouble(a['profit'])),
@@ -979,15 +1003,17 @@ class _KeuanganPageState extends State<KeuanganPage>
   }) {
     final trend = _extractTrend(data);
     final feePie = _extractFeeComposition(data);
-    final perLayanan = (data['profit_per_layanan'] is List)
-        ? (data['profit_per_layanan'] as List)
-              .map(
-                (e) => (e is Map)
-                    ? Map<String, dynamic>.from(e)
-                    : <String, dynamic>{},
-              )
-              .toList()
-        : <Map<String, dynamic>>[];
+    final perLayanan =
+        (data['profit_per_layanan'] is List)
+            ? (data['profit_per_layanan'] as List)
+                .map(
+                  (e) =>
+                      (e is Map)
+                          ? Map<String, dynamic>.from(e)
+                          : <String, dynamic>{},
+                )
+                .toList()
+            : <Map<String, dynamic>>[];
 
     switch (mode) {
       case KeuanganChartMode.lineRevenue:
@@ -1015,32 +1041,36 @@ class _KeuanganPageState extends State<KeuanganPage>
         final isError = snap.hasError && snap.data == null;
 
         final data = snap.data ?? {};
-        final kpi = (data['kpi'] is Map)
-            ? Map<String, dynamic>.from(data['kpi'])
-            : <String, dynamic>{};
+        final kpi =
+            (data['kpi'] is Map)
+                ? Map<String, dynamic>.from(data['kpi'])
+                : <String, dynamic>{};
 
         final incomeTxt = rupiah(kpi['income']);
         final feeTxt = rupiah(kpi['fee']);
         final profitTxt = rupiah(kpi['profit']);
         final margin = _toDouble(kpi['margin_percent']).toStringAsFixed(2);
 
-        final List perLayanan = (data['profit_per_layanan'] is List)
-            ? data['profit_per_layanan']
-            : const [];
+        final List perLayanan =
+            (data['profit_per_layanan'] is List)
+                ? data['profit_per_layanan']
+                : const [];
 
-        final rows = perLayanan.isNotEmpty
-            ? perLayanan.take(10).map((e) {
-                final m = (e is Map)
-                    ? Map<String, dynamic>.from(e)
-                    : <String, dynamic>{};
-                return [
-                  (m['nama'] ?? '-').toString(),
-                  rupiah(m['omset'], withPrefix: false),
-                  rupiah(m['fee'], withPrefix: false),
-                  rupiah(m['profit'], withPrefix: false),
-                ];
-              }).toList()
-            : const <List<String>>[];
+        final rows =
+            perLayanan.isNotEmpty
+                ? perLayanan.take(10).map((e) {
+                  final m =
+                      (e is Map)
+                          ? Map<String, dynamic>.from(e)
+                          : <String, dynamic>{};
+                  return [
+                    (m['nama'] ?? '-').toString(),
+                    rupiah(m['omset'], withPrefix: false),
+                    rupiah(m['fee'], withPrefix: false),
+                    rupiah(m['profit'], withPrefix: false),
+                  ];
+                }).toList()
+                : const <List<String>>[];
 
         if (isLoading) {
           return Column(
@@ -1136,27 +1166,34 @@ class _KeuanganPageState extends State<KeuanganPage>
               title: 'Profitabilitas per Layanan',
               subtitle:
                   'Omset vs fee, supaya direktur tahu layanan yang paling menghasilkan.',
-              child: rows.isEmpty
-                  ? const _EmptyBox(
-                      text: 'Belum ada data profit per layanan pada range ini.',
-                    )
-                  : Column(
-                      children: [
-                        TableCard(
-                          columns: const ['Layanan', 'Omset', 'Fee', 'Profit'],
-                          rows: rows,
-                        ),
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: OutlineButtonX(
-                            icon: Icons.download_outlined,
-                            label: 'Export Keuangan',
-                            onTap: () => _exportKeuangan(data),
+              child:
+                  rows.isEmpty
+                      ? const _EmptyBox(
+                        text:
+                            'Belum ada data profit per layanan pada range ini.',
+                      )
+                      : Column(
+                        children: [
+                          TableCard(
+                            columns: const [
+                              'Layanan',
+                              'Omset',
+                              'Fee',
+                              'Profit',
+                            ],
+                            rows: rows,
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: OutlineButtonX(
+                              icon: Icons.download_outlined,
+                              label: 'Export Keuangan',
+                              onTap: () => _exportKeuangan(data),
+                            ),
+                          ),
+                        ],
+                      ),
             ),
           ],
         );

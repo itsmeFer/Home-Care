@@ -104,14 +104,14 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
         }
       }
 
-      final rooms = data
-          .whereType<Map>()
-          .map(
-            (e) => _PerawatChatRoomItem.fromJson(
-              Map<String, dynamic>.from(e),
-            ),
-          )
-          .toList();
+      final rooms =
+          data
+              .whereType<Map>()
+              .map(
+                (e) =>
+                    _PerawatChatRoomItem.fromJson(Map<String, dynamic>.from(e)),
+              )
+              .toList();
 
       debugPrint('ROOMS COUNT: ${rooms.length}');
 
@@ -210,13 +210,8 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chat Pasien (Perawat)'),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _fetchRooms,
-        child: _buildBody(),
-      ),
+      appBar: AppBar(title: const Text('Chat Pasien (Perawat)')),
+      body: RefreshIndicator(onRefresh: _fetchRooms, child: _buildBody()),
     );
   }
 
@@ -280,15 +275,17 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ChatRoomPage(
-                      roomId: item.id,
-                      roomTitle: item.title.isNotEmpty
-                          ? item.title
-                          : item.layananName.isNotEmpty
-                              ? item.layananName
-                              : 'Chat Pasien',
-                      role: 'perawat',
-                    ),
+                    builder:
+                        (_) => ChatRoomPage(
+                          roomId: item.id,
+                          roomTitle:
+                              item.title.isNotEmpty
+                                  ? item.title
+                                  : item.layananName.isNotEmpty
+                                  ? item.layananName
+                                  : 'Chat Pasien',
+                          role: 'perawat',
+                        ),
                   ),
                 );
 
@@ -311,9 +308,7 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const CircleAvatar(
-                        child: Icon(Icons.person),
-                      ),
+                      const CircleAvatar(child: Icon(Icons.person)),
                       if (isUnread)
                         Positioned(
                           top: -2,
@@ -336,7 +331,9 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.pasienName.isNotEmpty ? item.pasienName : 'Pasien',
+                          item.pasienName.isNotEmpty
+                              ? item.pasienName
+                              : 'Pasien',
                           style: TextStyle(
                             fontWeight:
                                 isUnread ? FontWeight.w700 : FontWeight.w600,
@@ -348,9 +345,10 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
                             item.layananName,
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isUnread
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
+                              fontWeight:
+                                  isUnread
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -400,9 +398,10 @@ class _PerawatChatListPageState extends State<PerawatChatListPage> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: isUnread ? Colors.blue : Colors.grey,
-                                  fontWeight: isUnread
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
+                                  fontWeight:
+                                      isUnread
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
                                 ),
                               ),
                           ],
@@ -463,18 +462,20 @@ class _PerawatChatRoomItem {
     }
 
     return _PerawatChatRoomItem(
-      id: json['id'] is int
-          ? json['id'] as int
-          : int.tryParse('${json['id']}') ?? 0,
+      id:
+          json['id'] is int
+              ? json['id'] as int
+              : int.tryParse('${json['id']}') ?? 0,
       title: json['title']?.toString() ?? '',
       pasienName: json['pasien_name']?.toString() ?? '',
       layananName: json['layanan_name']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       lastMessage: json['last_message']?.toString() ?? '',
       lastTime: parsedTime,
-      unreadCount: json['unread_count'] is int
-          ? json['unread_count'] as int
-          : int.tryParse('${json['unread_count']}') ?? 0,
+      unreadCount:
+          json['unread_count'] is int
+              ? json['unread_count'] as int
+              : int.tryParse('${json['unread_count']}') ?? 0,
     );
   }
 }

@@ -75,9 +75,10 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
       }
 
       final List data = body['data'] as List;
-      final rooms = data
-          .map((e) => ChatRoom.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final rooms =
+          data
+              .map((e) => ChatRoom.fromJson(e as Map<String, dynamic>))
+              .toList();
 
       // total unread global
       final totalUnread = rooms.fold<int>(
@@ -124,9 +125,10 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
 
   Widget _buildRoomTile(ChatRoom room) {
     final isUnread = room.unreadCount > 0;
-    final title = room.pasienName?.isNotEmpty == true
-        ? room.pasienName!
-        : (room.title.isNotEmpty ? room.title : 'Chat Pasien');
+    final title =
+        room.pasienName?.isNotEmpty == true
+            ? room.pasienName!
+            : (room.title.isNotEmpty ? room.title : 'Chat Pasien');
 
     return ListTile(
       leading: Stack(
@@ -154,20 +156,18 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
           fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
         ),
       ),
-      subtitle: room.lastMessage.isNotEmpty
-          ? Text(
-              room.lastMessage,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
-                color: isUnread ? Colors.black87 : Colors.grey[700],
-              ),
-            )
-          : const Text(
-              'Belum ada pesan',
-              style: TextStyle(fontSize: 12),
-            ),
+      subtitle:
+          room.lastMessage.isNotEmpty
+              ? Text(
+                room.lastMessage,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
+                  color: isUnread ? Colors.black87 : Colors.grey[700],
+                ),
+              )
+              : const Text('Belum ada pesan', style: TextStyle(fontSize: 12)),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -190,11 +190,12 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatRoomPage(
-              roomId: room.id,
-              roomTitle: title,
-              role: 'koordinator',
-            ),
+            builder:
+                (_) => ChatRoomPage(
+                  roomId: room.id,
+                  roomTitle: title,
+                  role: 'koordinator',
+                ),
           ),
         );
 
@@ -209,30 +210,31 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
       appBar: AppBar(title: const Text('Chat dengan Pasien')),
       body: RefreshIndicator(
         onRefresh: _loadRooms,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
                 ? ListView(
-                    children: [
-                      const SizedBox(height: 120),
-                      Center(child: Text(_error!)),
-                    ],
-                  )
+                  children: [
+                    const SizedBox(height: 120),
+                    Center(child: Text(_error!)),
+                  ],
+                )
                 : _rooms.isEmpty
-                    ? ListView(
-                        children: const [
-                          SizedBox(height: 120),
-                          Center(child: Text('Belum ada chat.')),
-                        ],
-                      )
-                    : ListView.separated(
-                        itemCount: _rooms.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final room = _rooms[index];
-                          return _buildRoomTile(room);
-                        },
-                      ),
+                ? ListView(
+                  children: const [
+                    SizedBox(height: 120),
+                    Center(child: Text('Belum ada chat.')),
+                  ],
+                )
+                : ListView.separated(
+                  itemCount: _rooms.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final room = _rooms[index];
+                    return _buildRoomTile(room);
+                  },
+                ),
       ),
     );
   }

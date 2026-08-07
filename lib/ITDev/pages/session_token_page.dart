@@ -24,7 +24,7 @@ class SessionTokenPage extends StatelessWidget {
           subtitle: 'User • IP • Device • Last Seen',
           child: Column(
             children: [
-              _row('direktur', '192.168.1.7', 'Chrome Desktop', '09:10'),
+              _row('direktur', '192.168.1.2', 'Chrome Desktop', '09:10'),
               _row('koordinator_a', '180.xxx', 'Android', '09:03'),
               _row('perawat_b', '180.xxx', 'Android', '08:44'),
               const SizedBox(height: 10),

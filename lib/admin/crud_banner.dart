@@ -392,25 +392,28 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
   Future<void> _hapus(BannerModel b) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Hapus Banner',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: Text('Hapus banner "${b.judul ?? 'Tanpa Judul'}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text(
+              'Hapus Banner',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: Text('Hapus banner "${b.judul ?? 'Tanpa Judul'}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Hapus'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
     );
     if (ok != true) return;
     try {
@@ -446,7 +449,8 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
   Widget build(BuildContext context) {
     final landscape = _banners.where((b) => b.tipeCard == 'landscape').toList();
     final square = _banners.where((b) => b.tipeCard == 'square').toList();
-    final fullWidth = _banners.where((b) => b.tipeCard == 'full_width').toList();
+    final fullWidth =
+        _banners.where((b) => b.tipeCard == 'full_width').toList();
 
     return Scaffold(
       backgroundColor: _AC.bg,
@@ -471,66 +475,69 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
         ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _AC.primary))
-          : _banners.isEmpty
-          ? _buildEmpty()
-          : RefreshIndicator(
-              onRefresh: _load,
-              color: _AC.primary,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                children: [
-                  if (landscape.isNotEmpty) ...[
-                    _sectionHeader(
-                      icon: Icons.view_day_outlined,
-                      title: 'Tipe Landscape',
-                      subtitle:
-                          'Banner lebar (rasio 5:2) — cocok untuk carousel utama',
-                      count: landscape.length,
-                    ),
-                    const SizedBox(height: 10),
-                    ...landscape.map((b) => _buildLandscapeCard(b)),
-                    const SizedBox(height: 8),
+      body:
+          _loading
+              ? const Center(
+                child: CircularProgressIndicator(color: _AC.primary),
+              )
+              : _banners.isEmpty
+              ? _buildEmpty()
+              : RefreshIndicator(
+                onRefresh: _load,
+                color: _AC.primary,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  children: [
+                    if (landscape.isNotEmpty) ...[
+                      _sectionHeader(
+                        icon: Icons.view_day_outlined,
+                        title: 'Tipe Landscape',
+                        subtitle:
+                            'Banner lebar (rasio 5:2) — cocok untuk carousel utama',
+                        count: landscape.length,
+                      ),
+                      const SizedBox(height: 10),
+                      ...landscape.map((b) => _buildLandscapeCard(b)),
+                      const SizedBox(height: 8),
+                    ],
+                    if (square.isNotEmpty) ...[
+                      _sectionHeader(
+                        icon: Icons.grid_view_rounded,
+                        title: 'Tipe Square',
+                        subtitle:
+                            'Banner kotak (rasio 1:1) — cocok untuk grid promo',
+                        count: square.length,
+                      ),
+                      const SizedBox(height: 10),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.78,
+                            ),
+                        itemCount: square.length,
+                        itemBuilder: (_, i) => _buildSquareCard(square[i]),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    if (fullWidth.isNotEmpty) ...[
+                      _sectionHeader(
+                        icon: Icons.view_carousel_outlined,
+                        title: 'Tipe Full Width',
+                        subtitle:
+                            'Banner horizontal scroll — seperti GoFood/GoMart',
+                        count: fullWidth.length,
+                      ),
+                      const SizedBox(height: 10),
+                      ...fullWidth.map((b) => _buildFullWidthCard(b)),
+                    ],
                   ],
-                  if (square.isNotEmpty) ...[
-                    _sectionHeader(
-                      icon: Icons.grid_view_rounded,
-                      title: 'Tipe Square',
-                      subtitle:
-                          'Banner kotak (rasio 1:1) — cocok untuk grid promo',
-                      count: square.length,
-                    ),
-                    const SizedBox(height: 10),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.78,
-                          ),
-                      itemCount: square.length,
-                      itemBuilder: (_, i) => _buildSquareCard(square[i]),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  if (fullWidth.isNotEmpty) ...[
-                    _sectionHeader(
-                      icon: Icons.view_carousel_outlined,
-                      title: 'Tipe Full Width',
-                      subtitle:
-                          'Banner horizontal scroll — seperti GoFood/GoMart',
-                      count: fullWidth.length,
-                    ),
-                    const SizedBox(height: 10),
-                    ...fullWidth.map((b) => _buildFullWidthCard(b)),
-                  ],
-                ],
+                ),
               ),
-            ),
     );
   }
 
@@ -621,13 +628,14 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
                 SizedBox(
                   height: 160,
                   width: double.infinity,
-                  child: b.gambarUrl != null
-                      ? Image.network(
-                          b.gambarUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _placeholder(160),
-                        )
-                      : _placeholder(160),
+                  child:
+                      b.gambarUrl != null
+                          ? Image.network(
+                            b.gambarUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _placeholder(160),
+                          )
+                          : _placeholder(160),
                 ),
                 Positioned.fill(
                   child: Container(
@@ -746,10 +754,10 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
                 children: [
                   b.gambarUrl != null
                       ? Image.network(
-                          b.gambarUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _placeholder(null),
-                        )
+                        b.gambarUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _placeholder(null),
+                      )
                       : _placeholder(null),
                   if (b.tipeDiskon != 'none' && b.teksDiskon != null)
                     Positioned(
@@ -976,13 +984,14 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
                       width: 140,
                       height: 140,
                       color: _AC.light,
-                      child: b.gambarUrl != null
-                          ? Image.network(
-                              b.gambarUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _placeholder(140),
-                            )
-                          : _placeholder(140),
+                      child:
+                          b.gambarUrl != null
+                              ? Image.network(
+                                b.gambarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _placeholder(140),
+                              )
+                              : _placeholder(140),
                     ),
                     if (b.tipeDiskon != 'none' && b.teksDiskon != null)
                       Positioned(
@@ -1053,14 +1062,14 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: b.aktif
-                                    ? _AC.light
-                                    : Colors.grey.shade100,
+                                color:
+                                    b.aktif ? _AC.light : Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: b.aktif
-                                      ? _AC.primary
-                                      : Colors.grey.shade300,
+                                  color:
+                                      b.aktif
+                                          ? _AC.primary
+                                          : Colors.grey.shade300,
                                 ),
                               ),
                               child: Text(
@@ -1253,96 +1262,96 @@ class _CrudBannerPageState extends State<CrudBannerPage> {
   }
 
   Widget _badgeDiskon(String teks) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.local_offer, size: 12, color: Colors.white),
-            const SizedBox(width: 4),
-            Text(
-              teks,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      );
-
-  Widget _badgeUrutan(int urutan, {bool small = false}) => Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: small ? 7 : 10,
-          vertical: small ? 3 : 4,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          '#$urutan',
-          style: TextStyle(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: Colors.red,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.local_offer, size: 12, color: Colors.white),
+        const SizedBox(width: 4),
+        Text(
+          teks,
+          style: const TextStyle(
             color: Colors.white,
-            fontSize: small ? 10 : 12,
+            fontSize: 11,
             fontWeight: FontWeight.w700,
           ),
         ),
-      );
+      ],
+    ),
+  );
+
+  Widget _badgeUrutan(int urutan, {bool small = false}) => Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: small ? 7 : 10,
+      vertical: small ? 3 : 4,
+    ),
+    decoration: BoxDecoration(
+      color: Colors.black54,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      '#$urutan',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: small ? 10 : 12,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
 
   Widget _buildEmpty() => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 90,
-              height: 90,
-              decoration: const BoxDecoration(
-                color: _AC.light,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.image_not_supported_outlined,
-                size: 44,
-                color: _AC.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Belum ada banner',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Tambah banner untuk carousel pasien',
-              style: TextStyle(color: Colors.grey[500], fontSize: 13),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => _bukaForm(),
-              icon: const Icon(Icons.add),
-              label: const Text('Tambah Banner'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _AC.primary,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 90,
+          height: 90,
+          decoration: const BoxDecoration(
+            color: _AC.light,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.image_not_supported_outlined,
+            size: 44,
+            color: _AC.primary,
+          ),
         ),
-      );
+        const SizedBox(height: 16),
+        const Text(
+          'Belum ada banner',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Tambah banner untuk carousel pasien',
+          style: TextStyle(color: Colors.grey[500], fontSize: 13),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          onPressed: () => _bukaForm(),
+          icon: const Icon(Icons.add),
+          label: const Text('Tambah Banner'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _AC.primary,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _placeholder(double? height) => Container(
-        height: height,
-        width: double.infinity,
-        color: _AC.light,
-        child: const Center(
-          child: Icon(Icons.image_outlined, size: 40, color: _AC.primary),
-        ),
-      );
+    height: height,
+    width: double.infinity,
+    color: _AC.light,
+    child: const Center(
+      child: Icon(Icons.image_outlined, size: 40, color: _AC.primary),
+    ),
+  );
 }
 
 // =========================
@@ -1394,9 +1403,10 @@ class _FormBannerPageState extends State<FormBannerPage> {
       _tipeDiskon = b.tipeDiskon;
 
       if (b.nilaiDiskon > 0) {
-        _nilaiDiskonCtrl.text = _tipeDiskon == 'nominal'
-            ? formatRupiah(b.nilaiDiskon)
-            : b.nilaiDiskon.toString();
+        _nilaiDiskonCtrl.text =
+            _tipeDiskon == 'nominal'
+                ? formatRupiah(b.nilaiDiskon)
+                : b.nilaiDiskon.toString();
       }
       if (b.maxDiskon != null && b.maxDiskon! > 0) {
         _maxDiskonCtrl.text = formatRupiah(b.maxDiskon!);
@@ -1476,12 +1486,13 @@ class _FormBannerPageState extends State<FormBannerPage> {
                 if (query.isEmpty) {
                   filteredList = List.from(_layananList);
                 } else {
-                  filteredList = _layananList.where((l) {
-                    final name = l.namaLayanan.toLowerCase();
-                    final code = l.kodeLayanan.toLowerCase();
-                    final q = query.toLowerCase();
-                    return name.contains(q) || code.contains(q);
-                  }).toList();
+                  filteredList =
+                      _layananList.where((l) {
+                        final name = l.namaLayanan.toLowerCase();
+                        final code = l.kodeLayanan.toLowerCase();
+                        final q = query.toLowerCase();
+                        return name.contains(q) || code.contains(q);
+                      }).toList();
                 }
               });
             }
@@ -1526,15 +1537,16 @@ class _FormBannerPageState extends State<FormBannerPage> {
                           Icons.search,
                           color: _AC.primary,
                         ),
-                        suffixIcon: searchCtrl.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  searchCtrl.clear();
-                                  _filterLayanan('');
-                                },
-                              )
-                            : null,
+                        suffixIcon:
+                            searchCtrl.text.isNotEmpty
+                                ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    searchCtrl.clear();
+                                    _filterLayanan('');
+                                  },
+                                )
+                                : null,
                         filled: true,
                         fillColor: _AC.light,
                         border: OutlineInputBorder(
@@ -1570,15 +1582,17 @@ class _FormBannerPageState extends State<FormBannerPage> {
                         'Banner tanpa link ke layanan',
                         style: TextStyle(fontSize: 12),
                       ),
-                      tileColor: _selectedLayanan == null
-                          ? _AC.light
-                          : Colors.transparent,
+                      tileColor:
+                          _selectedLayanan == null
+                              ? _AC.light
+                              : Colors.transparent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                         side: BorderSide(
-                          color: _selectedLayanan == null
-                              ? _AC.primary
-                              : Colors.transparent,
+                          color:
+                              _selectedLayanan == null
+                                  ? _AC.primary
+                                  : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -1589,131 +1603,138 @@ class _FormBannerPageState extends State<FormBannerPage> {
                     ),
                     const SizedBox(height: 8),
                     Expanded(
-                      child: filteredList.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.search_off,
-                                    size: 64,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Tidak ada layanan ditemukan',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
+                      child:
+                          filteredList.isEmpty
+                              ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.search_off,
+                                      size: 64,
+                                      color: Colors.grey[400],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.separated(
-                              shrinkWrap: true,
-                              itemCount: filteredList.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 8),
-                              itemBuilder: (context, i) {
-                                final l = filteredList[i];
-                                final isSelected = _selectedLayanan?.id == l.id;
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Tidak ada layanan ditemukan',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              : ListView.separated(
+                                shrinkWrap: true,
+                                itemCount: filteredList.length,
+                                separatorBuilder:
+                                    (_, __) => const SizedBox(height: 8),
+                                itemBuilder: (context, i) {
+                                  final l = filteredList[i];
+                                  final isSelected =
+                                      _selectedLayanan?.id == l.id;
 
-                                return ListTile(
-                                  leading: l.gambarUrl != null
-                                      ? ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: Image.network(
-                                            l.gambarUrl!,
-                                            width: 50,
-                                            height: 50,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                const Icon(
-                                              Icons.image,
-                                              size: 50,
+                                  return ListTile(
+                                    leading:
+                                        l.gambarUrl != null
+                                            ? ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Image.network(
+                                                l.gambarUrl!,
+                                                width: 50,
+                                                height: 50,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (_, __, ___) => const Icon(
+                                                      Icons.image,
+                                                      size: 50,
+                                                    ),
+                                              ),
+                                            )
+                                            : Container(
+                                              width: 50,
+                                              height: 50,
+                                              decoration: BoxDecoration(
+                                                color: _AC.light,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: const Icon(
+                                                Icons.medical_services,
+                                                color: _AC.primary,
+                                              ),
                                             ),
+                                    title: Text(
+                                      l.namaLayanan,
+                                      style: TextStyle(
+                                        fontWeight:
+                                            isSelected
+                                                ? FontWeight.w800
+                                                : FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          l.kodeLayanan,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.grey[500],
                                           ),
-                                        )
-                                      : Container(
-                                          width: 50,
-                                          height: 50,
-                                          decoration: BoxDecoration(
-                                            color: _AC.light,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: const Icon(
-                                            Icons.medical_services,
+                                        ),
+                                        Text(
+                                          formatRupiah(l.hargaFix),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
                                             color: _AC.primary,
                                           ),
                                         ),
-                                  title: Text(
-                                    l.namaLayanan,
-                                    style: TextStyle(
-                                      fontWeight: isSelected
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
-                                      fontSize: 13,
+                                      ],
                                     ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l.kodeLayanan,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey[500],
-                                        ),
+                                    tileColor:
+                                        isSelected
+                                            ? _AC.light
+                                            : Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      side: BorderSide(
+                                        color:
+                                            isSelected
+                                                ? _AC.primary
+                                                : Colors.grey.shade200,
+                                        width: isSelected ? 2 : 1,
                                       ),
-                                      Text(
-                                        formatRupiah(l.hargaFix),
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: _AC.primary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  tileColor: isSelected
-                                      ? _AC.light
-                                      : Colors.transparent,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: BorderSide(
-                                      color: isSelected
-                                          ? _AC.primary
-                                          : Colors.grey.shade200,
-                                      width: isSelected ? 2 : 1,
                                     ),
-                                  ),
-                                  trailing: isSelected
-                                      ? Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            color: _AC.primary,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.check,
-                                            color: Colors.white,
-                                            size: 16,
-                                          ),
-                                        )
-                                      : null,
-                                  onTap: () {
-                                    setState(() => _selectedLayanan = l);
-                                    Navigator.pop(context);
-                                  },
-                                );
-                              },
-                            ),
+                                    trailing:
+                                        isSelected
+                                            ? Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: _AC.primary,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.check,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
+                                            )
+                                            : null,
+                                    onTap: () {
+                                      setState(() => _selectedLayanan = l);
+                                      Navigator.pop(context);
+                                    },
+                                  );
+                                },
+                              ),
                     ),
                   ],
                 ),
@@ -1754,10 +1775,13 @@ class _FormBannerPageState extends State<FormBannerPage> {
           _judulCtrl.text.trim().isEmpty ? null : _judulCtrl.text.trim();
       final sub = _subCtrl.text.trim().isEmpty ? null : _subCtrl.text.trim();
       final kode =
-          _kodePromoCtrl.text.trim().isEmpty ? null : _kodePromoCtrl.text.trim();
-      final teks = _teksDiskonCtrl.text.trim().isEmpty
-          ? null
-          : _teksDiskonCtrl.text.trim();
+          _kodePromoCtrl.text.trim().isEmpty
+              ? null
+              : _kodePromoCtrl.text.trim();
+      final teks =
+          _teksDiskonCtrl.text.trim().isEmpty
+              ? null
+              : _teksDiskonCtrl.text.trim();
 
       double nilaiDiskon = 0;
       if (_tipeDiskon == 'nominal') {
@@ -1766,9 +1790,8 @@ class _FormBannerPageState extends State<FormBannerPage> {
         nilaiDiskon = double.tryParse(_nilaiDiskonCtrl.text) ?? 0;
       }
 
-      final maxDiskon = _maxDiskonCtrl.text.isEmpty
-          ? null
-          : parseRupiah(_maxDiskonCtrl.text);
+      final maxDiskon =
+          _maxDiskonCtrl.text.isEmpty ? null : parseRupiah(_maxDiskonCtrl.text);
       final minTransaksi = parseRupiah(_minTransaksiCtrl.text);
 
       if (_isEdit) {
@@ -1849,32 +1872,32 @@ class _FormBannerPageState extends State<FormBannerPage> {
   }
 
   Widget _emptyPreview() => Container(
-        color: _AC.light,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.add_photo_alternate_outlined,
-              size: 44,
-              color: _AC.primary.withOpacity(.5),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pilih Gambar Banner',
-              style: TextStyle(
-                color: _AC.primary.withOpacity(.8),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Preview tampil seperti di halaman pasien',
-              style: TextStyle(color: Colors.grey[400], fontSize: 11),
-            ),
-          ],
+    color: _AC.light,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_photo_alternate_outlined,
+          size: 44,
+          color: _AC.primary.withOpacity(.5),
         ),
-      );
+        const SizedBox(height: 8),
+        Text(
+          'Pilih Gambar Banner',
+          style: TextStyle(
+            color: _AC.primary.withOpacity(.8),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Preview tampil seperti di halaman pasien',
+          style: TextStyle(color: Colors.grey[400], fontSize: 11),
+        ),
+      ],
+    ),
+  );
 
   // ✅ PREVIEW FULL WIDTH (HORIZONTAL LAYOUT)
   Widget _buildFullWidthPreview() {
@@ -1885,50 +1908,51 @@ class _FormBannerPageState extends State<FormBannerPage> {
           width: 140,
           height: 140,
           color: _AC.light,
-          child: _hasGambar
-              ? Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _hasGambarBaru
-                        ? Image.memory(_webBytes!, fit: BoxFit.cover)
-                        : Image.network(
+          child:
+              _hasGambar
+                  ? Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _hasGambarBaru
+                          ? Image.memory(_webBytes!, fit: BoxFit.cover)
+                          : Image.network(
                             widget.banner!.gambarUrl!,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => _emptyPreview(),
                           ),
-                    if (_tipeDiskon != 'none' &&
-                        _teksDiskonCtrl.text.isNotEmpty)
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _teksDiskonCtrl.text,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
+                      if (_tipeDiskon != 'none' &&
+                          _teksDiskonCtrl.text.isNotEmpty)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _teksDiskonCtrl.text,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                )
-              : const Center(
-                  child: Icon(
-                    Icons.image_outlined,
-                    size: 40,
-                    color: _AC.primary,
+                    ],
+                  )
+                  : const Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 40,
+                      color: _AC.primary,
+                    ),
                   ),
-                ),
         ),
 
         // INFO KANAN
@@ -1960,10 +1984,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                       const SizedBox(height: 4),
                       Text(
                         _subCtrl.text,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2064,10 +2085,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [
-                  Colors.black.withOpacity(.55),
-                  Colors.transparent,
-                ],
+                colors: [Colors.black.withOpacity(.55), Colors.transparent],
               ),
             ),
           ),
@@ -2078,10 +2096,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
             top: 10,
             left: 10,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 5,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: Colors.red,
                 borderRadius: BorderRadius.circular(20),
@@ -2089,11 +2104,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.local_offer,
-                    size: 12,
-                    color: Colors.white,
-                  ),
+                  const Icon(Icons.local_offer, size: 12, color: Colors.white),
                   const SizedBox(width: 4),
                   Text(
                     _teksDiskonCtrl.text,
@@ -2144,10 +2155,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
           top: 10,
           right: 10,
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 5,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: Colors.black54,
               borderRadius: BorderRadius.circular(20),
@@ -2155,11 +2163,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.photo_camera,
-                  size: 13,
-                  color: Colors.white,
-                ),
+                const Icon(Icons.photo_camera, size: 13, color: Colors.white),
                 const SizedBox(width: 4),
                 Text(
                   _hasGambar ? 'Ganti' : 'Pilih Foto',
@@ -2193,788 +2197,879 @@ class _FormBannerPageState extends State<FormBannerPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: _loadingLayanan
-          ? const Center(child: CircularProgressIndicator(color: _AC.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // PILIH LAYANAN
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.medical_services,
-                          color: _AC.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Link ke Layanan (Opsional)',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E3A5F),
+      body:
+          _loadingLayanan
+              ? const Center(
+                child: CircularProgressIndicator(color: _AC.primary),
+              )
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // PILIH LAYANAN
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.medical_services,
+                            color: _AC.primary,
+                            size: 20,
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () => _showLayananSearchDialog(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _selectedLayanan == null
-                                  ? Text(
-                                      'Pilih layanan (opsional)',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    )
-                                  : Row(
-                                      children: [
-                                        if (_selectedLayanan!.gambarUrl != null)
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                            child: Image.network(
-                                              _selectedLayanan!.gambarUrl!,
-                                              width: 40,
-                                              height: 40,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
-                                                  const Icon(
-                                                Icons.image,
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Link ke Layanan (Opsional)',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A5F),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () => _showLayananSearchDialog(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child:
+                                    _selectedLayanan == null
+                                        ? Text(
+                                          'Pilih layanan (opsional)',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                        )
+                                        : Row(
+                                          children: [
+                                            if (_selectedLayanan!.gambarUrl !=
+                                                null)
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                child: Image.network(
+                                                  _selectedLayanan!.gambarUrl!,
+                                                  width: 40,
+                                                  height: 40,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder:
+                                                      (_, __, ___) =>
+                                                          const Icon(
+                                                            Icons.image,
+                                                            size: 40,
+                                                          ),
+                                                ),
+                                              )
+                                            else
+                                              const Icon(
+                                                Icons.medical_services,
                                                 size: 40,
+                                                color: _AC.primary,
+                                              ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    _selectedLayanan!
+                                                        .namaLayanan,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 13,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  Text(
+                                                    formatRupiah(
+                                                      _selectedLayanan!
+                                                          .hargaFix,
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          )
-                                        else
-                                          const Icon(
-                                            Icons.medical_services,
-                                            size: 40,
+                                          ],
+                                        ),
+                              ),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.grey[600],
+                                size: 28,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      if (_selectedLayanan != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: _AC.primary.withOpacity(.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _AC.light,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(
+                                          Icons.link,
+                                          size: 12,
+                                          color: _AC.primary,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Banner terkait layanan ini',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
                                             color: _AC.primary,
-                                          ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                _selectedLayanan!.namaLayanan,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 13,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              Text(
-                                                formatRupiah(
-                                                  _selectedLayanan!.hargaFix,
-                                                ),
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.grey[600],
-                                                ),
-                                              ),
-                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
-                            ),
-                            Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.grey[600],
-                              size: 28,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    if (_selectedLayanan != null) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: _AC.primary.withOpacity(.3),
-                            width: 2,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: _AC.light,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(
-                                        Icons.link,
-                                        size: 12,
-                                        color: _AC.primary,
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Banner terkait layanan ini',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: _AC.primary,
+                                  const Spacer(),
+                                  GestureDetector(
+                                    onTap:
+                                        () => setState(
+                                          () => _selectedLayanan = null,
                                         ),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                const Spacer(),
-                                GestureDetector(
-                                  onTap: () =>
-                                      setState(() => _selectedLayanan = null),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.close,
-                                      size: 16,
-                                      color: Colors.white,
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                if (_selectedLayanan!.gambarUrl != null)
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      _selectedLayanan!.gambarUrl!,
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  if (_selectedLayanan!.gambarUrl != null)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        _selectedLayanan!.gambarUrl!,
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (_, __, ___) => const Icon(
+                                              Icons.image,
+                                              size: 60,
+                                            ),
+                                      ),
+                                    )
+                                  else
+                                    Container(
                                       width: 60,
                                       height: 60,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          const Icon(Icons.image, size: 60),
-                                    ),
-                                  )
-                                else
-                                  Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: _AC.light,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.medical_services,
-                                      size: 30,
-                                      color: _AC.primary,
-                                    ),
-                                  ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _selectedLayanan!.namaLayanan,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 14,
-                                          color: Color(0xFF1E3A5F),
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                      decoration: BoxDecoration(
+                                        color: _AC.light,
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
-                                      const SizedBox(height: 4),
-                                      if (_tipeDiskon != 'none') ...[
+                                      child: const Icon(
+                                        Icons.medical_services,
+                                        size: 30,
+                                        color: _AC.primary,
+                                      ),
+                                    ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
                                         Text(
-                                          formatRupiah(
-                                            _selectedLayanan!.hargaFix,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          formatRupiah(_hitungHargaDiskon()),
+                                          _selectedLayanan!.namaLayanan,
                                           style: const TextStyle(
-                                            fontSize: 15,
                                             fontWeight: FontWeight.w800,
-                                            color: Colors.green,
+                                            fontSize: 14,
+                                            color: Color(0xFF1E3A5F),
                                           ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ] else
-                                        Text(
-                                          formatRupiah(
-                                            _selectedLayanan!.hargaFix,
+                                        const SizedBox(height: 4),
+                                        if (_tipeDiskon != 'none') ...[
+                                          Text(
+                                            formatRupiah(
+                                              _selectedLayanan!.hargaFix,
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                            ),
                                           ),
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w800,
-                                            color: _AC.primary,
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            formatRupiah(_hitungHargaDiskon()),
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.green,
+                                            ),
                                           ),
-                                        ),
-                                    ],
+                                        ] else
+                                          Text(
+                                            formatRupiah(
+                                              _selectedLayanan!.hargaFix,
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w800,
+                                              color: _AC.primary,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 24),
-                    const Divider(thickness: 1),
-                    const SizedBox(height: 16),
-
-                    // TIPE CARD (3 PILIHAN)
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.dashboard_customize,
-                          color: _AC.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Tipe Tampilan Card',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E3A5F),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        // LANDSCAPE
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _tipeCard = 'landscape'),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: _tipeCard == 'landscape'
-                                    ? _AC.light
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: _tipeCard == 'landscape'
-                                      ? _AC.primary
-                                      : Colors.grey.shade300,
-                                  width: _tipeCard == 'landscape' ? 2 : 1,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    height: 45,
-                                    decoration: BoxDecoration(
-                                      color: _tipeCard == 'landscape'
-                                          ? _AC.primary.withOpacity(.2)
-                                          : Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.view_day_outlined,
-                                        color: _tipeCard == 'landscape'
-                                            ? _AC.primary
-                                            : Colors.grey,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Landscape',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
-                                      color: _tipeCard == 'landscape'
-                                          ? _AC.primary
-                                          : Colors.grey[600],
-                                    ),
-                                  ),
-                                  Text(
-                                    '5:2',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                  if (_tipeCard == 'landscape') ...[
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _AC.primary,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: const Text(
-                                        '✓',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
 
-                        // SQUARE
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _tipeCard = 'square'),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: _tipeCard == 'square'
-                                    ? _AC.light
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: _tipeCard == 'square'
-                                      ? _AC.primary
-                                      : Colors.grey.shade300,
-                                  width: _tipeCard == 'square' ? 2 : 1,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    height: 45,
-                                    decoration: BoxDecoration(
-                                      color: _tipeCard == 'square'
-                                          ? _AC.primary.withOpacity(.2)
-                                          : Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.grid_view_rounded,
-                                        color: _tipeCard == 'square'
-                                            ? _AC.primary
-                                            : Colors.grey,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Square',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
-                                      color: _tipeCard == 'square'
-                                          ? _AC.primary
-                                          : Colors.grey[600],
-                                    ),
-                                  ),
-                                  Text(
-                                    '1:1',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                  if (_tipeCard == 'square') ...[
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _AC.primary,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: const Text(
-                                        '✓',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
+                      const SizedBox(height: 24),
+                      const Divider(thickness: 1),
+                      const SizedBox(height: 16),
 
-                        // FULL WIDTH
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _tipeCard = 'full_width'),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: _tipeCard == 'full_width'
-                                    ? _AC.light
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: _tipeCard == 'full_width'
-                                      ? _AC.primary
-                                      : Colors.grey.shade300,
-                                  width: _tipeCard == 'full_width' ? 2 : 1,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    height: 45,
-                                    decoration: BoxDecoration(
-                                      color: _tipeCard == 'full_width'
-                                          ? _AC.primary.withOpacity(.2)
-                                          : Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.view_carousel_outlined,
-                                        color: _tipeCard == 'full_width'
-                                            ? _AC.primary
-                                            : Colors.grey,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Full Width',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
-                                      color: _tipeCard == 'full_width'
-                                          ? _AC.primary
-                                          : Colors.grey[600],
-                                    ),
-                                  ),
-                                  Text(
-                                    'Horizontal',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                  if (_tipeCard == 'full_width') ...[
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _AC.primary,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: const Text(
-                                        '✓',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _tipeCard == 'landscape'
-                          ? 'Landscape: ditampilkan penuh lebar di carousel utama'
-                          : _tipeCard == 'square'
-                              ? 'Square: ditampilkan dalam grid 2 kolom di halaman promo'
-                              : 'Full Width: horizontal scroll di section "Promo Paket Layanan"',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-                    const Divider(thickness: 1),
-                    const SizedBox(height: 16),
-
-                    // PREVIEW GAMBAR
-                    _label('Gambar Banner'),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: _pilihGambar,
-                      child: Center(
-                        child: Container(
-                          height: _tipeCard == 'full_width'
-                              ? 140
-                              : (_tipeCard == 'square' ? 220 : 180),
-                          width: _tipeCard == 'full_width'
-                              ? double.infinity
-                              : (_tipeCard == 'square' ? 220 : double.infinity),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: _AC.primary.withOpacity(.3),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: _tipeCard == 'full_width'
-                                ? _buildFullWidthPreview()
-                                : _buildStandardPreview(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _tipeCard == 'landscape'
-                          ? 'Rasio 5:2 (800×320px) • JPG/PNG/WEBP • maks 3MB'
-                          : _tipeCard == 'square'
-                              ? 'Rasio 1:1 (600×600px) • JPG/PNG/WEBP • maks 3MB'
-                              : 'Horizontal card (320×140px) • JPG/PNG/WEBP • maks 3MB',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-
-                    const SizedBox(height: 22),
-
-                    // JUDUL
-                    _label('Judul (Opsional)'),
-                    const SizedBox(height: 8),
-                    _field(
-                      controller: _judulCtrl,
-                      hint: 'contoh: Home Nursing 24/7 (opsional)',
-                      onChanged: (_) => setState(() {}),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // SUBTITLE
-                    _label('Subtitle (Opsional)'),
-                    const SizedBox(height: 8),
-                    _field(
-                      controller: _subCtrl,
-                      hint: 'contoh: Diskon 20% pengguna baru (opsional)',
-                      onChanged: (_) => setState(() {}),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // URUTAN
-                    _label('Urutan Tampil'),
-                    const SizedBox(height: 8),
-                    _field(
-                      controller: _urutanCtrl,
-                      hint: '0',
-                      keyboardType: TextInputType.number,
-                      validator: (v) {
-                        if (v != null &&
-                            v.isNotEmpty &&
-                            int.tryParse(v) == null) return 'Harus angka';
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 24),
-                    const Divider(thickness: 1),
-                    const SizedBox(height: 16),
-
-                    // SECTION DISKON
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.local_offer,
-                          color: _AC.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Pengaturan Diskon',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E3A5F),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    _label('Tipe Diskon'),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: Column(
+                      // TIPE CARD (3 PILIHAN)
+                      Row(
                         children: [
-                          RadioListTile<String>(
-                            title: const Text('Tidak Ada Diskon'),
-                            subtitle: const Text(
-                              'Banner biasa tanpa promo',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            value: 'none',
-                            groupValue: _tipeDiskon,
-                            activeColor: _AC.primary,
-                            onChanged: (v) => setState(() {
-                              _tipeDiskon = v!;
-                              _nilaiDiskonCtrl.clear();
-                              _maxDiskonCtrl.clear();
-                              _minTransaksiCtrl.clear();
-                              _teksDiskonCtrl.clear();
-                            }),
+                          const Icon(
+                            Icons.dashboard_customize,
+                            color: _AC.primary,
+                            size: 20,
                           ),
-                          const Divider(height: 1),
-                          RadioListTile<String>(
-                            title: const Text('Diskon Nominal'),
-                            subtitle: const Text(
-                              'Potongan dalam rupiah (Rp 50.000)',
-                              style: TextStyle(fontSize: 12),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Tipe Tampilan Card',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A5F),
                             ),
-                            value: 'nominal',
-                            groupValue: _tipeDiskon,
-                            activeColor: _AC.primary,
-                            onChanged: (v) => setState(() => _tipeDiskon = v!),
-                          ),
-                          const Divider(height: 1),
-                          RadioListTile<String>(
-                            title: const Text('Diskon Persentase'),
-                            subtitle: const Text(
-                              'Potongan dalam persen (20%)',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            value: 'persen',
-                            groupValue: _tipeDiskon,
-                            activeColor: _AC.primary,
-                            onChanged: (v) => setState(() => _tipeDiskon = v!),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          // LANDSCAPE
+                          Expanded(
+                            child: GestureDetector(
+                              onTap:
+                                  () => setState(() => _tipeCard = 'landscape'),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _tipeCard == 'landscape'
+                                          ? _AC.light
+                                          : Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color:
+                                        _tipeCard == 'landscape'
+                                            ? _AC.primary
+                                            : Colors.grey.shade300,
+                                    width: _tipeCard == 'landscape' ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 45,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _tipeCard == 'landscape'
+                                                ? _AC.primary.withOpacity(.2)
+                                                : Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.view_day_outlined,
+                                          color:
+                                              _tipeCard == 'landscape'
+                                                  ? _AC.primary
+                                                  : Colors.grey,
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Landscape',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 12,
+                                        color:
+                                            _tipeCard == 'landscape'
+                                                ? _AC.primary
+                                                : Colors.grey[600],
+                                      ),
+                                    ),
+                                    Text(
+                                      '5:2',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                    if (_tipeCard == 'landscape') ...[
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _AC.primary,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          '✓',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
 
-                    if (_tipeDiskon != 'none') ...[
-                      const SizedBox(height: 16),
-                      _label(
-                        _tipeDiskon == 'nominal'
-                            ? 'Nilai Diskon (Rupiah) *'
-                            : 'Nilai Diskon (Persen) *',
+                          // SQUARE
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _tipeCard = 'square'),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _tipeCard == 'square'
+                                          ? _AC.light
+                                          : Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color:
+                                        _tipeCard == 'square'
+                                            ? _AC.primary
+                                            : Colors.grey.shade300,
+                                    width: _tipeCard == 'square' ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 45,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _tipeCard == 'square'
+                                                ? _AC.primary.withOpacity(.2)
+                                                : Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.grid_view_rounded,
+                                          color:
+                                              _tipeCard == 'square'
+                                                  ? _AC.primary
+                                                  : Colors.grey,
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Square',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 12,
+                                        color:
+                                            _tipeCard == 'square'
+                                                ? _AC.primary
+                                                : Colors.grey[600],
+                                      ),
+                                    ),
+                                    Text(
+                                      '1:1',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                    if (_tipeCard == 'square') ...[
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _AC.primary,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          '✓',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+
+                          // FULL WIDTH
+                          Expanded(
+                            child: GestureDetector(
+                              onTap:
+                                  () =>
+                                      setState(() => _tipeCard = 'full_width'),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _tipeCard == 'full_width'
+                                          ? _AC.light
+                                          : Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color:
+                                        _tipeCard == 'full_width'
+                                            ? _AC.primary
+                                            : Colors.grey.shade300,
+                                    width: _tipeCard == 'full_width' ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 45,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _tipeCard == 'full_width'
+                                                ? _AC.primary.withOpacity(.2)
+                                                : Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.view_carousel_outlined,
+                                          color:
+                                              _tipeCard == 'full_width'
+                                                  ? _AC.primary
+                                                  : Colors.grey,
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Full Width',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 12,
+                                        color:
+                                            _tipeCard == 'full_width'
+                                                ? _AC.primary
+                                                : Colors.grey[600],
+                                      ),
+                                    ),
+                                    Text(
+                                      'Horizontal',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                    if (_tipeCard == 'full_width') ...[
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _AC.primary,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          '✓',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      _field(
-                        controller: _nilaiDiskonCtrl,
-                        hint: _tipeDiskon == 'nominal' ? 'Rp 50.000' : '20',
-                        keyboardType: TextInputType.number,
-                        inputFormatters: _tipeDiskon == 'nominal'
-                            ? [CurrencyFormatter()]
-                            : [FilteringTextInputFormatter.digitsOnly],
-                        onChanged: (_) => setState(() {}),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty)
-                            return 'Nilai diskon wajib diisi';
-                          if (_tipeDiskon == 'nominal') {
-                            if (parseRupiah(v) == 0)
-                              return 'Nilai harus lebih dari 0';
-                          } else {
-                            if (double.tryParse(v) == null)
-                              return 'Harus angka';
-                          }
-                          return null;
-                        },
-                      ),
+                      const SizedBox(height: 6),
                       Text(
-                        _tipeDiskon == 'nominal'
-                            ? 'Format otomatis: Rp 50.000'
-                            : 'Contoh: 20 untuk diskon 20%',
+                        _tipeCard == 'landscape'
+                            ? 'Landscape: ditampilkan penuh lebar di carousel utama'
+                            : _tipeCard == 'square'
+                            ? 'Square: ditampilkan dalam grid 2 kolom di halaman promo'
+                            : 'Full Width: horizontal scroll di section "Promo Paket Layanan"',
                         style: TextStyle(
                           fontSize: 11.5,
                           color: Colors.grey[500],
                         ),
                       ),
 
-                      if (_tipeDiskon == 'persen') ...[
+                      const SizedBox(height: 24),
+                      const Divider(thickness: 1),
+                      const SizedBox(height: 16),
+
+                      // PREVIEW GAMBAR
+                      _label('Gambar Banner'),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: _pilihGambar,
+                        child: Center(
+                          child: Container(
+                            height:
+                                _tipeCard == 'full_width'
+                                    ? 140
+                                    : (_tipeCard == 'square' ? 220 : 180),
+                            width:
+                                _tipeCard == 'full_width'
+                                    ? double.infinity
+                                    : (_tipeCard == 'square'
+                                        ? 220
+                                        : double.infinity),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _AC.primary.withOpacity(.3),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child:
+                                  _tipeCard == 'full_width'
+                                      ? _buildFullWidthPreview()
+                                      : _buildStandardPreview(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _tipeCard == 'landscape'
+                            ? 'Rasio 5:2 (800×320px) • JPG/PNG/WEBP • maks 3MB'
+                            : _tipeCard == 'square'
+                            ? 'Rasio 1:1 (600×600px) • JPG/PNG/WEBP • maks 3MB'
+                            : 'Horizontal card (320×140px) • JPG/PNG/WEBP • maks 3MB',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      // JUDUL
+                      _label('Judul (Opsional)'),
+                      const SizedBox(height: 8),
+                      _field(
+                        controller: _judulCtrl,
+                        hint: 'contoh: Home Nursing 24/7 (opsional)',
+                        onChanged: (_) => setState(() {}),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // SUBTITLE
+                      _label('Subtitle (Opsional)'),
+                      const SizedBox(height: 8),
+                      _field(
+                        controller: _subCtrl,
+                        hint: 'contoh: Diskon 20% pengguna baru (opsional)',
+                        onChanged: (_) => setState(() {}),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // URUTAN
+                      _label('Urutan Tampil'),
+                      const SizedBox(height: 8),
+                      _field(
+                        controller: _urutanCtrl,
+                        hint: '0',
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          if (v != null &&
+                              v.isNotEmpty &&
+                              int.tryParse(v) == null)
+                            return 'Harus angka';
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 24),
+                      const Divider(thickness: 1),
+                      const SizedBox(height: 16),
+
+                      // SECTION DISKON
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.local_offer,
+                            color: _AC.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Pengaturan Diskon',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A5F),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      _label('Tipe Diskon'),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Column(
+                          children: [
+                            RadioListTile<String>(
+                              title: const Text('Tidak Ada Diskon'),
+                              subtitle: const Text(
+                                'Banner biasa tanpa promo',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              value: 'none',
+                              groupValue: _tipeDiskon,
+                              activeColor: _AC.primary,
+                              onChanged:
+                                  (v) => setState(() {
+                                    _tipeDiskon = v!;
+                                    _nilaiDiskonCtrl.clear();
+                                    _maxDiskonCtrl.clear();
+                                    _minTransaksiCtrl.clear();
+                                    _teksDiskonCtrl.clear();
+                                  }),
+                            ),
+                            const Divider(height: 1),
+                            RadioListTile<String>(
+                              title: const Text('Diskon Nominal'),
+                              subtitle: const Text(
+                                'Potongan dalam rupiah (Rp 50.000)',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              value: 'nominal',
+                              groupValue: _tipeDiskon,
+                              activeColor: _AC.primary,
+                              onChanged:
+                                  (v) => setState(() => _tipeDiskon = v!),
+                            ),
+                            const Divider(height: 1),
+                            RadioListTile<String>(
+                              title: const Text('Diskon Persentase'),
+                              subtitle: const Text(
+                                'Potongan dalam persen (20%)',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              value: 'persen',
+                              groupValue: _tipeDiskon,
+                              activeColor: _AC.primary,
+                              onChanged:
+                                  (v) => setState(() => _tipeDiskon = v!),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      if (_tipeDiskon != 'none') ...[
                         const SizedBox(height: 16),
-                        _label('Maksimal Diskon (Rupiah - Opsional)'),
+                        _label(
+                          _tipeDiskon == 'nominal'
+                              ? 'Nilai Diskon (Rupiah) *'
+                              : 'Nilai Diskon (Persen) *',
+                        ),
                         const SizedBox(height: 8),
                         _field(
-                          controller: _maxDiskonCtrl,
-                          hint: 'Rp 100.000',
+                          controller: _nilaiDiskonCtrl,
+                          hint: _tipeDiskon == 'nominal' ? 'Rp 50.000' : '20',
                           keyboardType: TextInputType.number,
-                          inputFormatters: [CurrencyFormatter()],
+                          inputFormatters:
+                              _tipeDiskon == 'nominal'
+                                  ? [CurrencyFormatter()]
+                                  : [FilteringTextInputFormatter.digitsOnly],
                           onChanged: (_) => setState(() {}),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty)
+                              return 'Nilai diskon wajib diisi';
+                            if (_tipeDiskon == 'nominal') {
+                              if (parseRupiah(v) == 0)
+                                return 'Nilai harus lebih dari 0';
+                            } else {
+                              if (double.tryParse(v) == null)
+                                return 'Harus angka';
+                            }
+                            return null;
+                          },
                         ),
                         Text(
-                          'Format otomatis: Rp 100.000 untuk maksimal potongan',
+                          _tipeDiskon == 'nominal'
+                              ? 'Format otomatis: Rp 50.000'
+                              : 'Contoh: 20 untuk diskon 20%',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+
+                        if (_tipeDiskon == 'persen') ...[
+                          const SizedBox(height: 16),
+                          _label('Maksimal Diskon (Rupiah - Opsional)'),
+                          const SizedBox(height: 8),
+                          _field(
+                            controller: _maxDiskonCtrl,
+                            hint: 'Rp 100.000',
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [CurrencyFormatter()],
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          Text(
+                            'Format otomatis: Rp 100.000 untuk maksimal potongan',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 16),
+                        _label('Teks Diskon (ditampilkan di banner) *'),
+                        const SizedBox(height: 8),
+                        _field(
+                          controller: _teksDiskonCtrl,
+                          hint: 'Diskon 20% atau Hemat Rp 50.000',
+                          onChanged: (_) => setState(() {}),
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Teks diskon wajib diisi'
+                                      : null,
+                        ),
+
+                        const SizedBox(height: 16),
+                        _label('Kode Promo/Voucher (Opsional)'),
+                        const SizedBox(height: 8),
+                        _field(controller: _kodePromoCtrl, hint: 'HEMAT20'),
+                        Text(
+                          'Kode yang bisa diinput user saat checkout',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+                        _label('Minimal Transaksi (Rupiah)'),
+                        const SizedBox(height: 8),
+                        _field(
+                          controller: _minTransaksiCtrl,
+                          hint: 'Rp 500.000',
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [CurrencyFormatter()],
+                        ),
+                        Text(
+                          'Kosongkan atau Rp 0 jika tidak ada minimal transaksi',
                           style: TextStyle(
                             fontSize: 11.5,
                             color: Colors.grey[500],
@@ -2982,129 +3077,88 @@ class _FormBannerPageState extends State<FormBannerPage> {
                         ),
                       ],
 
+                      const SizedBox(height: 24),
+                      const Divider(thickness: 1),
                       const SizedBox(height: 16),
-                      _label('Teks Diskon (ditampilkan di banner) *'),
-                      const SizedBox(height: 8),
-                      _field(
-                        controller: _teksDiskonCtrl,
-                        hint: 'Diskon 20% atau Hemat Rp 50.000',
-                        onChanged: (_) => setState(() {}),
-                        validator: (v) => v == null || v.trim().isEmpty
-                            ? 'Teks diskon wajib diisi'
-                            : null,
-                      ),
 
-                      const SizedBox(height: 16),
-                      _label('Kode Promo/Voucher (Opsional)'),
-                      const SizedBox(height: 8),
-                      _field(controller: _kodePromoCtrl, hint: 'HEMAT20'),
-                      Text(
-                        'Kode yang bisa diinput user saat checkout',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Colors.grey[500],
+                      // TOGGLE AKTIF
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: SwitchListTile(
+                          title: const Text(
+                            'Status Banner',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(
+                            _aktif
+                                ? 'Ditampilkan di halaman pasien'
+                                : 'Disembunyikan dari pasien',
+                            style: TextStyle(
+                              color: _aktif ? _AC.primary : Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          value: _aktif,
+                          activeColor: _AC.primary,
+                          onChanged: (v) => setState(() => _aktif = v),
                         ),
                       ),
 
-                      const SizedBox(height: 16),
-                      _label('Minimal Transaksi (Rupiah)'),
-                      const SizedBox(height: 8),
-                      _field(
-                        controller: _minTransaksiCtrl,
-                        hint: 'Rp 500.000',
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [CurrencyFormatter()],
-                      ),
-                      Text(
-                        'Kosongkan atau Rp 0 jika tidak ada minimal transaksi',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Colors.grey[500],
+                      const SizedBox(height: 32),
+
+                      // BUTTON SIMPAN
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : _simpan,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _AC.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                          child:
+                              _loading
+                                  ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : Text(
+                                    _isEdit
+                                        ? 'Simpan Perubahan'
+                                        : 'Tambah Banner',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                         ),
                       ),
                     ],
-
-                    const SizedBox(height: 24),
-                    const Divider(thickness: 1),
-                    const SizedBox(height: 16),
-
-                    // TOGGLE AKTIF
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: SwitchListTile(
-                        title: const Text(
-                          'Status Banner',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        subtitle: Text(
-                          _aktif
-                              ? 'Ditampilkan di halaman pasien'
-                              : 'Disembunyikan dari pasien',
-                          style: TextStyle(
-                            color: _aktif ? _AC.primary : Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                        value: _aktif,
-                        activeColor: _AC.primary,
-                        onChanged: (v) => setState(() => _aktif = v),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // BUTTON SIMPAN
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _simpan,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _AC.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                _isEdit
-                                    ? 'Simpan Perubahan'
-                                    : 'Tambah Banner',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 
   Widget _label(String text) => Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 14,
-          color: Color(0xFF1E3A5F),
-        ),
-      );
+    text,
+    style: const TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 14,
+      color: Color(0xFF1E3A5F),
+    ),
+  );
 
   Widget _field({
     required TextEditingController controller,

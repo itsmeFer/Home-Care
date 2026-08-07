@@ -182,7 +182,13 @@ class _PasienPageState extends State<PasienPage>
   }
 
   List<Map<String, dynamic>> _getSegmen(Map<String, dynamic> data) {
-    const keys = ['segmen', 'segments', 'segment_pasien', 'pie', 'segmentation'];
+    const keys = [
+      'segmen',
+      'segments',
+      'segment_pasien',
+      'pie',
+      'segmentation',
+    ];
     for (final k in keys) {
       if (data[k] is List) return _list(data[k]);
     }
@@ -217,15 +223,18 @@ class _PasienPageState extends State<PasienPage>
       );
     }
 
-    final rows = items
-        .map((m) {
-          final name = (m['name'] ?? m['segmen'] ?? m['label'] ?? '-')
-              .toString();
-          final total = _toDouble(m['total'] ?? m['value'] ?? m['count'] ?? 0);
-          return {'name': name, 'total': total};
-        })
-        .where((e) => (e['total'] as double) > 0)
-        .toList();
+    final rows =
+        items
+            .map((m) {
+              final name =
+                  (m['name'] ?? m['segmen'] ?? m['label'] ?? '-').toString();
+              final total = _toDouble(
+                m['total'] ?? m['value'] ?? m['count'] ?? 0,
+              );
+              return {'name': name, 'total': total};
+            })
+            .where((e) => (e['total'] as double) > 0)
+            .toList();
 
     if (rows.isEmpty) {
       return const XCard(
@@ -294,8 +303,7 @@ class _PasienPageState extends State<PasienPage>
                       children: List.generate(top.length, (i) {
                         final name = top[i]['name'] as String;
                         final v = top[i]['total'] as double;
-                        final pct =
-                            totalSum <= 0 ? 0 : (v / totalSum) * 100.0;
+                        final pct = totalSum <= 0 ? 0 : (v / totalSum) * 100.0;
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
@@ -361,12 +369,13 @@ class _PasienPageState extends State<PasienPage>
 
     for (int i = 0; i < items.length; i++) {
       final m = items[i];
-      final label = (m['label'] ?? m['date'] ?? m['d'] ?? '${i + 1}')
-          .toString();
+      final label =
+          (m['label'] ?? m['date'] ?? m['d'] ?? '${i + 1}').toString();
       labels.add(label);
 
-      final total =
-          _toDouble(m['total'] ?? m['total_order'] ?? m['order'] ?? 0);
+      final total = _toDouble(
+        m['total'] ?? m['total_order'] ?? m['order'] ?? 0,
+      );
       spots.add(FlSpot(i.toDouble(), total));
     }
 
@@ -397,10 +406,11 @@ class _PasienPageState extends State<PasienPage>
                 maxY: maxY * 1.25,
                 gridData: FlGridData(
                   show: true,
-                  getDrawingHorizontalLine: (_) =>
-                      const FlLine(color: _grid, strokeWidth: 1),
-                  getDrawingVerticalLine: (_) =>
-                      FlLine(color: _grid.withOpacity(.7), strokeWidth: 1),
+                  getDrawingHorizontalLine:
+                      (_) => const FlLine(color: _grid, strokeWidth: 1),
+                  getDrawingVerticalLine:
+                      (_) =>
+                          FlLine(color: _grid.withOpacity(.7), strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
@@ -432,22 +442,25 @@ class _PasienPageState extends State<PasienPage>
                   ),
                 ],
                 titlesData: FlTitlesData(
-                  topTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 44,
-                      getTitlesWidget: (v, meta) => Text(
-                        v.toStringAsFixed(0),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _axis,
-                        ),
-                      ),
+                      getTitlesWidget:
+                          (v, meta) => Text(
+                            v.toStringAsFixed(0),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: _axis,
+                            ),
+                          ),
                     ),
                   ),
                   bottomTitles: AxisTitles(
@@ -497,13 +510,14 @@ class _PasienPageState extends State<PasienPage>
       );
     }
 
-    final rows = vip.take(10).map((m) {
-      final nama = (m['nama'] ?? m['name'] ?? '-').toString();
-      final totalOrder = (m['total_order'] ?? m['order'] ?? 0).toString();
-      final omset = rupiah(m['omset'] ?? m['income'] ?? m['total'] ?? 0);
-      final status = (m['status'] ?? '-').toString();
-      return [nama, totalOrder, omset, status];
-    }).toList();
+    final rows =
+        vip.take(10).map((m) {
+          final nama = (m['nama'] ?? m['name'] ?? '-').toString();
+          final totalOrder = (m['total_order'] ?? m['order'] ?? 0).toString();
+          final omset = rupiah(m['omset'] ?? m['income'] ?? m['total'] ?? 0);
+          final status = (m['status'] ?? '-').toString();
+          return [nama, totalOrder, omset, status];
+        }).toList();
 
     return XCard(
       title: 'Pasien VIP (Top Omset)',
@@ -526,7 +540,8 @@ class _PasienPageState extends State<PasienPage>
       future: _future,
       builder: (context, snap) {
         final isLoading =
-            snap.connectionState == ConnectionState.waiting && snap.data == null;
+            snap.connectionState == ConnectionState.waiting &&
+            snap.data == null;
         final isError = snap.hasError && snap.data == null;
 
         if (isLoading) {

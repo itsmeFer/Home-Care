@@ -45,7 +45,8 @@ class OrderLayananPerawat {
       id: json['id'] as int,
       kodeOrder: json['kode_order']?.toString() ?? '-',
       statusOrder: json['status_order']?.toString() ?? 'pending',
-      namaLayanan: json['nama_layanan']?.toString() ??
+      namaLayanan:
+          json['nama_layanan']?.toString() ??
           (json['layanan']?['nama_layanan']?.toString() ?? '-'),
       tanggalMulai: json['tanggal_mulai']?.toString(),
       jamMulai: json['jam_mulai']?.toString(),
@@ -92,7 +93,7 @@ class _LihatOrderanMasukPerawatPageState
   void initState() {
     super.initState();
     _fetchOrders();
-    
+
     // ✅ Listen to search input changes
     _searchController.addListener(_onSearchChanged);
   }
@@ -109,10 +110,10 @@ class _LihatOrderanMasukPerawatPageState
   void _onSearchChanged() {
     // Update UI untuk show/hide clear button
     setState(() {});
-    
+
     // Cancel previous timer
     _debounceTimer?.cancel();
-    
+
     // Set new timer - fetch after 500ms of no typing
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -157,16 +158,19 @@ class _LihatOrderanMasukPerawatPageState
       }
 
       if (_tanggalDari != null) {
-        queryParams['tanggal_mulai_dari'] =
-            DateFormat('yyyy-MM-dd').format(_tanggalDari!);
+        queryParams['tanggal_mulai_dari'] = DateFormat(
+          'yyyy-MM-dd',
+        ).format(_tanggalDari!);
       }
       if (_tanggalSampai != null) {
-        queryParams['tanggal_mulai_sampai'] =
-            DateFormat('yyyy-MM-dd').format(_tanggalSampai!);
+        queryParams['tanggal_mulai_sampai'] = DateFormat(
+          'yyyy-MM-dd',
+        ).format(_tanggalSampai!);
       }
 
-      final uri = Uri.parse('$kBaseUrl/perawat/order-layanan')
-          .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+      final uri = Uri.parse(
+        '$kBaseUrl/perawat/order-layanan',
+      ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
 
       // 🔍 Debug: Print URL dan query params
       debugPrint('🔍 Fetching orders with URL: $uri');
@@ -193,16 +197,21 @@ class _LihatOrderanMasukPerawatPageState
         if (!success) {
           setState(() {
             _isLoading = false;
-            _error = decoded['message']?.toString() ??
+            _error =
+                decoded['message']?.toString() ??
                 'Gagal memuat orderan untuk perawat.';
           });
           return;
         }
 
         final List<dynamic> data = decoded['data'] ?? [];
-        final list = data
-            .map((e) => OrderLayananPerawat.fromJson(e as Map<String, dynamic>))
-            .toList();
+        final list =
+            data
+                .map(
+                  (e) =>
+                      OrderLayananPerawat.fromJson(e as Map<String, dynamic>),
+                )
+                .toList();
 
         debugPrint('✅ Loaded ${list.length} orders');
 
@@ -365,13 +374,16 @@ class _LihatOrderanMasukPerawatPageState
     // No need to call _fetchOrders() - listener will handle it
   }
 
-  int get _totalAktif => _orders
-      .where((e) =>
-          e.statusOrder == 'mendapatkan_perawat' ||
-          e.statusOrder == 'sedang_dalam_perjalanan' ||
-          e.statusOrder == 'sampai_ditempat' ||
-          e.statusOrder == 'sedang_berjalan')
-      .length;
+  int get _totalAktif =>
+      _orders
+          .where(
+            (e) =>
+                e.statusOrder == 'mendapatkan_perawat' ||
+                e.statusOrder == 'sedang_dalam_perjalanan' ||
+                e.statusOrder == 'sampai_ditempat' ||
+                e.statusOrder == 'sedang_berjalan',
+          )
+          .length;
 
   int get _totalSelesai =>
       _orders.where((e) => e.statusOrder == 'selesai').length;
@@ -438,7 +450,7 @@ class _LihatOrderanMasukPerawatPageState
               for (int i = 0; i < cards.length; i++) ...[
                 Expanded(child: cards[i]),
                 if (i != cards.length - 1) const SizedBox(width: 12),
-              ]
+              ],
             ],
           );
         }
@@ -480,24 +492,25 @@ class _LihatOrderanMasukPerawatPageState
                 decoration: InputDecoration(
                   isDense: true,
                   prefixIcon: const Icon(Icons.search, color: HCColor.primary),
-                  suffixIcon: _isLoading && _searchController.text.isNotEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: HCColor.primary,
+                  suffixIcon:
+                      _isLoading && _searchController.text.isNotEmpty
+                          ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: HCColor.primary,
+                              ),
                             ),
-                          ),
-                        )
-                      : _searchController.text.isNotEmpty
+                          )
+                          : _searchController.text.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: _clearSearch,
-                              tooltip: 'Hapus pencarian',
-                            )
+                            icon: const Icon(Icons.clear),
+                            onPressed: _clearSearch,
+                            tooltip: 'Hapus pencarian',
+                          )
                           : null,
                   filled: true,
                   fillColor: HCColor.lightTeal.withOpacity(0.3),
@@ -534,10 +547,7 @@ class _LihatOrderanMasukPerawatPageState
           final dateButton = OutlinedButton.icon(
             onPressed: _pickTanggalRange,
             icon: const Icon(Icons.calendar_today, size: 18),
-            label: Text(
-              _tanggalFilterLabel(),
-              overflow: TextOverflow.ellipsis,
-            ),
+            label: Text(_tanggalFilterLabel(), overflow: TextOverflow.ellipsis),
             style: OutlinedButton.styleFrom(
               foregroundColor: HCColor.primary,
               side: BorderSide(color: HCColor.primary.withOpacity(0.3)),
@@ -559,8 +569,10 @@ class _LihatOrderanMasukPerawatPageState
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
+              ),
             ),
             hint: const Text('Semua status'),
             items: [
@@ -702,11 +714,7 @@ class _LihatOrderanMasukPerawatPageState
         ),
         child: Column(
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.redAccent,
-              size: 48,
-            ),
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
             const SizedBox(height: 12),
             Text(
               _error!,
@@ -739,11 +747,7 @@ class _LihatOrderanMasukPerawatPageState
         ),
         child: Column(
           children: [
-            Icon(
-              Icons.inbox_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             const Text(
               'Belum ada orderan',
@@ -757,10 +761,7 @@ class _LihatOrderanMasukPerawatPageState
             Text(
               'Orderan yang ditugaskan ke Anda akan muncul di sini',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: HCColor.textMuted,
-              ),
+              style: TextStyle(fontSize: 13, color: HCColor.textMuted),
             ),
           ],
         ),
@@ -818,8 +819,7 @@ class _LihatOrderanMasukPerawatPageState
           final needRefresh = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  DetailOrderanMasukPerawatPage(orderId: order.id),
+              builder: (_) => DetailOrderanMasukPerawatPage(orderId: order.id),
             ),
           );
           if (needRefresh == true) {
@@ -896,10 +896,7 @@ class _LihatOrderanMasukPerawatPageState
                 ],
               ),
               const SizedBox(height: 14),
-              Container(
-                height: 1,
-                color: Colors.black.withOpacity(0.06),
-              ),
+              Container(height: 1, color: Colors.black.withOpacity(0.06)),
               const SizedBox(height: 12),
               _buildInfoRow('Pasien', pasienNama),
               const SizedBox(height: 6),
@@ -951,10 +948,7 @@ class _LihatOrderanMasukPerawatPageState
             ),
           ),
         ),
-        const Text(
-          ': ',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
+        const Text(': ', style: TextStyle(fontSize: 12, color: Colors.grey)),
         Expanded(
           child: Text(
             value,

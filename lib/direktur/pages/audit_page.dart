@@ -97,7 +97,8 @@ class _AuditPageState extends State<AuditPage> {
     final prefs = await SharedPreferences.getInstance();
 
     // ✅ Cek auth_token dulu (sesuai login.dart), fallback ke token
-    final token = prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
+    final token =
+        prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
 
     final res = await http.get(
@@ -193,32 +194,33 @@ class _AuditPageState extends State<AuditPage> {
   // =========================
   Future<void> _exportAudit(Map<String, dynamic> data) async {
     try {
-      final kpi = (data['kpi'] is Map)
-          ? Map<String, dynamic>.from(data['kpi'])
-          : <String, dynamic>{};
+      final kpi =
+          (data['kpi'] is Map)
+              ? Map<String, dynamic>.from(data['kpi'])
+              : <String, dynamic>{};
 
       final List logsRaw = (data['logs'] is List) ? data['logs'] : const [];
 
-      final logs = logsRaw.map((e) {
-        final m = (e is Map)
-            ? Map<String, dynamic>.from(e)
-            : <String, dynamic>{};
-        final title = (m['title'] ?? 'Audit').toString();
-        final desc = (m['desc'] ?? '-').toString();
-        final time = (m['time'] ?? '-').toString();
-        final icon = (m['icon'] ?? 'security').toString();
+      final logs =
+          logsRaw.map((e) {
+            final m =
+                (e is Map) ? Map<String, dynamic>.from(e) : <String, dynamic>{};
+            final title = (m['title'] ?? 'Audit').toString();
+            final desc = (m['desc'] ?? '-').toString();
+            final time = (m['time'] ?? '-').toString();
+            final icon = (m['icon'] ?? 'security').toString();
 
-        final ratingRaw = m['rating'] ?? m['score'] ?? m['risk_score'];
-        final rating = _normalizeRating(ratingRaw);
+            final ratingRaw = m['rating'] ?? m['score'] ?? m['risk_score'];
+            final rating = _normalizeRating(ratingRaw);
 
-        return {
-          'title': title,
-          'desc': desc,
-          'time': time,
-          'icon': icon,
-          'rating': rating,
-        };
-      }).toList();
+            return {
+              'title': title,
+              'desc': desc,
+              'time': time,
+              'icon': icon,
+              'rating': rating,
+            };
+          }).toList();
 
       final sb = StringBuffer();
       sb.writeln('sep=;');
@@ -296,9 +298,10 @@ class _AuditPageState extends State<AuditPage> {
     final data = (body is Map) ? body['data'] : null;
 
     // Laravel paginate: data: { data: [...], ... }
-    final List list = (data is Map && data['data'] is List)
-        ? data['data']
-        : (data is List ? data : const []);
+    final List list =
+        (data is Map && data['data'] is List)
+            ? data['data']
+            : (data is List ? data : const []);
 
     return list
         .map(
@@ -330,9 +333,10 @@ class _AuditPageState extends State<AuditPage> {
     if (res.statusCode < 200 || res.statusCode >= 300) {
       try {
         final body = jsonDecode(res.body);
-        final msg = (body is Map && body['message'] != null)
-            ? body['message'].toString()
-            : 'HTTP ${res.statusCode}';
+        final msg =
+            (body is Map && body['message'] != null)
+                ? body['message'].toString()
+                : 'HTTP ${res.statusCode}';
         throw Exception(msg);
       } catch (_) {
         throw Exception('HTTP ${res.statusCode}: ${res.body}');
@@ -399,17 +403,15 @@ class _AuditPageState extends State<AuditPage> {
           final name = (u['name'] ?? '-').toString();
           final email = (u['email'] ?? '-').toString();
 
-          final roleMap = (u['role'] is Map)
-              ? Map<String, dynamic>.from(u['role'])
-              : null;
+          final roleMap =
+              (u['role'] is Map) ? Map<String, dynamic>.from(u['role']) : null;
           final roleName = (roleMap?['name'] ?? '-').toString();
           final roleSlug = (roleMap?['slug'] ?? '-').toString();
 
           // ✅ Freeze API kamu mengirim is_active (kalau tidak ada, anggap true)
           final ia = u['is_active'];
-          final bool isActive = (ia is bool)
-              ? ia
-              : (ia == null ? true : ia.toString() == '1');
+          final bool isActive =
+              (ia is bool) ? ia : (ia == null ? true : ia.toString() == '1');
           final frozen = !isActive;
 
           return Container(
@@ -427,13 +429,15 @@ class _AuditPageState extends State<AuditPage> {
                   height: 42,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
-                    color: frozen
-                        ? const Color(0xFFFEE2E2)
-                        : const Color(0xFFE0F2FE),
+                    color:
+                        frozen
+                            ? const Color(0xFFFEE2E2)
+                            : const Color(0xFFE0F2FE),
                     border: Border.all(
-                      color: frozen
-                          ? const Color(0xFFFECACA)
-                          : const Color(0xFFBAE6FD),
+                      color:
+                          frozen
+                              ? const Color(0xFFFECACA)
+                              : const Color(0xFFBAE6FD),
                     ),
                   ),
                   child: Icon(
@@ -502,207 +506,223 @@ class _AuditPageState extends State<AuditPage> {
                             ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              color: frozen
-                                  ? const Color(0xFFFEE2E2)
-                                  : const Color(0xFFDCFCE7),
+                              color:
+                                  frozen
+                                      ? const Color(0xFFFEE2E2)
+                                      : const Color(0xFFDCFCE7),
                               border: Border.all(
-                                color: frozen
-                                    ? const Color(0xFFFECACA)
-                                    : const Color(0xFFBBF7D0),
+                                color:
+                                    frozen
+                                        ? const Color(0xFFFECACA)
+                                        : const Color(0xFFBBF7D0),
                               ),
                             ),
                             child: Text(
                               frozen ? 'FROZEN' : 'ACTIVE',
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
-                                color: frozen
-                                    ? kDanger
-                                    : const Color(0xFF15803D),
+                                color:
+                                    frozen ? kDanger : const Color(0xFF15803D),
                                 fontSize: 12,
                               ),
                             ),
                           ),
                           const Spacer(),
                           OutlinedButton.icon(
-                            onPressed: busyAction
-                                ? null
-                                : () async {
-                                    final wantFreeze = !frozen;
+                            onPressed:
+                                busyAction
+                                    ? null
+                                    : () async {
+                                      final wantFreeze = !frozen;
 
-                                    final ok = await showDialog<bool>(
-                                      context: ctx,
-                                      barrierDismissible: true,
-                                      builder: (c2) {
-                                        return AlertDialog(
-                                          backgroundColor: kCard,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              18,
+                                      final ok = await showDialog<bool>(
+                                        context: ctx,
+                                        barrierDismissible: true,
+                                        builder: (c2) {
+                                          return AlertDialog(
+                                            backgroundColor: kCard,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(18),
                                             ),
-                                          ),
-                                          title: Text(
-                                            wantFreeze
-                                                ? 'Freeze Akun'
-                                                : 'Unfreeze Akun',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w900,
-                                              color: kText,
-                                            ),
-                                          ),
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '$name ($roleSlug)',
-                                                style: const TextStyle(
-                                                  color: kMuted,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
+                                            title: Text(
+                                              wantFreeze
+                                                  ? 'Freeze Akun'
+                                                  : 'Unfreeze Akun',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w900,
+                                                color: kText,
                                               ),
-                                              const SizedBox(height: 10),
-                                              if (wantFreeze) ...[
-                                                const Text(
-                                                  'Alasan (opsional)',
-                                                  style: TextStyle(
-                                                    color: kText,
-                                                    fontWeight: FontWeight.w900,
-                                                    fontSize: 12.5,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 6),
-                                                TextField(
-                                                  controller: reasonCtrl,
-                                                  minLines: 2,
-                                                  maxLines: 3,
-                                                  decoration: InputDecoration(
-                                                    hintText:
-                                                        'contoh: pelanggaran SOP / akun bermasalah',
-                                                    hintStyle: const TextStyle(
-                                                      color: Color(0xFF94A3B8),
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                    filled: true,
-                                                    fillColor: const Color(
-                                                      0xFFF8FAFC,
-                                                    ),
-                                                    contentPadding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 12,
-                                                          vertical: 10,
-                                                        ),
-                                                    border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            14,
-                                                          ),
-                                                      borderSide:
-                                                          const BorderSide(
-                                                            color: kBorder,
-                                                          ),
-                                                    ),
-                                                    enabledBorder:
-                                                        OutlineInputBorder(
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                14,
-                                                              ),
-                                                          borderSide:
-                                                              const BorderSide(
-                                                                color: kBorder,
-                                                              ),
-                                                        ),
-                                                    focusedBorder:
-                                                        OutlineInputBorder(
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                14,
-                                                              ),
-                                                          borderSide:
-                                                              const BorderSide(
-                                                                color: Color(
-                                                                  0xFFBAE6FD,
-                                                                ),
-                                                              ),
-                                                        ),
-                                                  ),
-                                                ),
-                                              ] else ...[
-                                                const Text(
-                                                  'Akun akan diaktifkan kembali.',
-                                                  style: TextStyle(
+                                            ),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '$name ($roleSlug)',
+                                                  style: const TextStyle(
                                                     color: kMuted,
                                                     fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
+                                                const SizedBox(height: 10),
+                                                if (wantFreeze) ...[
+                                                  const Text(
+                                                    'Alasan (opsional)',
+                                                    style: TextStyle(
+                                                      color: kText,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      fontSize: 12.5,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  TextField(
+                                                    controller: reasonCtrl,
+                                                    minLines: 2,
+                                                    maxLines: 3,
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          'contoh: pelanggaran SOP / akun bermasalah',
+                                                      hintStyle:
+                                                          const TextStyle(
+                                                            color: Color(
+                                                              0xFF94A3B8,
+                                                            ),
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                          ),
+                                                      filled: true,
+                                                      fillColor: const Color(
+                                                        0xFFF8FAFC,
+                                                      ),
+                                                      contentPadding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 10,
+                                                          ),
+                                                      border: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              14,
+                                                            ),
+                                                        borderSide:
+                                                            const BorderSide(
+                                                              color: kBorder,
+                                                            ),
+                                                      ),
+                                                      enabledBorder:
+                                                          OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  14,
+                                                                ),
+                                                            borderSide:
+                                                                const BorderSide(
+                                                                  color:
+                                                                      kBorder,
+                                                                ),
+                                                          ),
+                                                      focusedBorder:
+                                                          OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  14,
+                                                                ),
+                                                            borderSide:
+                                                                const BorderSide(
+                                                                  color: Color(
+                                                                    0xFFBAE6FD,
+                                                                  ),
+                                                                ),
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ] else ...[
+                                                  const Text(
+                                                    'Akun akan diaktifkan kembali.',
+                                                    style: TextStyle(
+                                                      color: kMuted,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ],
                                               ],
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      c2,
+                                                      false,
+                                                    ),
+                                                child: const Text(
+                                                  'Batal',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      wantFreeze
+                                                          ? kDanger
+                                                          : const Color(
+                                                            0xFF16A34A,
+                                                          ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          14,
+                                                        ),
+                                                  ),
+                                                ),
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(c2, true),
+                                                child: Text(
+                                                  wantFreeze
+                                                      ? 'Freeze'
+                                                      : 'Unfreeze',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ),
                                             ],
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(c2, false),
-                                              child: const Text(
-                                                'Batal',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w900,
-                                                ),
-                                              ),
-                                            ),
-                                            ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: wantFreeze
-                                                    ? kDanger
-                                                    : const Color(0xFF16A34A),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(14),
-                                                ),
-                                              ),
-                                              onPressed: () =>
-                                                  Navigator.pop(c2, true),
-                                              child: Text(
-                                                wantFreeze
-                                                    ? 'Freeze'
-                                                    : 'Unfreeze',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w900,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                          );
+                                        },
+                                      );
+
+                                      if (ok != true) return;
+
+                                      try {
+                                        setStateSB(() => busyAction = true);
+
+                                        await _doFreezeAction(
+                                          userId: id,
+                                          freeze: wantFreeze,
+                                          reason: reasonCtrl.text.trim(),
                                         );
-                                      },
-                                    );
 
-                                    if (ok != true) return;
+                                        reasonCtrl.clear();
+                                        _toast(
+                                          wantFreeze
+                                              ? 'Akun berhasil di-freeze.'
+                                              : 'Akun berhasil di-unfreeze.',
+                                        );
 
-                                    try {
-                                      setStateSB(() => busyAction = true);
+                                        await load(setStateSB);
 
-                                      await _doFreezeAction(
-                                        userId: id,
-                                        freeze: wantFreeze,
-                                        reason: reasonCtrl.text.trim(),
-                                      );
-
-                                      reasonCtrl.clear();
-                                      _toast(
-                                        wantFreeze
-                                            ? 'Akun berhasil di-freeze.'
-                                            : 'Akun berhasil di-unfreeze.',
-                                      );
-
-                                      await load(setStateSB);
-
-                                      setStateSB(() => busyAction = false);
-                                    } catch (e) {
-                                      setStateSB(() => busyAction = false);
-                                      _toast('Gagal: $e');
-                                    }
-                                  },
+                                        setStateSB(() => busyAction = false);
+                                      } catch (e) {
+                                        setStateSB(() => busyAction = false);
+                                        _toast('Gagal: $e');
+                                      }
+                                    },
                             icon: Icon(
                               frozen
                                   ? Icons.lock_open_rounded
@@ -712,9 +732,10 @@ class _AuditPageState extends State<AuditPage> {
                             ),
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(
-                                color: frozen
-                                    ? const Color(0xFFBBF7D0)
-                                    : const Color(0xFFFECACA),
+                                color:
+                                    frozen
+                                        ? const Color(0xFFBBF7D0)
+                                        : const Color(0xFFFECACA),
                               ),
                               backgroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
@@ -725,9 +746,8 @@ class _AuditPageState extends State<AuditPage> {
                               frozen ? 'Unfreeze' : 'Freeze',
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
-                                color: frozen
-                                    ? const Color(0xFF16A34A)
-                                    : kDanger,
+                                color:
+                                    frozen ? const Color(0xFF16A34A) : kDanger,
                               ),
                             ),
                           ),
@@ -821,12 +841,13 @@ class _AuditPageState extends State<AuditPage> {
                             ),
                           ),
                           IconButton(
-                            onPressed: busyAction
-                                ? null
-                                : () {
-                                    debounce?.cancel();
-                                    Navigator.pop(ctx);
-                                  },
+                            onPressed:
+                                busyAction
+                                    ? null
+                                    : () {
+                                      debounce?.cancel();
+                                      Navigator.pop(ctx);
+                                    },
                             icon: const Icon(
                               Icons.close_rounded,
                               color: kMuted,
@@ -896,9 +917,8 @@ class _AuditPageState extends State<AuditPage> {
                               ),
                               const SizedBox(width: 10),
                               IconButton(
-                                onPressed: busyAction
-                                    ? null
-                                    : () => load(setStateSB),
+                                onPressed:
+                                    busyAction ? null : () => load(setStateSB),
                                 icon: const Icon(Icons.refresh_rounded),
                                 tooltip: 'Refresh',
                               ),
@@ -958,31 +978,33 @@ class _AuditPageState extends State<AuditPage> {
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: loading
-                            ? const Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.6,
+                        child:
+                            loading
+                                ? const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.6,
+                                    ),
                                   ),
+                                )
+                                : (err != null)
+                                ? _DialogError(
+                                  message: err!,
+                                  onRetry: () => load(setStateSB),
+                                )
+                                : (items.isEmpty)
+                                ? const _DialogEmpty(
+                                  title: 'Tidak ada data',
+                                  subtitle: 'Coba ketik kata kunci lain.',
+                                )
+                                : ListView(
+                                  children:
+                                      items
+                                          .map((u) => userRow(u, setStateSB))
+                                          .toList(),
                                 ),
-                              )
-                            : (err != null)
-                            ? _DialogError(
-                                message: err!,
-                                onRetry: () => load(setStateSB),
-                              )
-                            : (items.isEmpty)
-                            ? const _DialogEmpty(
-                                title: 'Tidak ada data',
-                                subtitle: 'Coba ketik kata kunci lain.',
-                              )
-                            : ListView(
-                                children: items
-                                    .map((u) => userRow(u, setStateSB))
-                                    .toList(),
-                              ),
                       ),
                     ),
 
@@ -1006,12 +1028,13 @@ class _AuditPageState extends State<AuditPage> {
                           ),
                           const SizedBox(width: 10),
                           TextButton(
-                            onPressed: busyAction
-                                ? null
-                                : () {
-                                    debounce?.cancel();
-                                    Navigator.pop(ctx);
-                                  },
+                            onPressed:
+                                busyAction
+                                    ? null
+                                    : () {
+                                      debounce?.cancel();
+                                      Navigator.pop(ctx);
+                                    },
                             child: const Text(
                               'Tutup',
                               style: TextStyle(fontWeight: FontWeight.w900),
@@ -1113,9 +1136,10 @@ class _AuditPageState extends State<AuditPage> {
     if (res.statusCode < 200 || res.statusCode >= 300) {
       try {
         final body = jsonDecode(res.body);
-        final msg = (body is Map && body['message'] != null)
-            ? body['message'].toString()
-            : 'HTTP ${res.statusCode}';
+        final msg =
+            (body is Map && body['message'] != null)
+                ? body['message'].toString()
+                : 'HTTP ${res.statusCode}';
         throw Exception(msg);
       } catch (_) {
         throw Exception('HTTP ${res.statusCode}: ${res.body}');
@@ -1165,9 +1189,10 @@ class _AuditPageState extends State<AuditPage> {
         final List<Map<String, String>> logPreview = [];
 
         String roleNameFromSlug(String slug) {
-          final hit = roleOptions
-              .where((r) => (r['slug'] ?? '').toString() == slug)
-              .toList();
+          final hit =
+              roleOptions
+                  .where((r) => (r['slug'] ?? '').toString() == slug)
+                  .toList();
           return hit.isEmpty ? slug : (hit.first['name'] ?? slug).toString();
         }
 
@@ -1192,16 +1217,17 @@ class _AuditPageState extends State<AuditPage> {
               perPage: perPage,
             );
 
-            final List list = (paged['data'] is List)
-                ? paged['data']
-                : const [];
-            items = list
-                .map(
-                  (e) => (e is Map)
-                      ? Map<String, dynamic>.from(e)
-                      : <String, dynamic>{},
-                )
-                .toList();
+            final List list =
+                (paged['data'] is List) ? paged['data'] : const [];
+            items =
+                list
+                    .map(
+                      (e) =>
+                          (e is Map)
+                              ? Map<String, dynamic>.from(e)
+                              : <String, dynamic>{},
+                    )
+                    .toList();
 
             total = _toInt(paged['total']);
             lastPage = _toInt(paged['last_page']);
@@ -1248,18 +1274,16 @@ class _AuditPageState extends State<AuditPage> {
           final name = (u['name'] ?? '-').toString();
           final email = (u['email'] ?? '-').toString();
 
-          final roleMap = (u['role'] is Map)
-              ? Map<String, dynamic>.from(u['role'])
-              : null;
+          final roleMap =
+              (u['role'] is Map) ? Map<String, dynamic>.from(u['role']) : null;
           final currentSlug = (roleMap?['slug'] ?? '-').toString();
           final currentName = (roleMap?['name'] ?? '-').toString();
 
           // ✅ role yang tampil = pending kalau ada, else current
           final pendingSlug = pendingRoleById[id];
           final displaySlug = pendingSlug ?? currentSlug;
-          final displayName = pendingSlug != null
-              ? roleNameFromSlug(pendingSlug)
-              : currentName;
+          final displayName =
+              pendingSlug != null ? roleNameFromSlug(pendingSlug) : currentName;
 
           final changed = pendingSlug != null && pendingSlug != currentSlug;
 
@@ -1346,9 +1370,8 @@ class _AuditPageState extends State<AuditPage> {
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
-                                  value: displaySlug == '-'
-                                      ? null
-                                      : displaySlug,
+                                  value:
+                                      displaySlug == '-' ? null : displaySlug,
                                   isExpanded: true,
                                   icon: const Icon(
                                     Icons.expand_more_rounded,
@@ -1361,32 +1384,36 @@ class _AuditPageState extends State<AuditPage> {
                                       fontWeight: FontWeight.w800,
                                     ),
                                   ),
-                                  items: roleOptions.map((r) {
-                                    final slug = (r['slug'] ?? '-').toString();
-                                    final nm = (r['name'] ?? slug).toString();
-                                    return DropdownMenuItem<String>(
-                                      value: slug,
-                                      child: Text(
-                                        nm,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                          color: kText,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: busy || loading
-                                      ? null
-                                      : (val) {
-                                          if (val == null) return;
-                                          setStateSB(() {
-                                            if (val == currentSlug) {
-                                              pendingRoleById.remove(id);
-                                            } else {
-                                              pendingRoleById[id] = val;
-                                            }
-                                          });
-                                        },
+                                  items:
+                                      roleOptions.map((r) {
+                                        final slug =
+                                            (r['slug'] ?? '-').toString();
+                                        final nm =
+                                            (r['name'] ?? slug).toString();
+                                        return DropdownMenuItem<String>(
+                                          value: slug,
+                                          child: Text(
+                                            nm,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              color: kText,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                  onChanged:
+                                      busy || loading
+                                          ? null
+                                          : (val) {
+                                            if (val == null) return;
+                                            setStateSB(() {
+                                              if (val == currentSlug) {
+                                                pendingRoleById.remove(id);
+                                              } else {
+                                                pendingRoleById[id] = val;
+                                              }
+                                            });
+                                          },
                                 ),
                               ),
                             ),
@@ -1445,14 +1472,16 @@ class _AuditPageState extends State<AuditPage> {
 
               // ambil sebelum utk preview (opsional)
               final idx = items.indexWhere((u) => _toInt(u['id']) == userId);
-              final beforeRole = (idx >= 0 && items[idx]['role'] is Map)
-                  ? Map<String, dynamic>.from(items[idx]['role'])
-                  : <String, dynamic>{};
+              final beforeRole =
+                  (idx >= 0 && items[idx]['role'] is Map)
+                      ? Map<String, dynamic>.from(items[idx]['role'])
+                      : <String, dynamic>{};
               final oldSlug = (beforeRole['slug'] ?? '-').toString();
               final oldName = (beforeRole['name'] ?? '-').toString();
-              final userName = (idx >= 0)
-                  ? (items[idx]['name'] ?? 'User #$userId').toString()
-                  : 'User #$userId';
+              final userName =
+                  (idx >= 0)
+                      ? (items[idx]['name'] ?? 'User #$userId').toString()
+                      : 'User #$userId';
 
               try {
                 await _updateUserRole(
@@ -1578,36 +1607,40 @@ class _AuditPageState extends State<AuditPage> {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text(
-                            'Detail Error',
-                            style: TextStyle(fontWeight: FontWeight.w900),
-                          ),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: errors.map((err) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Text(
-                                    '• $err',
-                                    style: const TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                        builder:
+                            (ctx) => AlertDialog(
+                              title: const Text(
+                                'Detail Error',
+                                style: TextStyle(fontWeight: FontWeight.w900),
+                              ),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children:
+                                      errors.map((err) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          child: Text(
+                                            '• $err',
+                                            style: const TextStyle(
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Tutup'),
+                                ),
+                              ],
                             ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Tutup'),
-                            ),
-                          ],
-                        ),
                       );
                     },
                   ),
@@ -1659,36 +1692,40 @@ class _AuditPageState extends State<AuditPage> {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text(
-                            'Detail Error',
-                            style: TextStyle(fontWeight: FontWeight.w900),
-                          ),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: errors.map((err) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Text(
-                                    '• $err',
-                                    style: const TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                        builder:
+                            (ctx) => AlertDialog(
+                              title: const Text(
+                                'Detail Error',
+                                style: TextStyle(fontWeight: FontWeight.w900),
+                              ),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children:
+                                      errors.map((err) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          child: Text(
+                                            '• $err',
+                                            style: const TextStyle(
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Tutup'),
+                                ),
+                              ],
                             ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Tutup'),
-                            ),
-                          ],
-                        ),
                       );
                     },
                   ),
@@ -1824,12 +1861,13 @@ class _AuditPageState extends State<AuditPage> {
                             ),
                           ),
                           IconButton(
-                            onPressed: busy
-                                ? null
-                                : () {
-                                    debounce?.cancel();
-                                    Navigator.pop(ctx);
-                                  },
+                            onPressed:
+                                busy
+                                    ? null
+                                    : () {
+                                      debounce?.cancel();
+                                      Navigator.pop(ctx);
+                                    },
                             icon: const Icon(
                               Icons.close_rounded,
                               color: kMuted,
@@ -1902,23 +1940,25 @@ class _AuditPageState extends State<AuditPage> {
                               ),
                               const SizedBox(width: 10),
                               IconButton(
-                                onPressed: busy || loading
-                                    ? null
-                                    : () {
-                                        searchCtrl.clear();
-                                        setStateSB(() {
-                                          q = '';
-                                          page = 1;
-                                        });
-                                        load(setStateSB);
-                                      },
+                                onPressed:
+                                    busy || loading
+                                        ? null
+                                        : () {
+                                          searchCtrl.clear();
+                                          setStateSB(() {
+                                            q = '';
+                                            page = 1;
+                                          });
+                                          load(setStateSB);
+                                        },
                                 icon: const Icon(Icons.clear_rounded),
                                 tooltip: 'Clear',
                               ),
                               IconButton(
-                                onPressed: busy || loading
-                                    ? null
-                                    : () => load(setStateSB),
+                                onPressed:
+                                    busy || loading
+                                        ? null
+                                        : () => load(setStateSB),
                                 icon: const Icon(Icons.refresh_rounded),
                                 tooltip: 'Refresh',
                               ),
@@ -1999,9 +2039,10 @@ class _AuditPageState extends State<AuditPage> {
                               ),
                               const Spacer(),
                               ElevatedButton.icon(
-                                onPressed: busy || loading
-                                    ? null
-                                    : () => applyChanges(setStateSB),
+                                onPressed:
+                                    busy || loading
+                                        ? null
+                                        : () => applyChanges(setStateSB),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: kSuccess,
                                   shape: RoundedRectangleBorder(
@@ -2043,12 +2084,13 @@ class _AuditPageState extends State<AuditPage> {
                               ),
                               const Spacer(),
                               OutlinedButton(
-                                onPressed: busy || loading || page <= 1
-                                    ? null
-                                    : () {
-                                        setStateSB(() => page--);
-                                        load(setStateSB);
-                                      },
+                                onPressed:
+                                    busy || loading || page <= 1
+                                        ? null
+                                        : () {
+                                          setStateSB(() => page--);
+                                          load(setStateSB);
+                                        },
                                 style: OutlinedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
@@ -2061,12 +2103,13 @@ class _AuditPageState extends State<AuditPage> {
                               ),
                               const SizedBox(width: 8),
                               OutlinedButton(
-                                onPressed: busy || loading || page >= lastPage
-                                    ? null
-                                    : () {
-                                        setStateSB(() => page++);
-                                        load(setStateSB);
-                                      },
+                                onPressed:
+                                    busy || loading || page >= lastPage
+                                        ? null
+                                        : () {
+                                          setStateSB(() => page++);
+                                          load(setStateSB);
+                                        },
                                 style: OutlinedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
@@ -2087,147 +2130,152 @@ class _AuditPageState extends State<AuditPage> {
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: loading
-                            ? const Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.6,
+                        child:
+                            loading
+                                ? const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.6,
+                                    ),
                                   ),
-                                ),
-                              )
-                            : (err != null)
-                            ? _DialogError(
-                                message: err!,
-                                onRetry: () => load(setStateSB),
-                              )
-                            : (items.isEmpty)
-                            ? const _DialogEmpty(
-                                title: 'Tidak ada data',
-                                subtitle: 'Coba kata kunci lain.',
-                              )
-                            : ListView(
-                                children: [
-                                  ...items.map((u) => userRow(u, setStateSB)),
-                                  const SizedBox(height: 12),
+                                )
+                                : (err != null)
+                                ? _DialogError(
+                                  message: err!,
+                                  onRetry: () => load(setStateSB),
+                                )
+                                : (items.isEmpty)
+                                ? const _DialogEmpty(
+                                  title: 'Tidak ada data',
+                                  subtitle: 'Coba kata kunci lain.',
+                                )
+                                : ListView(
+                                  children: [
+                                    ...items.map((u) => userRow(u, setStateSB)),
+                                    const SizedBox(height: 12),
 
-                                  // ✅ log preview
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: kBorder),
-                                      color: kBg,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Preview Audit Logs (lokal)',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w900,
-                                            color: kText,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        if (logPreview.isEmpty)
+                                    // ✅ log preview
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: kBorder),
+                                        color: kBg,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
                                           const Text(
-                                            'Belum ada aksi. Setelah "Simpan Perubahan", log akan muncul di sini.',
+                                            'Preview Audit Logs (lokal)',
                                             style: TextStyle(
-                                              color: kMuted,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 12.6,
+                                              fontWeight: FontWeight.w900,
+                                              color: kText,
                                             ),
-                                          )
-                                        else
-                                          ...logPreview.take(6).map((l) {
-                                            return Container(
-                                              margin: const EdgeInsets.only(
-                                                top: 8,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          if (logPreview.isEmpty)
+                                            const Text(
+                                              'Belum ada aksi. Setelah "Simpan Perubahan", log akan muncul di sini.',
+                                              style: TextStyle(
+                                                color: kMuted,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 12.6,
                                               ),
-                                              padding: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(14),
-                                                border: Border.all(
-                                                  color: kBorder,
+                                            )
+                                          else
+                                            ...logPreview.take(6).map((l) {
+                                              return Container(
+                                                margin: const EdgeInsets.only(
+                                                  top: 8,
                                                 ),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Container(
-                                                    width: 34,
-                                                    height: 34,
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            12,
-                                                          ),
-                                                      color: const Color(
-                                                        0xFFE0F2FE,
-                                                      ),
-                                                      border: Border.all(
+                                                padding: const EdgeInsets.all(
+                                                  10,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  border: Border.all(
+                                                    color: kBorder,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 34,
+                                                      height: 34,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
                                                         color: const Color(
-                                                          0xFFBAE6FD,
+                                                          0xFFE0F2FE,
+                                                        ),
+                                                        border: Border.all(
+                                                          color: const Color(
+                                                            0xFFBAE6FD,
+                                                          ),
                                                         ),
                                                       ),
+                                                      child: const Icon(
+                                                        Icons
+                                                            .receipt_long_outlined,
+                                                        color: kInfo,
+                                                        size: 18,
+                                                      ),
                                                     ),
-                                                    child: const Icon(
-                                                      Icons
-                                                          .receipt_long_outlined,
-                                                      color: kInfo,
-                                                      size: 18,
+                                                    const SizedBox(width: 10),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            (l['title'] ?? '-')
+                                                                .toString(),
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w900,
+                                                                  color: kText,
+                                                                  fontSize:
+                                                                      12.8,
+                                                                ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Text(
+                                                            (l['desc'] ?? '-')
+                                                                .toString(),
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  color: kMuted,
+                                                                  fontSize:
+                                                                      12.2,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                  const SizedBox(width: 10),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          (l['title'] ?? '-')
-                                                              .toString(),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w900,
-                                                                color: kText,
-                                                                fontSize: 12.8,
-                                                              ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          (l['desc'] ?? '-')
-                                                              .toString(),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                                color: kMuted,
-                                                                fontSize: 12.2,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }).toList(),
-                                      ],
+                                                  ],
+                                                ),
+                                              );
+                                            }).toList(),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                ),
                       ),
                     ),
 
@@ -2251,12 +2299,13 @@ class _AuditPageState extends State<AuditPage> {
                           ),
                           const SizedBox(width: 10),
                           TextButton(
-                            onPressed: busy
-                                ? null
-                                : () {
-                                    debounce?.cancel();
-                                    Navigator.pop(ctx);
-                                  },
+                            onPressed:
+                                busy
+                                    ? null
+                                    : () {
+                                      debounce?.cancel();
+                                      Navigator.pop(ctx);
+                                    },
                             child: const Text(
                               'Tutup',
                               style: TextStyle(fontWeight: FontWeight.w900),
@@ -2292,9 +2341,10 @@ class _AuditPageState extends State<AuditPage> {
         final isError = snap.hasError && snap.data == null;
 
         final data = snap.data ?? {};
-        final kpi = (data['kpi'] is Map)
-            ? Map<String, dynamic>.from(data['kpi'])
-            : <String, dynamic>{};
+        final kpi =
+            (data['kpi'] is Map)
+                ? Map<String, dynamic>.from(data['kpi'])
+                : <String, dynamic>{};
 
         final feeRule = _toInt(kpi['perubahan_fee_rule']).toString();
         final akunBaru = _toInt(kpi['akun_baru']).toString();
@@ -2353,36 +2403,40 @@ class _AuditPageState extends State<AuditPage> {
             XCard(
               title: 'Audit Log (Terbaru)',
               subtitle: 'Siapa melakukan apa & kapan.',
-              child: (logs.isEmpty)
-                  ? const _EmptyState(
-                      text: 'Belum ada audit log pada range ini.',
-                    )
-                  : Column(
-                      children: logs.take(10).map((e) {
-                        final m = (e is Map)
-                            ? Map<String, dynamic>.from(e)
-                            : <String, dynamic>{};
+              child:
+                  (logs.isEmpty)
+                      ? const _EmptyState(
+                        text: 'Belum ada audit log pada range ini.',
+                      )
+                      : Column(
+                        children:
+                            logs.take(10).map((e) {
+                              final m =
+                                  (e is Map)
+                                      ? Map<String, dynamic>.from(e)
+                                      : <String, dynamic>{};
 
-                        final title = (m['title'] ?? 'Audit').toString();
-                        final desc = (m['desc'] ?? '-').toString();
-                        final time = (m['time'] ?? '-').toString();
+                              final title = (m['title'] ?? 'Audit').toString();
+                              final desc = (m['desc'] ?? '-').toString();
+                              final time = (m['time'] ?? '-').toString();
 
-                        final iconName = (m['icon'] ?? 'security').toString();
-                        final icon = _iconFromName(iconName);
+                              final iconName =
+                                  (m['icon'] ?? 'security').toString();
+                              final icon = _iconFromName(iconName);
 
-                        final ratingRaw =
-                            m['rating'] ?? m['score'] ?? m['risk_score'];
-                        final rating = _normalizeRating(ratingRaw);
+                              final ratingRaw =
+                                  m['rating'] ?? m['score'] ?? m['risk_score'];
+                              final rating = _normalizeRating(ratingRaw);
 
-                        return _AuditRow(
-                          title: title,
-                          desc: desc,
-                          time: time,
-                          icon: icon,
-                          rating: rating,
-                        );
-                      }).toList(),
-                    ),
+                              return _AuditRow(
+                                title: title,
+                                desc: desc,
+                                time: time,
+                                icon: icon,
+                                rating: rating,
+                              );
+                            }).toList(),
+                      ),
             ),
 
             const SizedBox(height: 12),

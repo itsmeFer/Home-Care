@@ -42,12 +42,7 @@ void main() async {
 
   await initializeDateFormatting('id_ID', null);
 
-  runApp(
-    DevicePreview(
-      enabled: false,
-      builder: (context) => const MyApp(),
-    ),
-  );
+  runApp(DevicePreview(enabled: false, builder: (context) => const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -133,16 +128,16 @@ class _RootAuthGateState extends State<RootAuthGate> {
       await prefs.setInt('user_id', (data['user_id'] ?? 0) as int);
       await prefs.setInt('pasien_id', (data['pasien_id'] ?? 0) as int);
       await prefs.setInt('perawat_id', (data['perawat_id'] ?? 0) as int);
-      await prefs.setInt('koordinator_id', (data['koordinator_id'] ?? 0) as int);
+      await prefs.setInt(
+        'koordinator_id',
+        (data['koordinator_id'] ?? 0) as int,
+      );
 
       await prefs.setString(
         'nama_lengkap',
         (data['nama_lengkap'] ?? '').toString(),
       );
-      await prefs.setString(
-        'email',
-        (data['email'] ?? '').toString(),
-      );
+      await prefs.setString('email', (data['email'] ?? '').toString());
       await prefs.setString(
         'no_rekam_medis',
         (data['no_rekam_medis'] ?? '').toString(),
@@ -216,8 +211,6 @@ class _RootAuthGateState extends State<RootAuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

@@ -10,10 +10,8 @@ const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
 class DetailOrderKoordinatorPage extends StatefulWidget {
   final int orderId;
 
-  const DetailOrderKoordinatorPage({
-    Key? key,
-    required this.orderId,
-  }) : super(key: key);
+  const DetailOrderKoordinatorPage({Key? key, required this.orderId})
+    : super(key: key);
 
   @override
   State<DetailOrderKoordinatorPage> createState() =>
@@ -98,8 +96,9 @@ class _DetailOrderKoordinatorPageState
     }
 
     try {
-      final uri =
-          Uri.parse('$kBaseUrl/koordinator/order-layanan/${widget.orderId}');
+      final uri = Uri.parse(
+        '$kBaseUrl/koordinator/order-layanan/${widget.orderId}',
+      );
 
       final response = await http.get(
         uri,
@@ -118,8 +117,8 @@ class _DetailOrderKoordinatorPageState
         if (!success) {
           setState(() {
             _isLoading = false;
-            _error = decoded['message']?.toString() ??
-                'Gagal memuat detail order.';
+            _error =
+                decoded['message']?.toString() ?? 'Gagal memuat detail order.';
           });
           return;
         }
@@ -186,13 +185,12 @@ class _DetailOrderKoordinatorPageState
         final decoded = json.decode(response.body) as Map<String, dynamic>;
         final List<dynamic> data = decoded['data'] ?? [];
 
-        final list = data
-            .map<Map<String, dynamic>>(
-              (e) => (e as Map).map(
-                (k, v) => MapEntry(k.toString(), v),
-              ),
-            )
-            .toList();
+        final list =
+            data
+                .map<Map<String, dynamic>>(
+                  (e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)),
+                )
+                .toList();
 
         setState(() {
           _perawats = list;
@@ -214,9 +212,7 @@ class _DetailOrderKoordinatorPageState
   Future<void> _assignPerawat() async {
     if (_selectedPerawatId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Silakan pilih perawat terlebih dahulu.'),
-        ),
+        const SnackBar(content: Text('Silakan pilih perawat terlebih dahulu.')),
       );
       return;
     }
@@ -241,7 +237,8 @@ class _DetailOrderKoordinatorPageState
     try {
       // endpoint: POST /api/koordinator/order-layanan/{id}/assign-perawat
       final uri = Uri.parse(
-          '$kBaseUrl/koordinator/order-layanan/${widget.orderId}/assign-perawat');
+        '$kBaseUrl/koordinator/order-layanan/${widget.orderId}/assign-perawat',
+      );
 
       final response = await http.post(
         uri,
@@ -249,9 +246,7 @@ class _DetailOrderKoordinatorPageState
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: {
-          'perawat_id': _selectedPerawatId!.toString(),
-        },
+        body: {'perawat_id': _selectedPerawatId!.toString()},
       );
 
       if (!mounted) return;
@@ -266,9 +261,7 @@ class _DetailOrderKoordinatorPageState
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Perawat berhasil ditugaskan.'),
-            ),
+            const SnackBar(content: Text('Perawat berhasil ditugaskan.')),
           );
 
           // balik ke list & trigger refresh
@@ -277,8 +270,10 @@ class _DetailOrderKoordinatorPageState
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(decoded['message']?.toString() ??
-                  'Gagal menyimpan penugasan perawat.'),
+              content: Text(
+                decoded['message']?.toString() ??
+                    'Gagal menyimpan penugasan perawat.',
+              ),
             ),
           );
         }
@@ -287,24 +282,24 @@ class _DetailOrderKoordinatorPageState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                decoded['message']?.toString() ?? 'Validasi gagal (422).'),
+              decoded['message']?.toString() ?? 'Validasi gagal (422).',
+            ),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Gagal menyimpan penugasan. Kode: ${response.statusCode} ${response.reasonPhrase}'),
+              'Gagal menyimpan penugasan. Kode: ${response.statusCode} ${response.reasonPhrase}',
+            ),
           ),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Terjadi kesalahan: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -353,12 +348,7 @@ class _DetailOrderKoordinatorPageState
   Widget build(BuildContext context) {
     final titleKode = _order?['kode_order']?.toString() ?? 'Detail Order';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(titleKode),
-      ),
-      body: _buildBody(),
-    );
+    return Scaffold(appBar: AppBar(title: Text(titleKode)), body: _buildBody());
   }
 
   Widget _buildBody() {
@@ -390,9 +380,7 @@ class _DetailOrderKoordinatorPageState
     }
 
     if (_order == null) {
-      return const Center(
-        child: Text('Data order kosong.'),
-      );
+      return const Center(child: Text('Data order kosong.'));
     }
 
     final o = _order!;
@@ -410,7 +398,10 @@ class _DetailOrderKoordinatorPageState
             children: [
               _row('Kode Order', o['kode_order']),
               _chipStatus(o['status_order']?.toString() ?? 'pending'),
-              _row('Tanggal mulai', _fmtTanggal(o['tanggal_mulai']?.toString())),
+              _row(
+                'Tanggal mulai',
+                _fmtTanggal(o['tanggal_mulai']?.toString()),
+              ),
               _row('Jam mulai', _fmtJam(o['jam_mulai']?.toString())),
               _row('Metode bayar', o['metode_pembayaran']),
               _row('Status bayar', o['status_pembayaran']),
@@ -420,8 +411,10 @@ class _DetailOrderKoordinatorPageState
           _section(
             'Layanan',
             children: [
-              _row('Nama layanan',
-                  o['nama_layanan'] ?? layanan?['nama_layanan']),
+              _row(
+                'Nama layanan',
+                o['nama_layanan'] ?? layanan?['nama_layanan'],
+              ),
               _row('Tipe layanan', o['tipe_layanan']),
               _row('Jumlah visit dipesan', o['jumlah_visit_dipesan']),
               _row('Durasi / visit (menit)', o['durasi_menit_per_visit']),
@@ -510,29 +503,29 @@ class _DetailOrderKoordinatorPageState
             border: OutlineInputBorder(),
             isDense: true,
           ),
-          items: _perawats.map((p) {
-            final id = p['id'] as int;
-            final nama =
-                p['nama_lengkap']?.toString() ?? p['nama']?.toString() ?? '-';
-            final kode = p['kode_perawat']?.toString();
-            final wilayah = p['wilayah']?.toString();
+          items:
+              _perawats.map((p) {
+                final id = p['id'] as int;
+                final nama =
+                    p['nama_lengkap']?.toString() ??
+                    p['nama']?.toString() ??
+                    '-';
+                final kode = p['kode_perawat']?.toString();
+                final wilayah = p['wilayah']?.toString();
 
-            String label = nama;
-            if (kode != null && kode.isNotEmpty) {
-              label = '$nama ($kode)';
-            }
-            if (wilayah != null && wilayah.isNotEmpty) {
-              label = '$label - $wilayah';
-            }
+                String label = nama;
+                if (kode != null && kode.isNotEmpty) {
+                  label = '$nama ($kode)';
+                }
+                if (wilayah != null && wilayah.isNotEmpty) {
+                  label = '$label - $wilayah';
+                }
 
-            return DropdownMenuItem<int>(
-              value: id,
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-              ),
-            );
-          }).toList(),
+                return DropdownMenuItem<int>(
+                  value: id,
+                  child: Text(label, overflow: TextOverflow.ellipsis),
+                );
+              }).toList(),
           onChanged: (val) {
             setState(() {
               _selectedPerawatId = val;
@@ -544,13 +537,14 @@ class _DetailOrderKoordinatorPageState
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
             onPressed: _isAssigningPerawat ? null : _assignPerawat,
-            icon: _isAssigningPerawat
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.assignment_ind),
+            icon:
+                _isAssigningPerawat
+                    ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : const Icon(Icons.assignment_ind),
             label: Text(
               _isAssigningPerawat ? 'Menyimpan...' : 'Simpan Penugasan Perawat',
             ),
@@ -562,9 +556,7 @@ class _DetailOrderKoordinatorPageState
 
   Widget _section(String title, {required List<Widget> children}) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: Column(
@@ -572,10 +564,7 @@ class _DetailOrderKoordinatorPageState
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const SizedBox(height: 8),
             ...children,
@@ -586,9 +575,8 @@ class _DetailOrderKoordinatorPageState
   }
 
   Widget _row(String label, dynamic value) {
-    final text = (value == null || value.toString().isEmpty)
-        ? '-'
-        : value.toString();
+    final text =
+        (value == null || value.toString().isEmpty) ? '-' : value.toString();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -599,25 +587,11 @@ class _DetailOrderKoordinatorPageState
             width: 130,
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ),
-          const Text(
-            ':  ',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
+          const Text(':  ', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );

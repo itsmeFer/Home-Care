@@ -56,10 +56,7 @@ class Addon {
 class PesanLayananPage extends StatefulWidget {
   final Layanan layanan;
 
-  const PesanLayananPage({
-    Key? key,
-    required this.layanan,
-  }) : super(key: key);
+  const PesanLayananPage({Key? key, required this.layanan}) : super(key: key);
 
   @override
   State<PesanLayananPage> createState() => _PesanLayananPageState();
@@ -247,9 +244,9 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal membuka kamera: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal membuka kamera: $e')));
     }
   }
 
@@ -370,8 +367,9 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       request.headers['Authorization'] = 'Bearer $token';
 
       request.fields['layanan_id'] = widget.layanan.id.toString();
-      request.fields['tanggal_mulai'] =
-          DateFormat('yyyy-MM-dd').format(_selectedDate!);
+      request.fields['tanggal_mulai'] = DateFormat(
+        'yyyy-MM-dd',
+      ).format(_selectedDate!);
       request.fields['jam_mulai'] =
           '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
       request.fields['alamat_lengkap'] = _alamatController.text.trim();
@@ -394,9 +392,10 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       }
 
       if (_selectedAddons.isNotEmpty) {
-        final addonsData = _selectedAddons
-            .map((addon) => {'addon_id': addon.id, 'qty': addon.qty})
-            .toList();
+        final addonsData =
+            _selectedAddons
+                .map((addon) => {'addon_id': addon.id, 'qty': addon.qty})
+                .toList();
         request.fields['addons'] = json.encode(addonsData);
       }
 
@@ -430,14 +429,16 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => PaymentMethodPage(
-                draftId: draftId,
-                totalBayar: (totalBayar is int)
-                    ? totalBayar
-                    : (totalBayar is double)
-                        ? totalBayar.toInt()
-                        : int.tryParse(totalBayar.toString()) ?? 0,
-              ),
+              builder:
+                  (_) => PaymentMethodPage(
+                    draftId: draftId,
+                    totalBayar:
+                        (totalBayar is int)
+                            ? totalBayar
+                            : (totalBayar is double)
+                            ? totalBayar.toInt()
+                            : int.tryParse(totalBayar.toString()) ?? 0,
+                  ),
             ),
           );
         } else {
@@ -505,9 +506,7 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       hintText: hintText,
       alignLabelWithHint: alignLabelWithHint,
       prefixIcon: prefixIcon,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.grey[300]!),
@@ -545,44 +544,46 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              background: widget.layanan.gambarUrl != null
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(
-                          widget.layanan.gambarUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: HCColor.lightTeal,
-                            child: const Icon(
-                              Icons.medical_services,
-                              size: 64,
-                              color: HCColor.primary,
+              background:
+                  widget.layanan.gambarUrl != null
+                      ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            widget.layanan.gambarUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => Container(
+                                  color: HCColor.lightTeal,
+                                  child: const Icon(
+                                    Icons.medical_services,
+                                    size: 64,
+                                    color: HCColor.primary,
+                                  ),
+                                ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.7),
+                                ],
+                              ),
                             ),
                           ),
+                        ],
+                      )
+                      : Container(
+                        color: HCColor.lightTeal,
+                        child: const Icon(
+                          Icons.medical_services,
+                          size: 64,
+                          color: HCColor.primary,
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.7),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      color: HCColor.lightTeal,
-                      child: const Icon(
-                        Icons.medical_services,
-                        size: 64,
-                        color: HCColor.primary,
                       ),
-                    ),
             ),
           ),
           SliverToBoxAdapter(
@@ -643,9 +644,43 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         children: [
           small
               ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _formatRupiah(widget.layanan.hargaFix),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: HCColor.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (widget.layanan.kategori != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: HCColor.lightTeal,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        widget.layanan.kategori!,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: HCColor.primary,
+                        ),
+                      ),
+                    ),
+                ],
+              )
+              : Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
                       _formatRupiah(widget.layanan.hargaFix),
                       style: const TextStyle(
                         fontSize: 24,
@@ -653,63 +688,29 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                         color: HCColor.primary,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    if (widget.layanan.kategori != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HCColor.lightTeal,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          widget.layanan.kategori!,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: HCColor.primary,
-                          ),
-                        ),
+                  ),
+                  if (widget.layanan.kategori != null)
+                    Container(
+                      margin: const EdgeInsets.only(left: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                  ],
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
+                      decoration: BoxDecoration(
+                        color: HCColor.lightTeal,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       child: Text(
-                        _formatRupiah(widget.layanan.hargaFix),
+                        widget.layanan.kategori!,
                         style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                           color: HCColor.primary,
                         ),
                       ),
                     ),
-                    if (widget.layanan.kategori != null)
-                      Container(
-                        margin: const EdgeInsets.only(left: 12),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HCColor.lightTeal,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          widget.layanan.kategori!,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: HCColor.primary,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                ],
+              ),
           const SizedBox(height: 12),
           Text(
             widget.layanan.namaLayanan,
@@ -831,16 +832,21 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
             final isDone = index < _currentStep;
 
             return Padding(
-              padding: EdgeInsets.only(right: index == steps.length - 1 ? 0 : 14),
+              padding: EdgeInsets.only(
+                right: index == steps.length - 1 ? 0 : 14,
+              ),
               child: Column(
                 children: [
                   Container(
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isDone
-                          ? HCColor.primary
-                          : (isActive ? HCColor.lightTeal : Colors.grey[200]),
+                      color:
+                          isDone
+                              ? HCColor.primary
+                              : (isActive
+                                  ? HCColor.lightTeal
+                                  : Colors.grey[200]),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isActive ? HCColor.primary : Colors.transparent,
@@ -848,16 +854,22 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                       ),
                     ),
                     child: Center(
-                      child: isDone
-                          ? const Icon(Icons.check, color: Colors.white, size: 18)
-                          : Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: isActive ? HCColor.primary : Colors.grey,
+                      child:
+                          isDone
+                              ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 18,
+                              )
+                              : Text(
+                                '${index + 1}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      isActive ? HCColor.primary : Colors.grey,
+                                ),
                               ),
-                            ),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -936,30 +948,32 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         children: [
           small
               ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Lokasi Kunjungan',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildUseProfileButton(),
-                  ],
-                )
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Lokasi Kunjungan',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildUseProfileButton(),
+                ],
+              )
               : Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Lokasi Kunjungan',
-                        style:
-                            TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Lokasi Kunjungan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    _buildUseProfileButton(),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildUseProfileButton(),
+                ],
+              ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
@@ -1093,42 +1107,44 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
 
   Widget _buildUseProfileButton() {
     return TextButton.icon(
-      onPressed: _isLoadingProfile
-          ? null
-          : () {
-              if (_profileData != null) {
-                setState(() {
-                  _alamatController.text =
-                      _profileData!['alamat']?.toString() ?? '';
-                  _kecamatanController.text =
-                      _profileData!['kecamatan']?.toString() ?? '';
-                  _kotaController.text =
-                      _profileData!['kota']?.toString() ?? '';
-                });
+      onPressed:
+          _isLoadingProfile
+              ? null
+              : () {
+                if (_profileData != null) {
+                  setState(() {
+                    _alamatController.text =
+                        _profileData!['alamat']?.toString() ?? '';
+                    _kecamatanController.text =
+                        _profileData!['kecamatan']?.toString() ?? '';
+                    _kotaController.text =
+                        _profileData!['kota']?.toString() ?? '';
+                  });
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Alamat profil berhasil dimuat'),
-                    duration: Duration(seconds: 2),
-                    backgroundColor: HCColor.primary,
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Profil tidak ditemukan'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-              }
-            },
-      icon: _isLoadingProfile
-          ? const SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.my_location, size: 16),
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Alamat profil berhasil dimuat'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: HCColor.primary,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Profil tidak ditemukan'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              },
+      icon:
+          _isLoadingProfile
+              ? const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+              : const Icon(Icons.my_location, size: 16),
       label: Text(
         _isLoadingProfile ? 'Loading...' : 'Gunakan Profil',
         style: const TextStyle(fontSize: 12),
@@ -1197,10 +1213,7 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                 Expanded(
                   child: Text(
                     'Ambil foto terkini kondisi pasien untuk membantu tenaga medis.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.blue[900],
-                    ),
+                    style: TextStyle(fontSize: 11, color: Colors.blue[900]),
                   ),
                 ),
               ],
@@ -1216,135 +1229,138 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                 maxHeight: _kondisiPasienBytes != null ? 420 : 180,
               ),
               decoration: BoxDecoration(
-                color: _kondisiPasienBytes == null
-                    ? HCColor.lightTeal
-                    : Colors.grey[100],
+                color:
+                    _kondisiPasienBytes == null
+                        ? HCColor.lightTeal
+                        : Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _kondisiPasienBytes == null
-                      ? HCColor.primary.withOpacity(0.3)
-                      : HCColor.primary,
+                  color:
+                      _kondisiPasienBytes == null
+                          ? HCColor.primary.withOpacity(0.3)
+                          : HCColor.primary,
                   width: 2,
                 ),
               ),
-              child: _kondisiPasienBytes == null
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.add_a_photo,
-                          size: 50,
-                          color: HCColor.primary.withOpacity(0.7),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Tap untuk ambil foto',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: HCColor.primary,
+              child:
+                  _kondisiPasienBytes == null
+                      ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_a_photo,
+                            size: 50,
+                            color: HCColor.primary.withOpacity(0.7),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ukuran maks: 5MB',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: HCColor.textMuted,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.memory(
-                            _kondisiPasienBytes!,
-                            fit: BoxFit.contain,
-                            width: double.infinity,
-                          ),
-                        ),
-                        Positioned(
-                          top: 12,
-                          right: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
+                          const SizedBox(height: 12),
+                          Text(
+                            'Tap untuk ambil foto',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: HCColor.primary,
                             ),
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Ukuran maks: 5MB',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: HCColor.textMuted,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Foto Terupload',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                          ),
+                        ],
+                      )
+                      : Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.memory(
+                              _kondisiPasienBytes!,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                            ),
+                          ),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Foto Terupload',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          bottom: 12,
-                          right: 12,
-                          child: Material(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            elevation: 3,
-                            child: InkWell(
-                              onTap: _pickImage,
+                          Positioned(
+                            bottom: 12,
+                            right: 12,
+                            child: Material(
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(8),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Icon(
-                                      Icons.edit,
-                                      size: 16,
-                                      color: HCColor.primary,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Ganti Foto',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
+                              elevation: 3,
+                              child: InkWell(
+                                onTap: _pickImage,
+                                borderRadius: BorderRadius.circular(8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.edit,
+                                        size: 16,
                                         color: HCColor.primary,
                                       ),
-                                    ),
-                                  ],
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'Ganti Foto',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: HCColor.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
             ),
           ),
           if (_kondisiPasienBytes == null)
@@ -1550,47 +1566,48 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
           const Divider(height: 24),
           small
               ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Total Bayar',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Total Bayar',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _formatRupiah(total),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: HCColor.primary,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
+                  ),
+                ],
+              )
+              : Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Total Bayar',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
                       _formatRupiah(total),
+                      textAlign: TextAlign.right,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: HCColor.primary,
                       ),
                     ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Total Bayar',
-                        style:
-                            TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        _formatRupiah(total),
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: HCColor.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
         ],
       ),
     );
@@ -1604,10 +1621,7 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         children: [
           Expanded(
             flex: 3,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 14),
-            ),
+            child: Text(label, style: const TextStyle(fontSize: 14)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1691,22 +1705,23 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: _isSubmitting
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+            child:
+                _isSubmitting
+                    ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                    : Text(
+                      _currentStep < 4 ? 'Lanjut' : 'Pesan Sekarang',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  )
-                : Text(
-                    _currentStep < 4 ? 'Lanjut' : 'Pesan Sekarang',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
           ),
         ),
       ],
@@ -1753,22 +1768,23 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: _isSubmitting
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+            child:
+                _isSubmitting
+                    ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                    : Text(
+                      _currentStep < 4 ? 'Lanjut' : 'Pesan Sekarang',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  )
-                : Text(
-                    _currentStep < 4 ? 'Lanjut' : 'Pesan Sekarang',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
           ),
         ),
       ],

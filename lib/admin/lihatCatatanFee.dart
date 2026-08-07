@@ -190,14 +190,15 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       final data = jsonRes['data'] ?? {};
       final list = (data['data'] ?? []) as List;
 
-      _userSearchResults = list.map((e) {
-        return SimpleUserOption(
-          id: e['id'] ?? 0,
-          name: e['display_name'] ?? e['name'] ?? 'User',
-          email: e['email']?.toString(),
-          role: e['role']?.toString(),
-        );
-      }).toList();
+      _userSearchResults =
+          list.map((e) {
+            return SimpleUserOption(
+              id: e['id'] ?? 0,
+              name: e['display_name'] ?? e['name'] ?? 'User',
+              email: e['email']?.toString(),
+              role: e['role']?.toString(),
+            );
+          }).toList();
 
       // 🔥 AUTO PILIH USER PERTAMA (TERBARU) KALAU BELUM ADA YANG TERPILIH
       if (_selectedUser == null && _userSearchResults.isNotEmpty) {
@@ -277,39 +278,42 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
 
       // per layanan
       final byLayananRaw = (data['total_per_layanan'] ?? []) as List;
-      _byLayanan = byLayananRaw.map((e) {
-        return FeeByLayanan(
-          layananId: e['layanan_id'] ?? 0,
-          layananNama: e['layanan_nama'] ?? '-',
-          totalFee: (e['total_fee'] ?? 0).toDouble(),
-        );
-      }).toList();
+      _byLayanan =
+          byLayananRaw.map((e) {
+            return FeeByLayanan(
+              layananId: e['layanan_id'] ?? 0,
+              layananNama: e['layanan_nama'] ?? '-',
+              totalFee: (e['total_fee'] ?? 0).toDouble(),
+            );
+          }).toList();
 
       // timeline
       final timelineRaw = (data['timeline'] ?? []) as List;
-      _timeline = timelineRaw.map((e) {
-        final tanggalStr = e['tanggal'] ?? '';
-        DateTime date;
-        try {
-          date = DateTime.parse(tanggalStr);
-        } catch (_) {
-          date = DateTime.now();
-        }
-        return FeeTimelinePoint(
-          date: date,
-          amount: (e['total_fee'] ?? 0).toDouble(),
-        );
-      }).toList();
+      _timeline =
+          timelineRaw.map((e) {
+            final tanggalStr = e['tanggal'] ?? '';
+            DateTime date;
+            try {
+              date = DateTime.parse(tanggalStr);
+            } catch (_) {
+              date = DateTime.now();
+            }
+            return FeeTimelinePoint(
+              date: date,
+              amount: (e['total_fee'] ?? 0).toDouble(),
+            );
+          }).toList();
 
       // leaderboard
       final leaderboardRaw = (data['leaderboard'] ?? []) as List;
-      _leaderboard = leaderboardRaw.map((e) {
-        return LeaderboardItem(
-          userId: e['user_id'] ?? 0,
-          nama: e['nama'] ?? '-',
-          totalFee: (e['total_fee'] ?? 0).toDouble(),
-        );
-      }).toList();
+      _leaderboard =
+          leaderboardRaw.map((e) {
+            return LeaderboardItem(
+              userId: e['user_id'] ?? 0,
+              nama: e['nama'] ?? '-',
+              totalFee: (e['total_fee'] ?? 0).toDouble(),
+            );
+          }).toList();
     } catch (e) {
       _errorMessage = e.toString();
     }
@@ -343,10 +347,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
         iconTheme: const IconThemeData(color: kText),
         title: const Text(
           'Catatan Fee User (Admin)',
-          style: TextStyle(
-            color: kText,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: kText, fontWeight: FontWeight.w600),
         ),
       ),
       body: RefreshIndicator(
@@ -401,10 +402,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
           const SizedBox(height: 4),
           const Text(
             'Admin bisa mencari dan memilih user, lalu melihat catatan fee yang diterima user tersebut.',
-            style: TextStyle(
-              color: kTextSub,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: kTextSub, fontSize: 12),
           ),
           const SizedBox(height: 12),
           Row(
@@ -453,16 +451,14 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: _isSearchingUser
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text(
-                          'Cari',
-                          style: TextStyle(fontSize: 13),
-                        ),
+                  child:
+                      _isSearchingUser
+                          ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Text('Cari', style: TextStyle(fontSize: 13)),
                 ),
               ),
             ],
@@ -492,97 +488,98 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
         padding: EdgeInsets.only(top: 6),
         child: Text(
           'Tidak ada hasil. Coba kata kunci lain.',
-          style: TextStyle(
-            color: kTextSub,
-            fontSize: 12,
-          ),
+          style: TextStyle(color: kTextSub, fontSize: 12),
         ),
       );
     }
 
     return Column(
-      children: _userSearchResults.map((u) {
-        final selected = _selectedUser?.id == u.id;
-        return InkWell(
-          onTap: () async {
-            setState(() {
-              _selectedUser = u;
-              _selectedLayananId = null; // reset filter layanan
-            });
-            await _loadFeeData();
-          },
-          child: Container(
-            margin: const EdgeInsets.only(top: 6),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: selected ? kBg : Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: selected ? kPrimary.withOpacity(0.6) : kBorder,
-              ),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: kPrimary.withOpacity(0.1),
-                  child: Text(
-                    u.name.isNotEmpty ? u.name[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      color: kPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+      children:
+          _userSearchResults.map((u) {
+            final selected = _selectedUser?.id == u.id;
+            return InkWell(
+              onTap: () async {
+                setState(() {
+                  _selectedUser = u;
+                  _selectedLayananId = null; // reset filter layanan
+                });
+                await _loadFeeData();
+              },
+              child: Container(
+                margin: const EdgeInsets.only(top: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: selected ? kBg : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: selected ? kPrimary.withOpacity(0.6) : kBorder,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        u.name,
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: kPrimary.withOpacity(0.1),
+                      child: Text(
+                        u.name.isNotEmpty ? u.name[0].toUpperCase() : '?',
                         style: const TextStyle(
-                          color: kText,
+                          color: kPrimary,
                           fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (u.email != null)
-                        Text(
-                          u.email!,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            u.name,
+                            style: const TextStyle(
+                              color: kText,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (u.email != null)
+                            Text(
+                              u.email!,
+                              style: const TextStyle(
+                                color: kTextSub,
+                                fontSize: 11,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (u.role != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: kBg,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          u.role!,
                           style: const TextStyle(
                             color: kTextSub,
-                            fontSize: 11,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                    ],
-                  ),
-                ),
-                if (u.role != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: kBg,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      u.role!,
-                      style: const TextStyle(
-                        color: kTextSub,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -596,10 +593,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
         Expanded(
           child: Text(
             'Sedang melihat catatan fee untuk: ${u.name}${u.email != null ? ' (${u.email})' : ''}',
-            style: const TextStyle(
-              color: kTextSub,
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: kTextSub, fontSize: 12),
           ),
         ),
       ],
@@ -620,10 +614,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       ),
       child: const Text(
         'Pilih user terlebih dahulu untuk melihat catatan fee.',
-        style: TextStyle(
-          color: kTextSub,
-          fontSize: 13,
-        ),
+        style: TextStyle(color: kTextSub, fontSize: 13),
       ),
     );
   }
@@ -659,10 +650,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
             const SizedBox(height: 6),
             Text(
               _errorMessage!,
-              style: const TextStyle(
-                color: kTextSub,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: kTextSub, fontSize: 12),
             ),
             const SizedBox(height: 10),
             Align(
@@ -671,9 +659,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
                 onPressed: _loadFeeData,
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('Coba lagi'),
-                style: TextButton.styleFrom(
-                  foregroundColor: kPrimary,
-                ),
+                style: TextButton.styleFrom(foregroundColor: kPrimary),
               ),
             ),
           ],
@@ -701,20 +687,11 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
   Widget _buildFilterRow() {
     return Row(
       children: [
-        Expanded(
-          flex: 1,
-          child: _buildRangeDropdown(),
-        ),
+        Expanded(flex: 1, child: _buildRangeDropdown()),
         const SizedBox(width: 8),
-        Expanded(
-          flex: 1,
-          child: _buildStatusDropdown(),
-        ),
+        Expanded(flex: 1, child: _buildStatusDropdown()),
         const SizedBox(width: 8),
-        Expanded(
-          flex: 1,
-          child: _buildLayananDropdown(),
-        ),
+        Expanded(flex: 1, child: _buildLayananDropdown()),
       ],
     );
   }
@@ -740,18 +717,9 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
             _loadFeeData();
           },
           items: const [
-            DropdownMenuItem(
-              value: '7_hari_terakhir',
-              child: Text('7 Hari'),
-            ),
-            DropdownMenuItem(
-              value: '30_hari_terakhir',
-              child: Text('30 Hari'),
-            ),
-            DropdownMenuItem(
-              value: 'semua',
-              child: Text('Semua'),
-            ),
+            DropdownMenuItem(value: '7_hari_terakhir', child: Text('7 Hari')),
+            DropdownMenuItem(value: '30_hari_terakhir', child: Text('30 Hari')),
+            DropdownMenuItem(value: 'semua', child: Text('Semua')),
           ],
         ),
       ),
@@ -779,26 +747,14 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
             _loadFeeData();
           },
           items: const [
-            DropdownMenuItem(
-              value: 'semua',
-              child: Text('Semua Status'),
-            ),
-            DropdownMenuItem(
-              value: 'pending',
-              child: Text('Pending'),
-            ),
+            DropdownMenuItem(value: 'semua', child: Text('Semua Status')),
+            DropdownMenuItem(value: 'pending', child: Text('Pending')),
             DropdownMenuItem(
               value: 'siap_dibayar',
               child: Text('Siap Dibayar'),
             ),
-            DropdownMenuItem(
-              value: 'dibayar',
-              child: Text('Dibayar'),
-            ),
-            DropdownMenuItem(
-              value: 'batal',
-              child: Text('Batal'),
-            ),
+            DropdownMenuItem(value: 'dibayar', child: Text('Dibayar')),
+            DropdownMenuItem(value: 'batal', child: Text('Batal')),
           ],
         ),
       ),
@@ -863,10 +819,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
             selected == null
                 ? 'Total Fee Diterima (Semua Layanan)'
                 : 'Total Fee Diterima dari ${selected.layananNama}',
-            style: const TextStyle(
-              color: kTextSub,
-              fontSize: 13,
-            ),
+            style: const TextStyle(color: kTextSub, fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
@@ -880,21 +833,14 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.check_circle,
-                color: kSuccess,
-                size: 18,
-              ),
+              Icon(Icons.check_circle, color: kSuccess, size: 18),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   selected == null
                       ? 'Akumulasi semua fee yang diterima user pada periode & status ini.'
                       : 'Akumulasi fee hanya dari layanan ini pada periode & status ini.',
-                  style: const TextStyle(
-                    color: kTextSub,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: kTextSub, fontSize: 12),
                 ),
               ),
             ],
@@ -930,22 +876,20 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
           const SizedBox(height: 4),
           const Text(
             'Grafik fee diterima per tanggal selesai order.',
-            style: TextStyle(
-              color: kTextSub,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: kTextSub, fontSize: 12),
           ),
           const SizedBox(height: 16),
           SizedBox(
             height: 220,
-            child: _timeline.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Belum ada data timeline.',
-                      style: TextStyle(color: kTextSub, fontSize: 12),
-                    ),
-                  )
-                : LineChart(_buildLineChartData()),
+            child:
+                _timeline.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'Belum ada data timeline.',
+                        style: TextStyle(color: kTextSub, fontSize: 12),
+                      ),
+                    )
+                    : LineChart(_buildLineChartData()),
           ),
         ],
       ),
@@ -984,10 +928,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   '${date.day}/${date.month}',
-                  style: const TextStyle(
-                    color: kTextSub,
-                    fontSize: 10,
-                  ),
+                  style: const TextStyle(color: kTextSub, fontSize: 10),
                 ),
               );
             },
@@ -1001,10 +942,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
               if (value <= 0) return const SizedBox.shrink();
               return Text(
                 (value / 1000).toStringAsFixed(0) + 'k',
-                style: const TextStyle(
-                  color: kTextSub,
-                  fontSize: 10,
-                ),
+                style: const TextStyle(color: kTextSub, fontSize: 10),
               );
             },
           ),
@@ -1012,14 +950,9 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
         rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border.all(color: kBorder),
-      ),
+      borderData: FlBorderData(show: true, border: Border.all(color: kBorder)),
       minX: 0,
       maxX: spots.isEmpty ? 0 : spots.length.toDouble() - 1,
       minY: 0,
@@ -1034,10 +967,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
           belowBarData: BarAreaData(
             show: true,
             gradient: LinearGradient(
-              colors: [
-                kPrimary.withOpacity(0.25),
-                kPrimary.withOpacity(0.03),
-              ],
+              colors: [kPrimary.withOpacity(0.25), kPrimary.withOpacity(0.03)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -1078,10 +1008,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
           const SizedBox(height: 4),
           const Text(
             'Komposisi fee yang diterima user berdasarkan layanan.',
-            style: TextStyle(
-              color: kTextSub,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: kTextSub, fontSize: 12),
           ),
           const SizedBox(height: 16),
           if (_byLayanan.isEmpty)
@@ -1090,10 +1017,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Text(
                   'Belum ada data fee per layanan.',
-                  style: TextStyle(
-                    color: kTextSub,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: kTextSub, fontSize: 12),
                 ),
               ),
             )
@@ -1116,44 +1040,47 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _byLayanan.map((l) {
-                        final percentage =
-                            totalAll == 0 ? 0 : (l.totalFee / totalAll * 100);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: _colorForLayanan(l.layananId),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  l.layananNama,
-                                  style: const TextStyle(
-                                    color: kText,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
+                      children:
+                          _byLayanan.map((l) {
+                            final percentage =
+                                totalAll == 0
+                                    ? 0
+                                    : (l.totalFee / totalAll * 100);
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: _colorForLayanan(l.layananId),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      l.layananNama,
+                                      style: const TextStyle(
+                                        color: kText,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${percentage.toStringAsFixed(1)}%',
+                                    style: const TextStyle(
+                                      color: kTextSub,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${percentage.toStringAsFixed(1)}%',
-                                style: const TextStyle(
-                                  color: kTextSub,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          }).toList(),
                     ),
                   ),
                 ),
@@ -1236,10 +1163,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
         ),
         child: const Text(
           'Belum ada leaderboard penerima fee pada filter ini.',
-          style: TextStyle(
-            color: kTextSub,
-            fontSize: 12,
-          ),
+          style: TextStyle(color: kTextSub, fontSize: 12),
         ),
       );
     }
@@ -1267,10 +1191,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
           const SizedBox(height: 4),
           const Text(
             'Top penerima fee terbesar pada periode & filter yang sama.',
-            style: TextStyle(
-              color: kTextSub,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: kTextSub, fontSize: 12),
           ),
           const SizedBox(height: 12),
           ...top3.asMap().entries.map((entry) {
@@ -1281,15 +1202,15 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
-              padding:
-                  const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: BoxDecoration(
                 color: isCurrent ? kPrimary.withOpacity(0.07) : kBg,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isCurrent
-                      ? kPrimary.withOpacity(0.5)
-                      : Colors.transparent,
+                  color:
+                      isCurrent
+                          ? kPrimary.withOpacity(0.5)
+                          : Colors.transparent,
                 ),
               ),
               child: Row(
@@ -1349,10 +1270,7 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
       width: 28,
       height: 28,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: bg,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
       child: Text(
         '$rank',
         style: TextStyle(

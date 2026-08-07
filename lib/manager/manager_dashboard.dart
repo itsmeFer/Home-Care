@@ -12,7 +12,6 @@ import 'package:home_care/manager/pages/audit_page.dart';
 import 'package:home_care/manager/pages/kelola_perawat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-
 import 'pages/overview_page.dart';
 import 'package:home_care/manager/pages/keuangan_page.dart';
 import 'pages/tim_page.dart';
@@ -76,7 +75,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
       barrierDismissible: true,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text(
             'Logout?',
             style: TextStyle(fontWeight: FontWeight.w900),
@@ -219,10 +220,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
       case 2:
         return TimPage(isDesktop: isDesktop, isTablet: isTablet, range: range);
       case 3:
-        return KelolaPerawatPage(
-          isDesktop: isDesktop,
-          isTablet: isTablet,
-        );
+        return KelolaPerawatPage(isDesktop: isDesktop, isTablet: isTablet);
       case 4:
         return AuditPageManager(
           isDesktop: isDesktop,
@@ -262,25 +260,27 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                     onRangeChanged: _setRange,
                     userName: _userName,
                     onLogout: _logout,
-                    onOpenMenu: isDesktop
-                        ? null
-                        : () => showModalBottomSheet(
-                            context: context,
-                            backgroundColor: Colors.transparent,
-                            isScrollControlled: true,
-                            builder: (_) => _MobileMenu(
-                              selectedIndex: _tabIndex,
-                              userName: _userName,
-                              onSelect: (i) {
-                                _setTab(i);
-                                Navigator.pop(context);
-                              },
-                              onLogout: () {
-                                Navigator.pop(context);
-                                _logout();
-                              },
+                    onOpenMenu:
+                        isDesktop
+                            ? null
+                            : () => showModalBottomSheet(
+                              context: context,
+                              backgroundColor: Colors.transparent,
+                              isScrollControlled: true,
+                              builder:
+                                  (_) => _MobileMenu(
+                                    selectedIndex: _tabIndex,
+                                    userName: _userName,
+                                    onSelect: (i) {
+                                      _setTab(i);
+                                      Navigator.pop(context);
+                                    },
+                                    onLogout: () {
+                                      Navigator.pop(context);
+                                      _logout();
+                                    },
+                                  ),
                             ),
-                          ),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -299,16 +299,15 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                             parent: anim,
                             curve: Curves.easeOut,
                           );
-                          final slide =
-                              Tween<Offset>(
-                                begin: const Offset(0, 0.04),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: anim,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                              );
+                          final slide = Tween<Offset>(
+                            begin: const Offset(0, 0.04),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: anim,
+                              curve: Curves.easeOutCubic,
+                            ),
+                          );
                           return FadeTransition(
                             opacity: fade,
                             child: SlideTransition(
@@ -335,9 +334,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
           ],
         ),
       ),
-      bottomNavigationBar: isDesktop
-          ? null
-          : _BottomNav(index: _tabIndex, onChanged: _setTab),
+      bottomNavigationBar:
+          isDesktop ? null : _BottomNav(index: _tabIndex, onChanged: _setTab),
     );
   }
 }
@@ -380,139 +378,151 @@ class _TopBar extends StatelessWidget {
         color: kCard.withOpacity(.92),
         border: const Border(bottom: BorderSide(color: kBorder)),
       ),
-      child: isMobile
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Baris 1: Menu + Title + Avatar
-                Row(
-                  children: [
-                    if (onOpenMenu != null)
-                      IconButton(
-                        onPressed: onOpenMenu,
-                        icon: const Icon(Icons.menu_rounded),
-                        tooltip: 'Menu',
-                        iconSize: 22,
-                      ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              color: kText,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: .2,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Manager Suite',
-                            style: TextStyle(
-                              color: kMuted,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _AvatarChipMobile(
-                      name: userName,
-                      onTap: onOpenMenu ?? () {},
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Baris 2: Range Selector (Mobile Segmented Control)
-                _MobileRangeSelector(
-                  value: rangeValue,
-                  items: ranges,
-                  onChanged: onRangeChanged,
-                ),
-              ],
-            )
-          : Row(
-              children: [
-                if (onOpenMenu != null)
-                  IconButton(
-                    onPressed: onOpenMenu,
-                    icon: const Icon(Icons.menu_rounded),
-                    tooltip: 'Menu',
-                  ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      child:
+          isMobile
+              ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Baris 1: Menu + Title + Avatar
+                  Row(
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: kText,
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: .2,
+                      if (onOpenMenu != null)
+                        IconButton(
+                          onPressed: onOpenMenu,
+                          icon: const Icon(Icons.menu_rounded),
+                          tooltip: 'Menu',
+                          iconSize: 22,
+                        ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: kText,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: .2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Manager Suite',
+                              style: TextStyle(
+                                color: kMuted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'HomeCare • Manager Dashboard',
-                        style: TextStyle(
-                          color: kMuted,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      _AvatarChipMobile(
+                        name: userName,
+                        onTap: onOpenMenu ?? () {},
                       ),
                     ],
                   ),
-                ),
-                _GhostButton(
-                    icon: Icons.search_rounded, label: 'Cari', onTap: () {}),
-                const SizedBox(width: 8),
-                _Select(
-                    value: rangeValue, items: ranges, onChanged: onRangeChanged),
-                const SizedBox(width: 8),
-                _AvatarChip(
-                    name: userName, subtitle: 'Manager Access', onTap: () {}),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: onLogout,
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: kBorder),
-                      color: const Color(0xFFF8FAFC),
+                  const SizedBox(height: 12),
+                  // Baris 2: Range Selector (Mobile Segmented Control)
+                  _MobileRangeSelector(
+                    value: rangeValue,
+                    items: ranges,
+                    onChanged: onRangeChanged,
+                  ),
+                ],
+              )
+              : Row(
+                children: [
+                  if (onOpenMenu != null)
+                    IconButton(
+                      onPressed: onOpenMenu,
+                      icon: const Icon(Icons.menu_rounded),
+                      tooltip: 'Menu',
                     ),
-                    child: const Row(
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.logout_rounded,
-                          size: 18,
-                          color: Color(0xFF334155),
-                        ),
-                        SizedBox(width: 8),
                         Text(
-                          'Keluar',
-                          style: TextStyle(
-                            color: Color(0xFF0F172A),
+                          title,
+                          style: const TextStyle(
+                            color: kText,
+                            fontSize: 16.5,
                             fontWeight: FontWeight.w900,
-                            fontSize: 12.8,
+                            letterSpacing: .2,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'HomeCare • Manager Dashboard',
+                          style: TextStyle(
+                            color: kMuted,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
+                  _GhostButton(
+                    icon: Icons.search_rounded,
+                    label: 'Cari',
+                    onTap: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  _Select(
+                    value: rangeValue,
+                    items: ranges,
+                    onChanged: onRangeChanged,
+                  ),
+                  const SizedBox(width: 8),
+                  _AvatarChip(
+                    name: userName,
+                    subtitle: 'Manager Access',
+                    onTap: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: onLogout,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: kBorder),
+                        color: const Color(0xFFF8FAFC),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.logout_rounded,
+                            size: 18,
+                            color: Color(0xFF334155),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Keluar',
+                            style: TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
     );
   }
 }
@@ -546,43 +556,46 @@ class _MobileRangeSelector extends StatelessWidget {
         border: Border.all(color: kBorder),
       ),
       child: Row(
-        children: items.map((item) {
-          final selected = item == value;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(item),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: selected ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(9),
-                  border: selected
-                      ? Border.all(color: kPrimary.withOpacity(0.3))
-                      : null,
-                  boxShadow: selected
-                      ? [
-                          BoxShadow(
-                            color: kPrimary.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Text(
-                  item,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: selected ? kPrimary : kMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.2,
+        children:
+            items.map((item) {
+              final selected = item == value;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onChanged(item),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selected ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9),
+                      border:
+                          selected
+                              ? Border.all(color: kPrimary.withOpacity(0.3))
+                              : null,
+                      boxShadow:
+                          selected
+                              ? [
+                                BoxShadow(
+                                  color: kPrimary.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                              : null,
+                    ),
+                    child: Text(
+                      item,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: selected ? kPrimary : kMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
@@ -659,11 +672,11 @@ class _Sidebar extends StatelessWidget {
             selected: selectedIndex == 4,
             onTap: () => onSelect(4),
           ),
-          
+
           const SizedBox(height: 8),
           const Divider(height: 1, color: kBorder),
           const SizedBox(height: 8),
-          
+
           // ✅ Menu Lapor IT
           _NavItem(
             icon: Icons.support_agent_rounded,
@@ -672,13 +685,11 @@ class _Sidebar extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const LaporITPageManager(),
-                ),
+                MaterialPageRoute(builder: (_) => const LaporITPageManager()),
               );
             },
           ),
-          
+
           const Spacer(),
           Padding(
             padding: const EdgeInsets.all(14),
@@ -920,11 +931,7 @@ class _BottomNavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: selected ? kPrimary : kMuted,
-              size: 24,
-            ),
+            Icon(icon, color: selected ? kPrimary : kMuted, size: 24),
             const SizedBox(height: 4),
             Text(
               label,
@@ -1092,10 +1099,7 @@ class _MobileMenu extends StatelessWidget {
                   ),
                   child: const Row(
                     children: [
-                      Icon(
-                        Icons.support_agent_rounded,
-                        color: kPrimary,
-                      ),
+                      Icon(Icons.support_agent_rounded, color: kPrimary),
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -1106,10 +1110,7 @@ class _MobileMenu extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: kPrimary,
-                      ),
+                      Icon(Icons.chevron_right_rounded, color: kPrimary),
                     ],
                   ),
                 ),
@@ -1133,10 +1134,7 @@ class _MobileMenu extends StatelessWidget {
                   ),
                   child: const Row(
                     children: [
-                      Icon(
-                        Icons.logout_rounded,
-                        color: Color(0xFFEF4444),
-                      ),
+                      Icon(Icons.logout_rounded, color: Color(0xFFEF4444)),
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -1179,11 +1177,7 @@ class _MobileMenu extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: selected ? kPrimary : kMuted,
-              size: 20,
-            ),
+            Icon(icon, color: selected ? kPrimary : kMuted, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -1240,9 +1234,10 @@ class _Select extends StatelessWidget {
             fontWeight: FontWeight.w900,
             fontSize: 12.8,
           ),
-          items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
+          items:
+              items
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
           },
@@ -1287,8 +1282,7 @@ class _AvatarChip extends StatelessWidget {
                 color: const Color(0xFFE0F2FE),
                 border: Border.all(color: const Color(0xFFBAE6FD)),
               ),
-              child:
-                  const Icon(Icons.person_outline, color: Color(0xFF0284C7)),
+              child: const Icon(Icons.person_outline, color: Color(0xFF0284C7)),
             ),
             const SizedBox(width: 10),
             Column(
@@ -1323,10 +1317,7 @@ class _AvatarChipMobile extends StatelessWidget {
   final String name;
   final VoidCallback onTap;
 
-  const _AvatarChipMobile({
-    required this.name,
-    required this.onTap,
-  });
+  const _AvatarChipMobile({required this.name, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

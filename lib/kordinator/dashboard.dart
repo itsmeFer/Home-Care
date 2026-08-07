@@ -26,7 +26,8 @@ class KoordinatorDashboard extends StatefulWidget {
 }
 
 class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
-  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static const String kBaseUrl =
+      'https://homecare.primamadanitalenta.my.id/api';
 
   int _chatUnreadCount = 0;
   int _orderUnreadCount = 0;
@@ -162,7 +163,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
       if (res.statusCode != 200) return 0;
 
       final body = json.decode(res.body);
-      
+
       // Handle different response formats
       if (body is Map) {
         if (body['success'] == true) {
@@ -206,7 +207,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
       final body = json.decode(res.body);
 
       List data = [];
-      
+
       // Handle different response formats
       if (body is List) {
         data = body;
@@ -222,19 +223,19 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
       }
 
       // Filter hanya status yang relevan untuk "orderan masuk"
-      final relevantStatuses = [
-        'pending',
-        'menunggu_penugasan',
-      ];
+      final relevantStatuses = ['pending', 'menunggu_penugasan'];
 
-      final filteredData = data.where((item) {
-        if (item is! Map) return false;
-        final status = item['status_order']?.toString() ?? '';
-        return relevantStatuses.contains(status);
-      }).toList();
+      final filteredData =
+          data.where((item) {
+            if (item is! Map) return false;
+            final status = item['status_order']?.toString() ?? '';
+            return relevantStatuses.contains(status);
+          }).toList();
 
       debugPrint('📊 Total Orders: ${data.length}');
-      debugPrint('📊 Filtered Orders (pending/menunggu): ${filteredData.length}');
+      debugPrint(
+        '📊 Filtered Orders (pending/menunggu): ${filteredData.length}',
+      );
 
       return filteredData.length;
     } catch (e) {
@@ -469,10 +470,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                           debugPrint('🔄 Manual Refresh Badge');
                           _loadBadges(silent: false);
                         },
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Colors.white,
-                        ),
+                        icon: const Icon(Icons.refresh, color: Colors.white),
                         tooltip: 'Refresh Badge',
                       ),
                     ],
@@ -501,10 +499,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                         SizedBox(width: 8),
                         Text(
                           'Memuat notifikasi...',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                       ],
                     ),
@@ -559,8 +554,8 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              const LihatOrderanMasukKoordinatorPage(),
+                          builder:
+                              (_) => const LihatOrderanMasukKoordinatorPage(),
                         ),
                       );
                       // Force refresh after returning

@@ -563,9 +563,11 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                           labelText: "Nama Add-on",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => (v ?? "").trim().isEmpty
-                            ? "Nama wajib diisi"
-                            : null,
+                        validator:
+                            (v) =>
+                                (v ?? "").trim().isEmpty
+                                    ? "Nama wajib diisi"
+                                    : null,
                       ),
                       const SizedBox(height: 12),
 
@@ -811,9 +813,11 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                           labelText: "Nama Kategori",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => (v ?? "").trim().isEmpty
-                            ? "Nama wajib diisi"
-                            : null,
+                        validator:
+                            (v) =>
+                                (v ?? "").trim().isEmpty
+                                    ? "Nama wajib diisi"
+                                    : null,
                       ),
                       const SizedBox(height: 12),
 
@@ -847,9 +851,10 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
 
                             final payload = <String, dynamic>{
                               "name": nameCtrl.text.trim(),
-                              "description": descCtrl.text.trim().isEmpty
-                                  ? null
-                                  : descCtrl.text.trim(),
+                              "description":
+                                  descCtrl.text.trim().isEmpty
+                                      ? null
+                                      : descCtrl.text.trim(),
                               "is_active": isActive,
                               // icon & color = null (tidak dikirim)
                             };
@@ -943,16 +948,17 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
       children: [
         _buildAddonFilters(),
         Expanded(
-          child: loadingAddons
-              ? const Center(child: CircularProgressIndicator())
-              : addons.isEmpty
-              ? const Center(child: Text("Belum ada add-ons"))
-              : ListView.separated(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: addons.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, i) => _buildAddonCard(addons[i]),
-                ),
+          child:
+              loadingAddons
+                  ? const Center(child: CircularProgressIndicator())
+                  : addons.isEmpty
+                  ? const Center(child: Text("Belum ada add-ons"))
+                  : ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: addons.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (_, i) => _buildAddonCard(addons[i]),
+                  ),
         ),
         _buildAddonPagination(),
       ],
@@ -973,16 +979,17 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
             decoration: InputDecoration(
               hintText: "Cari kode/nama/desk...",
               prefixIcon: const Icon(Icons.search),
-              suffixIcon: q.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        searchCtrl.clear();
-                        setState(() => q = "");
-                        _fetchAddons(resetPage: true);
-                      },
-                    ),
+              suffixIcon:
+                  q.isEmpty
+                      ? null
+                      : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          searchCtrl.clear();
+                          setState(() => q = "");
+                          _fetchAddons(resetPage: true);
+                        },
+                      ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1196,16 +1203,21 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
               width: 68,
               height: 68,
               color: Colors.grey.shade100,
-              child: gambar == null
-                  ? Icon(Icons.extension_outlined, color: Colors.grey.shade500)
-                  : Image.network(
-                      _mediaUrl(gambar.toString()),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.broken_image_outlined,
+              child:
+                  gambar == null
+                      ? Icon(
+                        Icons.extension_outlined,
                         color: Colors.grey.shade500,
+                      )
+                      : Image.network(
+                        _mediaUrl(gambar.toString()),
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (_, __, ___) => Icon(
+                              Icons.broken_image_outlined,
+                              color: Colors.grey.shade500,
+                            ),
                       ),
-                    ),
             ),
           ),
           const SizedBox(width: 12),
@@ -1262,8 +1274,10 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                     const Spacer(),
                     IconButton(
                       tooltip: "Edit",
-                      onPressed: () =>
-                          _openAddonForm(item: Map<String, dynamic>.from(a)),
+                      onPressed:
+                          () => _openAddonForm(
+                            item: Map<String, dynamic>.from(a),
+                          ),
                       icon: const Icon(Icons.edit_outlined),
                     ),
                     IconButton(
@@ -1271,22 +1285,25 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                       onPressed: () async {
                         final ok = await showDialog<bool>(
                           context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text("Hapus add-on?"),
-                            content: const Text(
-                              "Ini akan soft delete. Data transaksi yang sudah ada aman.",
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text("Batal"),
+                          builder:
+                              (_) => AlertDialog(
+                                title: const Text("Hapus add-on?"),
+                                content: const Text(
+                                  "Ini akan soft delete. Data transaksi yang sudah ada aman.",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, false),
+                                    child: const Text("Batal"),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, true),
+                                    child: const Text("Hapus"),
+                                  ),
+                                ],
                               ),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text("Hapus"),
-                              ),
-                            ],
-                          ),
                         );
                         if (ok == true) _deleteAddon(a["id"]);
                       },
@@ -1314,21 +1331,23 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           Text("Page $currentPage / $lastPage"),
           const Spacer(),
           IconButton(
-            onPressed: currentPage <= 1 || loadingAddons
-                ? null
-                : () async {
-                    setState(() => currentPage -= 1);
-                    await _fetchAddons();
-                  },
+            onPressed:
+                currentPage <= 1 || loadingAddons
+                    ? null
+                    : () async {
+                      setState(() => currentPage -= 1);
+                      await _fetchAddons();
+                    },
             icon: const Icon(Icons.chevron_left),
           ),
           IconButton(
-            onPressed: currentPage >= lastPage || loadingAddons
-                ? null
-                : () async {
-                    setState(() => currentPage += 1);
-                    await _fetchAddons();
-                  },
+            onPressed:
+                currentPage >= lastPage || loadingAddons
+                    ? null
+                    : () async {
+                      setState(() => currentPage += 1);
+                      await _fetchAddons();
+                    },
             icon: const Icon(Icons.chevron_right),
           ),
         ],
@@ -1345,13 +1364,14 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         _buildCategoryFilters(),
         _buildCategoryToolbar(),
         Expanded(
-          child: loadingCat
-              ? const Center(child: CircularProgressIndicator())
-              : catItems.isEmpty
-              ? const Center(child: Text("Belum ada kategori add-on"))
-              : catReorderMode
-              ? _buildCategoryReorderList()
-              : _buildCategoryList(),
+          child:
+              loadingCat
+                  ? const Center(child: CircularProgressIndicator())
+                  : catItems.isEmpty
+                  ? const Center(child: Text("Belum ada kategori add-on"))
+                  : catReorderMode
+                  ? _buildCategoryReorderList()
+                  : _buildCategoryList(),
         ),
         _buildCategoryPagination(),
       ],
@@ -1372,16 +1392,17 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
             decoration: InputDecoration(
               hintText: "Cari nama/slug/deskripsi...",
               prefixIcon: const Icon(Icons.search),
-              suffixIcon: catQ.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        catSearchCtrl.clear();
-                        setState(() => catQ = "");
-                        _fetchCategoryCrud(resetPage: true);
-                      },
-                    ),
+              suffixIcon:
+                  catQ.isEmpty
+                      ? null
+                      : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          catSearchCtrl.clear();
+                          setState(() => catQ = "");
+                          _fetchCategoryCrud(resetPage: true);
+                        },
+                      ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1461,11 +1482,12 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
             ),
           ),
           OutlinedButton.icon(
-            onPressed: loadingCat
-                ? null
-                : () {
-                    setState(() => catReorderMode = !catReorderMode);
-                  },
+            onPressed:
+                loadingCat
+                    ? null
+                    : () {
+                      setState(() => catReorderMode = !catReorderMode);
+                    },
             icon: Icon(
               catReorderMode
                   ? Icons.check_circle_outline
@@ -1516,11 +1538,12 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         child: SizedBox(
           height: 48,
           child: ElevatedButton.icon(
-            onPressed: loadingCat
-                ? null
-                : () async {
-                    await _reorderCategoriesCommit();
-                  },
+            onPressed:
+                loadingCat
+                    ? null
+                    : () async {
+                      await _reorderCategoriesCommit();
+                    },
             icon: const Icon(Icons.save_outlined),
             label: const Text("Simpan Urutan (reorder)"),
           ),
@@ -1539,9 +1562,10 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
 
   Widget _buildCategoryCard(dynamic c, {bool reorderHandle = false}) {
     final bool active = c["is_active"] == true;
-    final int addonsCount = (c["addons_count"] is int)
-        ? c["addons_count"]
-        : int.tryParse("${c["addons_count"]}") ?? 0;
+    final int addonsCount =
+        (c["addons_count"] is int)
+            ? c["addons_count"]
+            : int.tryParse("${c["addons_count"]}") ?? 0;
 
     final String name = c["name"]?.toString() ?? "-";
     final String slug = c["slug"]?.toString() ?? "-";
@@ -1653,8 +1677,10 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                     const Spacer(),
                     IconButton(
                       tooltip: "Edit",
-                      onPressed: () =>
-                          _openCategoryForm(item: Map<String, dynamic>.from(c)),
+                      onPressed:
+                          () => _openCategoryForm(
+                            item: Map<String, dynamic>.from(c),
+                          ),
                       icon: const Icon(Icons.edit_outlined),
                     ),
                     IconButton(
@@ -1662,24 +1688,27 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                       onPressed: () async {
                         final ok = await showDialog<bool>(
                           context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text("Hapus kategori?"),
-                            content: Text(
-                              "Kategori ini akan dihapus permanen.\n\n"
-                              "Jika masih dipakai oleh add-ons, API akan mengembalikan 422.\n"
-                              "Saat ini addons_count = $addonsCount",
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text("Batal"),
+                          builder:
+                              (_) => AlertDialog(
+                                title: const Text("Hapus kategori?"),
+                                content: Text(
+                                  "Kategori ini akan dihapus permanen.\n\n"
+                                  "Jika masih dipakai oleh add-ons, API akan mengembalikan 422.\n"
+                                  "Saat ini addons_count = $addonsCount",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, false),
+                                    child: const Text("Batal"),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, true),
+                                    child: const Text("Hapus"),
+                                  ),
+                                ],
                               ),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text("Hapus"),
-                              ),
-                            ],
-                          ),
                         );
                         if (ok == true) _deleteCategory(c["id"]);
                       },
@@ -1707,21 +1736,23 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           Text("Page $catPage / $catLastPage"),
           const Spacer(),
           IconButton(
-            onPressed: catPage <= 1 || loadingCat
-                ? null
-                : () async {
-                    setState(() => catPage -= 1);
-                    await _fetchCategoryCrud();
-                  },
+            onPressed:
+                catPage <= 1 || loadingCat
+                    ? null
+                    : () async {
+                      setState(() => catPage -= 1);
+                      await _fetchCategoryCrud();
+                    },
             icon: const Icon(Icons.chevron_left),
           ),
           IconButton(
-            onPressed: catPage >= catLastPage || loadingCat
-                ? null
-                : () async {
-                    setState(() => catPage += 1);
-                    await _fetchCategoryCrud();
-                  },
+            onPressed:
+                catPage >= catLastPage || loadingCat
+                    ? null
+                    : () async {
+                      setState(() => catPage += 1);
+                      await _fetchCategoryCrud();
+                    },
             icon: const Icon(Icons.chevron_right),
           ),
         ],

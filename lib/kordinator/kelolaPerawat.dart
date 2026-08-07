@@ -172,42 +172,44 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
     final hasil = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(
-          status == 'verified' ? 'Verifikasi Perawat' : 'Tolak Perawat',
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Perawat: ${p.namaLengkap ?? '-'}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+      builder:
+          (_) => AlertDialog(
+            title: Text(
+              status == 'verified' ? 'Verifikasi Perawat' : 'Tolak Perawat',
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: controller,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: 'Catatan verifikasi (opsional)',
-                hintText: status == 'verified'
-                    ? 'Contoh: Berkas lengkap dan valid'
-                    : 'Contoh: Berkas tidak lengkap / data tidak sesuai',
-                border: const OutlineInputBorder(),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Perawat: ${p.namaLengkap ?? '-'}',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: controller,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'Catatan verifikasi (opsional)',
+                    hintText:
+                        status == 'verified'
+                            ? 'Contoh: Berkas lengkap dan valid'
+                            : 'Contoh: Berkas tidak lengkap / data tidak sesuai',
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Simpan'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
     );
 
     if (hasil == true) {
@@ -317,22 +319,23 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   Future<void> _deletePerawat(Perawat p) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Hapus Perawat'),
-        content: Text(
-          'Yakin ingin menghapus perawat "${p.namaLengkap ?? '-'}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Hapus Perawat'),
+            content: Text(
+              'Yakin ingin menghapus perawat "${p.namaLengkap ?? '-'}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -418,306 +421,320 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
         icon: const Icon(Icons.add),
         label: const Text('Tambah Perawat'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _isError
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  _errorMessage ?? 'Terjadi kesalahan',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _isError
+              ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _errorMessage ?? 'Terjadi kesalahan',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 ),
-              ),
-            )
-          : _list.isEmpty
-          ? const Center(child: Text('Belum ada perawat, tambahkan dulu.'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _list.length,
+              )
+              : _list.isEmpty
+              ? const Center(child: Text('Belum ada perawat, tambahkan dulu.'))
+              : ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _list.length,
 
-              itemBuilder: (_, i) {
-                final p = _list[i];
-                final bool canToggleActive = p.statusVerifikasi == 'verified';
+                itemBuilder: (_, i) {
+                  final p = _list[i];
+                  final bool canToggleActive = p.statusVerifikasi == 'verified';
 
-                // 👉 ambil URL foto (lewat /api/media biar aman CORS)
-                final String? fotoUrl = resolveMediaUrl(p.foto);
+                  // 👉 ambil URL foto (lewat /api/media biar aman CORS)
+                  final String? fotoUrl = resolveMediaUrl(p.foto);
 
-                return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DetailPerawatPage(perawat: p),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: HCColor.primary.withOpacity(.1),
-                            backgroundImage:
-                                (fotoUrl != null && fotoUrl.isNotEmpty)
-                                ? NetworkImage(fotoUrl)
-                                : null,
-                            child: (fotoUrl != null && fotoUrl.isNotEmpty)
-                                ? null
-                                : Text(
-                                    p.inisial ?? '?',
-                                    style: TextStyle(
-                                      color: HCColor.primaryDark,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  p.namaLengkap ?? '-',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-
-                                Row(
-                                  children: [
-                                    // chip verifikasi
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: p.chipColorVerifikasi
-                                            .withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        p.labelStatusVerifikasi,
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DetailPerawatPage(perawat: p),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundColor: HCColor.primary.withOpacity(.1),
+                              backgroundImage:
+                                  (fotoUrl != null && fotoUrl.isNotEmpty)
+                                      ? NetworkImage(fotoUrl)
+                                      : null,
+                              child:
+                                  (fotoUrl != null && fotoUrl.isNotEmpty)
+                                      ? null
+                                      : Text(
+                                        p.inisial ?? '?',
                                         style: TextStyle(
-                                          fontSize: 11,
-                                          color: p.chipColorVerifikasi,
-                                          fontWeight: FontWeight.w600,
+                                          color: HCColor.primaryDark,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    // chip aktif / tidak aktif
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: (p.isActive ?? true)
-                                            ? Colors.green.withOpacity(0.15)
-                                            : Colors.red.withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        (p.isActive ?? true)
-                                            ? 'Aktif'
-                                            : 'Tidak Aktif',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: (p.isActive ?? true)
-                                              ? Colors.green[700]
-                                              : Colors.red[700],
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Text(
-                                      p.labelJenisKelamin,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    if (p.tahunPengalaman != null) ...[
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '${p.tahunPengalaman} thn pengalaman',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                if (p.keahlian != null &&
-                                    p.keahlian!.isNotEmpty)
-                                  Text(
-                                    'Keahlian: ${p.keahlian}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                if (p.profesi != null && p.profesi!.isNotEmpty)
-                                  Text(
-                                    'Profesi: ${p.profesi}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                if (p.noHp != null && p.noHp!.isNotEmpty)
-                                  Text(
-                                    'No HP: ${p.noHp}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                if (p.wilayah != null && p.wilayah!.isNotEmpty)
-                                  Text(
-                                    'Wilayah: ${p.wilayah}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                              ],
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Transform.scale(
-                                scale: 0.9,
-                                child: Switch(
-                                  value: p.isActive ?? false,
-                                  onChanged: canToggleActive
-                                      ? (val) {
-                                          if (p.id != null) {
-                                            _updatePerawat(p.id!, {
-                                              'is_active': val,
-                                            });
-                                          }
-                                        }
-                                      : null, // <= kalau null, Switch otomatis disabled
-                                  activeColor: HCColor.primary,
-                                ),
-                              ),
-                              if (!canToggleActive) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  p.statusVerifikasi == 'pending'
-                                      ? 'Aktif setelah terverifikasi'
-                                      : 'Perawat ditolak',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-
-                              const SizedBox(height: 4),
-
-                              if (p.statusVerifikasi == 'pending') ...[
-                                Row(
-                                  children: [
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                      ),
-                                      onPressed: () =>
-                                          _tanyaCatatanDanUbahStatus(
-                                            p,
-                                            'verified',
-                                          ),
-                                      child: const Text(
-                                        'Verifikasi',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                      ),
-                                      onPressed: () =>
-                                          _tanyaCatatanDanUbahStatus(
-                                            p,
-                                            'rejected',
-                                          ),
-                                      child: const Text(
-                                        'Tolak',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                              ] else ...[
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                  ),
-                                  onPressed: () =>
-                                      _ubahStatusVerifikasi(p.id!, 'pending'),
-                                  child: const Text(
-                                    'Kembalikan ke Draft',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                              ],
-
-                              const SizedBox(height: 4),
-                              Row(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete_outline,
-                                      size: 20,
-                                      color: Colors.red,
+                                  Text(
+                                    p.namaLengkap ?? '-',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
                                     ),
-                                    onPressed: () => _deletePerawat(p),
                                   ),
+                                  const SizedBox(height: 4),
+
+                                  Row(
+                                    children: [
+                                      // chip verifikasi
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: p.chipColorVerifikasi
+                                              .withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          p.labelStatusVerifikasi,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: p.chipColorVerifikasi,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // chip aktif / tidak aktif
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              (p.isActive ?? true)
+                                                  ? Colors.green.withOpacity(
+                                                    0.15,
+                                                  )
+                                                  : Colors.red.withOpacity(
+                                                    0.15,
+                                                  ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          (p.isActive ?? true)
+                                              ? 'Aktif'
+                                              : 'Tidak Aktif',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color:
+                                                (p.isActive ?? true)
+                                                    ? Colors.green[700]
+                                                    : Colors.red[700],
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        p.labelJenisKelamin,
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      if (p.tahunPengalaman != null) ...[
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '${p.tahunPengalaman} thn pengalaman',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  if (p.keahlian != null &&
+                                      p.keahlian!.isNotEmpty)
+                                    Text(
+                                      'Keahlian: ${p.keahlian}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  if (p.profesi != null &&
+                                      p.profesi!.isNotEmpty)
+                                    Text(
+                                      'Profesi: ${p.profesi}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  if (p.noHp != null && p.noHp!.isNotEmpty)
+                                    Text(
+                                      'No HP: ${p.noHp}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  if (p.wilayah != null &&
+                                      p.wilayah!.isNotEmpty)
+                                    Text(
+                                      'Wilayah: ${p.wilayah}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Transform.scale(
+                                  scale: 0.9,
+                                  child: Switch(
+                                    value: p.isActive ?? false,
+                                    onChanged:
+                                        canToggleActive
+                                            ? (val) {
+                                              if (p.id != null) {
+                                                _updatePerawat(p.id!, {
+                                                  'is_active': val,
+                                                });
+                                              }
+                                            }
+                                            : null, // <= kalau null, Switch otomatis disabled
+                                    activeColor: HCColor.primary,
+                                  ),
+                                ),
+                                if (!canToggleActive) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    p.statusVerifikasi == 'pending'
+                                        ? 'Aktif setelah terverifikasi'
+                                        : 'Perawat ditolak',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+
+                                const SizedBox(height: 4),
+
+                                if (p.statusVerifikasi == 'pending') ...[
+                                  Row(
+                                    children: [
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                        ),
+                                        onPressed:
+                                            () => _tanyaCatatanDanUbahStatus(
+                                              p,
+                                              'verified',
+                                            ),
+                                        child: const Text(
+                                          'Verifikasi',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                        ),
+                                        onPressed:
+                                            () => _tanyaCatatanDanUbahStatus(
+                                              p,
+                                              'rejected',
+                                            ),
+                                        child: const Text(
+                                          'Tolak',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                ] else ...[
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                    ),
+                                    onPressed:
+                                        () => _ubahStatusVerifikasi(
+                                          p.id!,
+                                          'pending',
+                                        ),
+                                    child: const Text(
+                                      'Kembalikan ke Draft',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                ],
+
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () => _deletePerawat(p),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
     );
   }
 }
@@ -839,11 +856,12 @@ class Perawat {
       kontakDaruratNama: json['kontak_darurat_nama']?.toString(),
       kontakDaruratNoHp: json['kontak_darurat_no_hp']?.toString(),
       kontakDaruratHubungan: json['kontak_darurat_hubungan']?.toString(),
-      isActive: json['is_active'] == null
-          ? null
-          : (json['is_active'] is bool
-                ? json['is_active']
-                : json['is_active'].toString() == '1'),
+      isActive:
+          json['is_active'] == null
+              ? null
+              : (json['is_active'] is bool
+                  ? json['is_active']
+                  : json['is_active'].toString() == '1'),
 
       // 🔥 status verifikasi
       statusVerifikasi: json['status_verifikasi']?.toString(),
@@ -1176,12 +1194,14 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
       'nama_lengkap': _namaC.text.trim(),
       'nik': _nikC.text.trim().isEmpty ? null : _nikC.text.trim(),
       'jenis_kelamin': _jenisKelamin,
-      'tanggal_lahir': _tanggalLahirC.text.trim().isNotEmpty
-          ? _tanggalLahirC.text.trim()
-          : null,
-      'tempat_lahir': _tempatLahirC.text.trim().isNotEmpty
-          ? _tempatLahirC.text.trim()
-          : null,
+      'tanggal_lahir':
+          _tanggalLahirC.text.trim().isNotEmpty
+              ? _tanggalLahirC.text.trim()
+              : null,
+      'tempat_lahir':
+          _tempatLahirC.text.trim().isNotEmpty
+              ? _tempatLahirC.text.trim()
+              : null,
 
       'no_hp': _noHpC.text.trim().isNotEmpty ? _noHpC.text.trim() : null,
       'email': _emailC.text.trim().isNotEmpty ? _emailC.text.trim() : null,

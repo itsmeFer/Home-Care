@@ -168,94 +168,98 @@ class _DetailOrderLayananAdminPageState
                 // ✅ FULLSCREEN MODAL
                 showDialog(
                   context: context,
-                  builder: (ctx) => Dialog(
-                    backgroundColor: Colors.transparent,
-                    insetPadding: const EdgeInsets.all(16),
-                    child: Stack(
-                      children: [
-                        // Background dismiss
-                        GestureDetector(
-                          onTap: () => Navigator.pop(ctx),
-                          child: Container(
-                            color: Colors.black.withOpacity(0.8),
-                          ),
-                        ),
-                        // Image viewer
-                        Center(
-                          child: InteractiveViewer(
-                            minScale: 0.5,
-                            maxScale: 4.0,
-                            child: Image.network(
-                              url,
-                              fit: BoxFit.contain,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
+                  builder:
+                      (ctx) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        insetPadding: const EdgeInsets.all(16),
+                        child: Stack(
+                          children: [
+                            // Background dismiss
+                            GestureDetector(
+                              onTap: () => Navigator.pop(ctx),
+                              child: Container(
+                                color: Colors.black.withOpacity(0.8),
+                              ),
+                            ),
+                            // Image viewer
+                            Center(
+                              child: InteractiveViewer(
+                                minScale: 0.5,
+                                maxScale: 4.0,
+                                child: Image.network(
+                                  url,
+                                  fit: BoxFit.contain,
+                                  loadingBuilder: (
+                                    context,
+                                    child,
+                                    loadingProgress,
+                                  ) {
                                     if (loadingProgress == null) return child;
                                     return Center(
                                       child: CircularProgressIndicator(
                                         color: Colors.white,
                                         value:
                                             loadingProgress
-                                                    .expectedTotalBytes !=
-                                                null
-                                            ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                            : null,
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
                                       ),
                                     );
                                   },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  padding: const EdgeInsets.all(20),
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.error_outline,
+                                            size: 48,
+                                            color: HCColor.error,
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Text(
+                                            'Gagal memuat gambar',
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            // Close button
+                            Positioned(
+                              top: 40,
+                              right: 16,
+                              child: IconButton(
+                                icon: Container(
+                                  padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
+                                    size: 24,
                                   ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline,
-                                        size: 48,
-                                        color: HCColor.error,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Text(
-                                        'Gagal memuat gambar',
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        // Close button
-                        Positioned(
-                          top: 40,
-                          right: 16,
-                          child: IconButton(
-                            icon: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 24,
+                                ),
+                                onPressed: () => Navigator.pop(ctx),
                               ),
                             ),
-                            onPressed: () => Navigator.pop(ctx),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
                 );
               },
               child: ClipRRect(
@@ -278,10 +282,11 @@ class _DetailOrderLayananAdminPageState
                           child: Center(
                             child: CircularProgressIndicator(
                               color: HCColor.primary,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                  : null,
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
                             ),
                           ),
                         );
@@ -475,10 +480,11 @@ class _DetailOrderLayananAdminPageState
 
         final List<dynamic> data = decoded['data'] ?? [];
 
-        final list = data.map<Map<String, dynamic>>((e) {
-          final m = (e as Map).map((k, v) => MapEntry(k.toString(), v));
-          return m;
-        }).toList();
+        final list =
+            data.map<Map<String, dynamic>>((e) {
+              final m = (e as Map).map((k, v) => MapEntry(k.toString(), v));
+              return m;
+            }).toList();
 
         setState(() {
           _koordinators = list;
@@ -1325,14 +1331,16 @@ class _DetailOrderLayananAdminPageState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isOrderFinished
-            ? Colors.grey.withOpacity(0.1)
-            : HCColor.lightTeal.withOpacity(0.3),
+        color:
+            isOrderFinished
+                ? Colors.grey.withOpacity(0.1)
+                : HCColor.lightTeal.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isOrderFinished
-              ? Colors.grey.withOpacity(0.3)
-              : HCColor.primary.withOpacity(0.2),
+          color:
+              isOrderFinished
+                  ? Colors.grey.withOpacity(0.3)
+                  : HCColor.primary.withOpacity(0.2),
         ),
       ),
       child: Column(
@@ -1398,34 +1406,39 @@ class _DetailOrderLayananAdminPageState
               fillColor: isOrderFinished ? Colors.grey[200] : Colors.white,
               isDense: true,
             ),
-            items: _koordinators.map((k) {
-              final rawId = k['id'];
-              final intId = (rawId is int)
-                  ? rawId
-                  : int.tryParse(rawId.toString()) ?? 0;
+            items:
+                _koordinators.map((k) {
+                  final rawId = k['id'];
+                  final intId =
+                      (rawId is int)
+                          ? rawId
+                          : int.tryParse(rawId.toString()) ?? 0;
 
-              final nama =
-                  k['nama_lengkap']?.toString() ?? k['nama']?.toString() ?? '-';
-              final wilayah = k['wilayah']?.toString();
+                  final nama =
+                      k['nama_lengkap']?.toString() ??
+                      k['nama']?.toString() ??
+                      '-';
+                  final wilayah = k['wilayah']?.toString();
 
-              return DropdownMenuItem<int>(
-                value: intId,
-                child: Text(
-                  (wilayah == null || wilayah.isEmpty)
-                      ? nama
-                      : '$nama - ($wilayah)',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13),
-                ),
-              );
-            }).toList(),
-            onChanged: isOrderFinished
-                ? null // ✅ DISABLE DROPDOWN
-                : (val) {
-                    setState(() {
-                      _selectedKoordinatorId = val;
-                    });
-                  },
+                  return DropdownMenuItem<int>(
+                    value: intId,
+                    child: Text(
+                      (wilayah == null || wilayah.isEmpty)
+                          ? nama
+                          : '$nama - ($wilayah)',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  );
+                }).toList(),
+            onChanged:
+                isOrderFinished
+                    ? null // ✅ DISABLE DROPDOWN
+                    : (val) {
+                      setState(() {
+                        _selectedKoordinatorId = val;
+                      });
+                    },
           ),
 
           const SizedBox(height: 12),
@@ -1434,22 +1447,26 @@ class _DetailOrderLayananAdminPageState
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: (isOrderFinished || _isAssigningKoordinator)
-                  ? null // ✅ DISABLE BUTTON
-                  : _assignKoordinator,
-              icon: _isAssigningKoordinator
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+              onPressed:
+                  (isOrderFinished || _isAssigningKoordinator)
+                      ? null // ✅ DISABLE BUTTON
+                      : _assignKoordinator,
+              icon:
+                  _isAssigningKoordinator
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                      : Icon(
+                        isOrderFinished
+                            ? Icons.lock
+                            : Icons.assignment_turned_in,
+                        size: 18,
                       ),
-                    )
-                  : Icon(
-                      isOrderFinished ? Icons.lock : Icons.assignment_turned_in,
-                      size: 18,
-                    ),
               label: Text(
                 _isAssigningKoordinator
                     ? 'Menyimpan...'
@@ -1462,9 +1479,8 @@ class _DetailOrderLayananAdminPageState
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isOrderFinished
-                    ? Colors.grey
-                    : HCColor.primary,
+                backgroundColor:
+                    isOrderFinished ? Colors.grey : HCColor.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -1478,9 +1494,8 @@ class _DetailOrderLayananAdminPageState
   }
 
   Widget _infoRow(String label, dynamic value) {
-    final text = (value == null || value.toString().isEmpty)
-        ? '-'
-        : value.toString();
+    final text =
+        (value == null || value.toString().isEmpty) ? '-' : value.toString();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

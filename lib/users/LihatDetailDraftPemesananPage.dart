@@ -189,15 +189,16 @@ class _LihatDetailDraftPemesananPageState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColors.bg,
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: HCColors.primary),
-            )
-          : _error != null
-          ? _buildErrorState()
-          : _draft == null
-          ? const Center(child: Text('Data draft tidak ditemukan.'))
-          : _buildContent(),
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(color: HCColors.primary),
+              )
+              : _error != null
+              ? _buildErrorState()
+              : _draft == null
+              ? const Center(child: Text('Data draft tidak ditemukan.'))
+              : _buildContent(),
     );
   }
 
@@ -299,22 +300,26 @@ class _LihatDetailDraftPemesananPageState
                         Image.network(
                           gambarLayanan,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [HCColors.warning, HCColors.pending],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                          errorBuilder:
+                              (_, __, ___) => Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      HCColors.warning,
+                                      HCColors.pending,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.medical_services_rounded,
+                                    size: 64,
+                                    color: Colors.white54,
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.medical_services_rounded,
-                                size: 64,
-                                color: Colors.white54,
-                              ),
-                            ),
-                          ),
                         )
                       else
                         Container(
@@ -411,10 +416,11 @@ class _LihatDetailDraftPemesananPageState
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => PaymentMethodPage(
-                    draftId: widget.draftId,
-                    totalBayar: totalBayar.toInt(),
-                  ),
+                  builder:
+                      (_) => PaymentMethodPage(
+                        draftId: widget.draftId,
+                        totalBayar: totalBayar.toInt(),
+                      ),
                 ),
               );
 
@@ -936,11 +942,12 @@ class _LihatDetailDraftPemesananPageState
             style: TextStyle(
               fontSize: isTotal ? 17 : 14,
               fontWeight: isTotal ? FontWeight.w800 : FontWeight.w600,
-              color: isDiscount
-                  ? HCColors.danger
-                  : isTotal
-                  ? HCColors.primary
-                  : HCColors.textDark,
+              color:
+                  isDiscount
+                      ? HCColors.danger
+                      : isTotal
+                      ? HCColors.primary
+                      : HCColors.textDark,
             ),
           ),
         ],

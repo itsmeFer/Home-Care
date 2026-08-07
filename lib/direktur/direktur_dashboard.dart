@@ -197,24 +197,26 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
                     ranges: _ranges,
                     onRangeChanged: _setRange,
                     userName: _userName,
-                    onOpenMenu: isDesktop
-                        ? null
-                        : () => showModalBottomSheet(
-                            context: context,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => _MobileMenu(
-                              selectedIndex: _tabIndex,
-                              userName: _userName,
-                              onSelect: (i) {
-                                _setTab(i);
-                                Navigator.pop(context);
-                              },
-                              onLogout: () {
-                                Navigator.pop(context);
-                                _logout();
-                              },
+                    onOpenMenu:
+                        isDesktop
+                            ? null
+                            : () => showModalBottomSheet(
+                              context: context,
+                              backgroundColor: Colors.transparent,
+                              builder:
+                                  (_) => _MobileMenu(
+                                    selectedIndex: _tabIndex,
+                                    userName: _userName,
+                                    onSelect: (i) {
+                                      _setTab(i);
+                                      Navigator.pop(context);
+                                    },
+                                    onLogout: () {
+                                      Navigator.pop(context);
+                                      _logout();
+                                    },
+                                  ),
                             ),
-                          ),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -233,16 +235,15 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
                             parent: anim,
                             curve: Curves.easeOut,
                           );
-                          final slide =
-                              Tween<Offset>(
-                                begin: const Offset(0, 0.04),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: anim,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                              );
+                          final slide = Tween<Offset>(
+                            begin: const Offset(0, 0.04),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: anim,
+                              curve: Curves.easeOutCubic,
+                            ),
+                          );
                           return FadeTransition(
                             opacity: fade,
                             child: SlideTransition(
@@ -269,9 +270,8 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
           ],
         ),
       ),
-      bottomNavigationBar: isDesktop
-          ? null
-          : _BottomNav(index: _tabIndex, onChanged: _setTab),
+      bottomNavigationBar:
+          isDesktop ? null : _BottomNav(index: _tabIndex, onChanged: _setTab),
     );
   }
 
@@ -372,125 +372,126 @@ class _TopBar extends StatelessWidget {
         color: kCard.withOpacity(.92),
         border: const Border(bottom: BorderSide(color: kBorder)),
       ),
-      child: isMobile
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row 1: Menu + Title
-                Row(
-                  children: [
-                    if (onOpenMenu != null)
-                      IconButton(
-                        onPressed: onOpenMenu,
-                        icon: const Icon(Icons.menu_rounded, size: 22),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    if (onOpenMenu != null) const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              color: kText,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: .2,
+      child:
+          isMobile
+              ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Row 1: Menu + Title
+                  Row(
+                    children: [
+                      if (onOpenMenu != null)
+                        IconButton(
+                          onPressed: onOpenMenu,
+                          icon: const Icon(Icons.menu_rounded, size: 22),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      if (onOpenMenu != null) const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: kText,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: .2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'HomeCare • Dashboard',
-                            style: TextStyle(
-                              color: kMuted,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                            const SizedBox(height: 2),
+                            const Text(
+                              'HomeCare • Dashboard',
+                              style: TextStyle(
+                                color: kMuted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Row 2: Select + Avatar (scrollable jika perlu)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _Select(
+                          value: rangeValue,
+                          items: ranges,
+                          onChanged: onRangeChanged,
+                        ),
+                        const SizedBox(width: 8),
+                        _AvatarChip(
+                          name: userName,
+                          subtitle: 'Direktur',
+                          onTap: () {},
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Row 2: Select + Avatar (scrollable jika perlu)
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _Select(
-                        value: rangeValue,
-                        items: ranges,
-                        onChanged: onRangeChanged,
-                      ),
-                      const SizedBox(width: 8),
-                      _AvatarChip(
-                        name: userName,
-                        subtitle: 'Direktur',
-                        onTap: () {},
-                      ),
-                    ],
                   ),
-                ),
-              ],
-            )
-          : Row(
-              children: [
-                if (onOpenMenu != null)
-                  IconButton(
-                    onPressed: onOpenMenu,
-                    icon: const Icon(Icons.menu_rounded),
-                    tooltip: 'Menu',
-                  ),
-                if (onOpenMenu != null) const SizedBox(width: 6),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: kText,
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: .2,
+                ],
+              )
+              : Row(
+                children: [
+                  if (onOpenMenu != null)
+                    IconButton(
+                      onPressed: onOpenMenu,
+                      icon: const Icon(Icons.menu_rounded),
+                      tooltip: 'Menu',
+                    ),
+                  if (onOpenMenu != null) const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: kText,
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: .2,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'HomeCare • Executive Dashboard',
-                        style: TextStyle(
-                          color: kMuted,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 2),
+                        const Text(
+                          'HomeCare • Executive Dashboard',
+                          style: TextStyle(
+                            color: kMuted,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                _GhostButton(
-                  icon: Icons.search_rounded,
-                  label: 'Cari',
-                  onTap: () {},
-                ),
-                const SizedBox(width: 8),
-                _Select(
-                  value: rangeValue,
-                  items: ranges,
-                  onChanged: onRangeChanged,
-                ),
-                const SizedBox(width: 8),
-                _AvatarChip(
-                  name: userName,
-                  subtitle: 'All Access',
-                  onTap: () {},
-                ),
-              ],
-            ),
+                  _GhostButton(
+                    icon: Icons.search_rounded,
+                    label: 'Cari',
+                    onTap: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  _Select(
+                    value: rangeValue,
+                    items: ranges,
+                    onChanged: onRangeChanged,
+                  ),
+                  const SizedBox(width: 8),
+                  _AvatarChip(
+                    name: userName,
+                    subtitle: 'All Access',
+                    onTap: () {},
+                  ),
+                ],
+              ),
     );
   }
 }
@@ -570,10 +571,11 @@ class _Sidebar extends StatelessWidget {
             icon: Icons.support_agent_outlined,
             label: 'Hubungi IT',
             selected: false,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LaporITPage()),
-            ),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LaporITPage()),
+                ),
           ),
 
           const Spacer(),
@@ -626,9 +628,8 @@ class _BrandHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = (name.trim().isEmpty || name == '...')
-        ? 'Direktur'
-        : name;
+    final displayName =
+        (name.trim().isEmpty || name == '...') ? 'Direktur' : name;
 
     return Row(
       children: [
@@ -764,8 +765,14 @@ class _BottomNav extends StatelessWidget {
         backgroundColor: kCard,
         selectedItemColor: kPrimary,
         unselectedItemColor: kMuted,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 10),
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 11,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 10,
+        ),
         selectedFontSize: 11,
         unselectedFontSize: 10,
         items: const [
@@ -936,9 +943,8 @@ class _MobileMenu extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: selected
-                  ? const Color(0xFF0EA5E9)
-                  : const Color(0xFF64748B),
+              color:
+                  selected ? const Color(0xFF0EA5E9) : const Color(0xFF64748B),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -946,9 +952,10 @@ class _MobileMenu extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
-                  color: selected
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFF334155),
+                  color:
+                      selected
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFF334155),
                 ),
               ),
             ),
@@ -987,15 +994,20 @@ class _Select extends StatelessWidget {
         child: DropdownButton<String>(
           value: value,
           isDense: true,
-          icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF64748B), size: 20),
+          icon: const Icon(
+            Icons.expand_more_rounded,
+            color: Color(0xFF64748B),
+            size: 20,
+          ),
           style: const TextStyle(
             color: Color(0xFF0F172A),
             fontWeight: FontWeight.w900,
             fontSize: 12.8,
           ),
-          items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
+          items:
+              items
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
           },

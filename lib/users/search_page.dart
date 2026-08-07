@@ -101,9 +101,8 @@ class _SearchPageState extends State<SearchPage> {
           final List data = body['data'] ?? [];
 
           setState(() {
-            _searchResults = data
-                .map((e) => LayananSearchResult.fromJson(e))
-                .toList();
+            _searchResults =
+                data.map((e) => LayananSearchResult.fromJson(e)).toList();
             _isLoading = false;
           });
 
@@ -160,9 +159,8 @@ class _SearchPageState extends State<SearchPage> {
           final List data = body['data'] ?? [];
 
           setState(() {
-            _searchHistory = data
-                .map((e) => SearchHistoryItem.fromJson(e))
-                .toList();
+            _searchHistory =
+                data.map((e) => SearchHistoryItem.fromJson(e)).toList();
             _isLoadingHistory = false;
           });
         } else {
@@ -217,9 +215,8 @@ class _SearchPageState extends State<SearchPage> {
           final List data = body['data'] ?? [];
 
           setState(() {
-            _recentViewedLayanan = data
-                .map((e) => RecentViewedLayananItem.fromJson(e))
-                .toList();
+            _recentViewedLayanan =
+                data.map((e) => RecentViewedLayananItem.fromJson(e)).toList();
             _isLoadingRecentViewed = false;
           });
         } else {
@@ -366,12 +363,13 @@ class _SearchPageState extends State<SearchPage> {
                     Icons.search,
                     color: Color(0xFF0BA5A7),
                   ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: _clearSearch,
-                        )
-                      : null,
+                  suffixIcon:
+                      _searchController.text.isNotEmpty
+                          ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: _clearSearch,
+                          )
+                          : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -541,9 +539,7 @@ class _SearchPageState extends State<SearchPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => PilihLayananPage(
-                  kategori: item.kategori,
-                ),
+                builder: (_) => PilihLayananPage(kategori: item.kategori),
               ),
             );
           },
@@ -613,9 +609,10 @@ class SearchHistoryItem {
     return SearchHistoryItem(
       id: json['id'] ?? 0,
       keyword: json['keyword']?.toString() ?? '',
-      searchCount: json['search_count'] is int
-          ? json['search_count']
-          : int.tryParse(json['search_count']?.toString() ?? '0') ?? 0,
+      searchCount:
+          json['search_count'] is int
+              ? json['search_count']
+              : int.tryParse(json['search_count']?.toString() ?? '0') ?? 0,
       lastSearchedAt: json['last_searched_at']?.toString(),
     );
   }
@@ -746,9 +743,7 @@ class _RecentViewedLayananTile extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => PilihLayananPage(
-                kategori: item.kategori,
-              ),
+              builder: (_) => PilihLayananPage(kategori: item.kategori),
             ),
           );
         },
@@ -758,13 +753,25 @@ class _RecentViewedLayananTile extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: item.gambarUrl != null && item.gambarUrl!.isNotEmpty
-                    ? Image.network(
-                        item.gambarUrl!,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                child:
+                    item.gambarUrl != null && item.gambarUrl!.isNotEmpty
+                        ? Image.network(
+                          item.gambarUrl!,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (_, __, ___) => Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.grey.shade200,
+                                child: const Icon(
+                                  Icons.medical_services,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                        )
+                        : Container(
                           width: 60,
                           height: 60,
                           color: Colors.grey.shade200,
@@ -773,16 +780,6 @@ class _RecentViewedLayananTile extends StatelessWidget {
                             color: Colors.grey,
                           ),
                         ),
-                      )
-                    : Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.grey.shade200,
-                        child: const Icon(
-                          Icons.medical_services,
-                          color: Colors.grey,
-                        ),
-                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -838,10 +835,7 @@ class _LayananSearchCard extends StatelessWidget {
   final LayananSearchResult layanan;
   final VoidCallback onTap;
 
-  const _LayananSearchCard({
-    required this.layanan,
-    required this.onTap,
-  });
+  const _LayananSearchCard({required this.layanan, required this.onTap});
 
   String _formatRupiah(double value) {
     final intValue = value.round();
@@ -884,15 +878,16 @@ class _LayananSearchCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: layanan.gambarUrl != null && layanan.gambarUrl!.isNotEmpty
-                    ? Image.network(
-                        layanan.gambarUrl!,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                      )
-                    : _buildPlaceholder(),
+                child:
+                    layanan.gambarUrl != null && layanan.gambarUrl!.isNotEmpty
+                        ? Image.network(
+                          layanan.gambarUrl!,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                        )
+                        : _buildPlaceholder(),
               ),
               const SizedBox(width: 12),
               Expanded(

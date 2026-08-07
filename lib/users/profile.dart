@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:home_care/screen/login.dart';
 
@@ -1425,22 +1426,58 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           const SizedBox(height: 24),
+          // Logout Button
           SizedBox(
             width: double.infinity,
             height: 52,
             child: ElevatedButton.icon(
-              icon: const Icon(Icons.logout_rounded),
+              icon: const Icon(Icons.logout_rounded, color: Color(0xFFE53935)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: const Color(0xFFFFEBEE), // Sangat soft red
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
               onPressed: _logout,
               label: const Text(
                 'Logout',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700, 
+                  fontSize: 16, 
+                  color: Color(0xFFE53935),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Hapus Akun Link (Lebih subtle)
+          TextButton.icon(
+            icon: Icon(Icons.warning_amber_rounded, size: 16, color: Colors.grey.shade500),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey.shade600,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () async {
+              final Uri url = Uri.parse('https://homecare.primamadanitalenta.my.id/delete-account');
+              if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Tidak dapat membuka link penghapusan akun')),
+                  );
+                }
+              }
+            },
+            label: Text(
+              'Ajukan Penghapusan Akun',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade500,
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.grey.shade400,
               ),
             ),
           ),

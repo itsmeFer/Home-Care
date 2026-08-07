@@ -29,7 +29,7 @@ class LihatDetailHistoriPemesananPage extends StatefulWidget {
   final int orderId;
 
   const LihatDetailHistoriPemesananPage({Key? key, required this.orderId})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<LihatDetailHistoriPemesananPage> createState() =>
@@ -94,9 +94,10 @@ class _LihatDetailHistoriPemesananPageState
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(color: HCColors.primary),
-      ),
+      builder:
+          (context) => const Center(
+            child: CircularProgressIndicator(color: HCColors.primary),
+          ),
     );
 
     try {
@@ -361,7 +362,9 @@ class _LihatDetailHistoriPemesananPageState
                             if (alasan.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Alasan pembatalan wajib diisi'),
+                                  content: Text(
+                                    'Alasan pembatalan wajib diisi',
+                                  ),
                                 ),
                               );
                               return;
@@ -538,10 +541,10 @@ class _LihatDetailHistoriPemesananPageState
             if (_hasRating && rating is Map) {
               _ratingLayanan =
                   int.tryParse(rating['rating_layanan']?.toString() ?? '0') ??
-                      0;
+                  0;
               _ratingPerawat =
                   int.tryParse(rating['rating_perawat']?.toString() ?? '0') ??
-                      0;
+                  0;
               _komentarController.text = rating['komentar']?.toString() ?? '';
             }
 
@@ -838,15 +841,16 @@ class _LihatDetailHistoriPemesananPageState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColors.bg,
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: HCColors.primary),
-            )
-          : _error != null
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(color: HCColors.primary),
+              )
+              : _error != null
               ? _buildErrorState()
               : _order == null
-                  ? const Center(child: Text('Data order tidak ditemukan.'))
-                  : _buildContent(),
+              ? const Center(child: Text('Data order tidak ditemukan.'))
+              : _buildContent(),
     );
   }
 
@@ -943,22 +947,26 @@ class _LihatDetailHistoriPemesananPageState
                       Image.network(
                         gambarLayanan,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [HCColors.primary, HCColors.primaryDark],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                        errorBuilder:
+                            (_, __, ___) => Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    HCColors.primary,
+                                    HCColors.primaryDark,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.medical_services_rounded,
+                                  size: 64,
+                                  color: Colors.white54,
+                                ),
+                              ),
                             ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.medical_services_rounded,
-                              size: 64,
-                              color: Colors.white54,
-                            ),
-                          ),
-                        ),
                       )
                     else
                       Container(
@@ -1145,7 +1153,7 @@ class _LihatDetailHistoriPemesananPageState
           if (_hasRating) ...[
             // TAMPILAN RATING YANG SUDAH DIBERIKAN
             _buildSubmittedRatingDisplay(),
-            
+
             // Rating Rata-rata
             if (avgLayanan != null || avgPerawat != null) ...[
               const Divider(height: 24),
@@ -1177,10 +1185,7 @@ class _LihatDetailHistoriPemesananPageState
             // FORM RATING
             const Text(
               'Bagaimana pengalaman Anda dengan layanan kami?',
-              style: TextStyle(
-                fontSize: 14,
-                color: HCColors.textMuted,
-              ),
+              style: TextStyle(fontSize: 14, color: HCColors.textMuted),
             ),
             const SizedBox(height: 20),
 
@@ -1213,8 +1218,11 @@ class _LihatDetailHistoriPemesananPageState
             // Komentar
             const Row(
               children: [
-                Icon(Icons.comment_rounded,
-                    size: 16, color: HCColors.textMuted),
+                Icon(
+                  Icons.comment_rounded,
+                  size: 16,
+                  color: HCColors.textMuted,
+                ),
                 SizedBox(width: 6),
                 Text(
                   'Komentar (Opsional)',
@@ -1231,9 +1239,7 @@ class _LihatDetailHistoriPemesananPageState
               decoration: BoxDecoration(
                 color: HCColors.bg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: HCColors.primary.withOpacity(0.2),
-                ),
+                border: Border.all(color: HCColors.primary.withOpacity(0.2)),
               ),
               child: TextField(
                 controller: _komentarController,
@@ -1246,10 +1252,7 @@ class _LihatDetailHistoriPemesananPageState
                 ),
                 decoration: const InputDecoration(
                   hintText: 'Ceritakan pengalaman Anda...',
-                  hintStyle: TextStyle(
-                    fontSize: 13,
-                    color: HCColors.textMuted,
-                  ),
+                  hintStyle: TextStyle(fontSize: 13, color: HCColors.textMuted),
                   contentPadding: EdgeInsets.all(12),
                   border: InputBorder.none,
                   counterText: '',
@@ -1273,24 +1276,26 @@ class _LihatDetailHistoriPemesananPageState
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: _isSubmittingRating
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                child:
+                    _isSubmittingRating
+                        ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : const Text(
+                          'Kirim Rating',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
                         ),
-                      )
-                    : const Text(
-                        'Kirim Rating',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                      ),
               ),
             ),
           ],
@@ -1312,8 +1317,11 @@ class _LihatDetailHistoriPemesananPageState
         children: [
           Row(
             children: [
-              const Icon(Icons.medical_services_rounded,
-                  size: 16, color: HCColors.textMuted),
+              const Icon(
+                Icons.medical_services_rounded,
+                size: 16,
+                color: HCColors.textMuted,
+              ),
               const SizedBox(width: 6),
               const Text(
                 'Rating Layanan',
@@ -1331,8 +1339,11 @@ class _LihatDetailHistoriPemesananPageState
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(Icons.person_rounded,
-                    size: 16, color: HCColors.textMuted),
+                const Icon(
+                  Icons.person_rounded,
+                  size: 16,
+                  color: HCColors.textMuted,
+                ),
                 const SizedBox(width: 6),
                 const Text(
                   'Rating Perawat',
@@ -1411,10 +1422,7 @@ class _LihatDetailHistoriPemesananPageState
               const SizedBox(width: 2),
               const Text(
                 '*',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: HCColors.danger,
-                ),
+                style: TextStyle(fontSize: 13, color: HCColors.danger),
               ),
             ],
           ],
@@ -1432,7 +1440,8 @@ class _LihatDetailHistoriPemesananPageState
                   rating >= starValue
                       ? Icons.star_rounded
                       : Icons.star_outline_rounded,
-                  color: rating >= starValue ? Colors.amber : HCColors.textMuted,
+                  color:
+                      rating >= starValue ? Colors.amber : HCColors.textMuted,
                   size: 32,
                 ),
               ),
@@ -1626,8 +1635,8 @@ class _LihatDetailHistoriPemesananPageState
               status == 'selesai'
                   ? Icons.check_circle_rounded
                   : status == 'dibatalkan'
-                      ? Icons.cancel_rounded
-                      : Icons.hourglass_empty_rounded,
+                  ? Icons.cancel_rounded
+                  : Icons.hourglass_empty_rounded,
               color: _statusColor(status),
               size: 28,
             ),
@@ -2136,7 +2145,8 @@ class _LihatDetailHistoriPemesananPageState
         _order?['bukti_pembayaran']?.toString() ??
         _order?['payment_info']?['bukti_pembayaran']?.toString();
 
-    final uploadedAt = _order?['payment_info']?['bukti_uploaded_at']?.toString();
+    final uploadedAt =
+        _order?['payment_info']?['bukti_uploaded_at']?.toString();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -2205,32 +2215,33 @@ class _LihatDetailHistoriPemesananPageState
                 width: double.infinity,
                 height: 220,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 140,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: HCColors.bg,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.broken_image_rounded,
-                        color: HCColors.textMuted,
-                        size: 32,
+                errorBuilder:
+                    (_, __, ___) => Container(
+                      height: 140,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: HCColors.bg,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Gagal memuat bukti transaksi',
-                        style: TextStyle(
-                          color: HCColors.textMuted,
-                          fontSize: 12,
-                        ),
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image_rounded,
+                            color: HCColors.textMuted,
+                            size: 32,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Gagal memuat bukti transaksi',
+                            style: TextStyle(
+                              color: HCColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
               ),
             ),
             if (uploadedAt != null && uploadedAt.isNotEmpty) ...[
@@ -2270,9 +2281,10 @@ class _LihatDetailHistoriPemesananPageState
             style: TextStyle(
               fontSize: isTotal ? 17 : 14,
               fontWeight: isTotal ? FontWeight.w800 : FontWeight.w600,
-              color: isDiscount
-                  ? HCColors.danger
-                  : isTotal
+              color:
+                  isDiscount
+                      ? HCColors.danger
+                      : isTotal
                       ? HCColors.primary
                       : HCColors.textDark,
             ),
@@ -2413,16 +2425,17 @@ class _LihatDetailHistoriPemesananPageState
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: 200,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 200,
-                  color: HCColors.bg,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.broken_image_rounded,
-                    color: HCColors.textMuted,
-                    size: 48,
-                  ),
-                ),
+                errorBuilder:
+                    (_, __, ___) => Container(
+                      height: 200,
+                      color: HCColors.bg,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.broken_image_rounded,
+                        color: HCColors.textMuted,
+                        size: 48,
+                      ),
+                    ),
               ),
             ),
         ],

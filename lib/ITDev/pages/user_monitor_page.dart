@@ -148,7 +148,8 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
   Future<String> _token() async {
     final prefs = await SharedPreferences.getInstance();
     final token =
-        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '').trim();
+        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
+            .trim();
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
     return token;
   }
@@ -172,14 +173,21 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
       res = await http.get(uri, headers: headers);
     } else if (method == 'POST') {
       headers['Content-Type'] = 'application/json';
-      res = await http.post(uri, headers: headers, body: jsonEncode(body ?? {}));
+      res = await http.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(body ?? {}),
+      );
     } else if (method == 'PUT') {
       headers['Content-Type'] = 'application/json';
       res = await http.put(uri, headers: headers, body: jsonEncode(body ?? {}));
     } else if (method == 'PATCH') {
       headers['Content-Type'] = 'application/json';
-      res =
-          await http.patch(uri, headers: headers, body: jsonEncode(body ?? {}));
+      res = await http.patch(
+        uri,
+        headers: headers,
+        body: jsonEncode(body ?? {}),
+      );
     } else if (method == 'DELETE') {
       res = await http.delete(uri, headers: headers);
     } else {
@@ -202,18 +210,13 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     final map = await _api('GET', '/it/roles');
     final data = map['data'];
     if (data is List) {
-      return data
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList();
+      return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     }
     return const [];
   }
 
   Future<Map<String, dynamic>> _fetchUsers() async {
-    final qp = <String, String>{
-      'per_page': '$_perPage',
-      'page': '$_page',
-    };
+    final qp = <String, String>{'per_page': '$_perPage', 'page': '$_page'};
 
     if (_q.trim().isNotEmpty) qp['q'] = _q.trim();
     if (_roleId != null) qp['role_id'] = '$_roleId';
@@ -238,29 +241,31 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     final result = await showDialog<_UserFormResult>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _UserFormDialog(
-        title: 'Tambah Akun',
-        roles: roles,
-        initial: null,
-        isCreate: true,
-      ),
+      builder:
+          (_) => _UserFormDialog(
+            title: 'Tambah Akun',
+            roles: roles,
+            initial: null,
+            isCreate: true,
+          ),
     );
 
     if (result == null) return;
 
     await _runAction(
       label: 'Membuat user…',
-      action: () => _api(
-        'POST',
-        '/it/users-crud',
-        body: {
-          'name': result.name,
-          'email': result.email,
-          'password': result.password ?? '',
-          'role_id': result.roleId,
-          'is_active': result.isActive,
-        },
-      ),
+      action:
+          () => _api(
+            'POST',
+            '/it/users-crud',
+            body: {
+              'name': result.name,
+              'email': result.email,
+              'password': result.password ?? '',
+              'role_id': result.roleId,
+              'is_active': result.isActive,
+            },
+          ),
       onSuccess: () {
         _reloadUsers(resetPage: true);
         _toast('User berhasil dibuat ✅');
@@ -283,28 +288,30 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     final result = await showDialog<_UserFormResult>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _UserFormDialog(
-        title: 'Edit Akun',
-        roles: roles,
-        initial: initial,
-        isCreate: false,
-      ),
+      builder:
+          (_) => _UserFormDialog(
+            title: 'Edit Akun',
+            roles: roles,
+            initial: initial,
+            isCreate: false,
+          ),
     );
 
     if (result == null) return;
 
     await _runAction(
       label: 'Menyimpan perubahan…',
-      action: () => _api(
-        'PUT',
-        '/it/users-crud/${_i(u['id'])}',
-        body: {
-          'name': result.name,
-          'email': result.email,
-          'role_id': result.roleId,
-          'is_active': result.isActive,
-        },
-      ),
+      action:
+          () => _api(
+            'PUT',
+            '/it/users-crud/${_i(u['id'])}',
+            body: {
+              'name': result.name,
+              'email': result.email,
+              'role_id': result.roleId,
+              'is_active': result.isActive,
+            },
+          ),
       onSuccess: () {
         _reloadUsers();
         _toast('User berhasil diupdate ✅');
@@ -338,11 +345,12 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
 
     await _runAction(
       label: next ? 'Mengaktifkan…' : 'Menonaktifkan…',
-      action: () => _api(
-        'PATCH',
-        '/it/users-crud/${_i(u['id'])}/active',
-        body: {'is_active': next},
-      ),
+      action:
+          () => _api(
+            'PATCH',
+            '/it/users-crud/${_i(u['id'])}/active',
+            body: {'is_active': next},
+          ),
       onSuccess: () {
         _reloadUsers();
         _toast(next ? 'User diaktifkan ✅' : 'User dinonaktifkan ✅');
@@ -362,11 +370,12 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
 
     await _runAction(
       label: 'Membekukan akun…',
-      action: () => _api(
-        'PATCH',
-        '/it/users-crud/${_i(u['id'])}/freeze',
-        body: {'reason': reason},
-      ),
+      action:
+          () => _api(
+            'PATCH',
+            '/it/users-crud/${_i(u['id'])}/freeze',
+            body: {'reason': reason},
+          ),
       onSuccess: () {
         _reloadUsers();
         _toast('Akun di-freeze ✅');
@@ -430,11 +439,12 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
 
     await _runAction(
       label: 'Reset password…',
-      action: () => _api(
-        'PUT',
-        '/it/users-crud/${_i(u['id'])}/reset-password',
-        body: {'new_password': pass.trim()},
-      ),
+      action:
+          () => _api(
+            'PUT',
+            '/it/users-crud/${_i(u['id'])}/reset-password',
+            body: {'new_password': pass.trim()},
+          ),
       onSuccess: () {
         _reloadUsers();
         _toast('Password berhasil direset ✅');
@@ -489,24 +499,27 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: danger ? const Color(0xFFDC2626) : null,
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(okText),
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: danger ? const Color(0xFFDC2626) : null,
+                ),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(okText),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -521,31 +534,36 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     final c = TextEditingController(text: initial);
     final res = await showDialog<String>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: TextField(
-          controller: c,
-          obscureText: obscure,
-          decoration: InputDecoration(
-            hintText: hint,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: danger ? const Color(0xFFDC2626) : null,
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            onPressed: () => Navigator.of(context).pop(c.text),
-            child: Text(okText),
+            title: Text(title),
+            content: TextField(
+              controller: c,
+              obscureText: obscure,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: danger ? const Color(0xFFDC2626) : null,
+                ),
+                onPressed: () => Navigator.of(context).pop(c.text),
+                child: Text(okText),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     c.dispose();
     return res;
@@ -583,7 +601,8 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
 
                 return XCard(
                   title: 'Search & Filter',
-                  subtitle: 'Nama/email + filter role/aktif/freeze (server-side).',
+                  subtitle:
+                      'Nama/email + filter role/aktif/freeze (server-side).',
                   child: Column(
                     children: [
                       if (isCompact) ...[
@@ -595,13 +614,15 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                             fillColor: const Color(0xFFF8FAFC),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  const BorderSide(color: Color(0xFFE2E8F0)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE2E8F0),
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  const BorderSide(color: Color(0xFFE2E8F0)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE2E8F0),
+                              ),
                             ),
                           ),
                         ),
@@ -652,12 +673,14 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
-                                        color: Color(0xFFE2E8F0)),
+                                      color: Color(0xFFE2E8F0),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
-                                        color: Color(0xFFE2E8F0)),
+                                      color: Color(0xFFE2E8F0),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -703,9 +726,12 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           _FilterChipX(
-                            label: _isActive == null
-                                ? "Aktif: All"
-                                : (_isActive! ? "Aktif: Ya" : "Aktif: Tidak"),
+                            label:
+                                _isActive == null
+                                    ? "Aktif: All"
+                                    : (_isActive!
+                                        ? "Aktif: Ya"
+                                        : "Aktif: Tidak"),
                             icon: Icons.toggle_on_rounded,
                             onTap: () async {
                               final next = await _pickTriState(
@@ -718,9 +744,12 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                             },
                           ),
                           _FilterChipX(
-                            label: _isFrozen == null
-                                ? "Frozen: All"
-                                : (_isFrozen! ? "Frozen: Ya" : "Frozen: Tidak"),
+                            label:
+                                _isFrozen == null
+                                    ? "Frozen: All"
+                                    : (_isFrozen!
+                                        ? "Frozen: Ya"
+                                        : "Frozen: Tidak"),
                             icon: Icons.lock_rounded,
                             onTap: () async {
                               final next = await _pickTriState(
@@ -733,9 +762,10 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                             },
                           ),
                           _FilterChipX(
-                            label: _roleId == null
-                                ? 'Role: All'
-                                : 'Role: ${_roleNameById(roles, _roleId!)}',
+                            label:
+                                _roleId == null
+                                    ? 'Role: All'
+                                    : 'Role: ${_roleNameById(roles, _roleId!)}',
                             icon: Icons.badge_rounded,
                             onTap: () async {
                               final picked = await _pickRole(roles, _roleId);
@@ -765,7 +795,9 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                       if (roleSnap.hasError)
                         Padding(
                           padding: const EdgeInsets.only(top: 10),
-                          child: _warnBar('Gagal load roles: ${roleSnap.error}'),
+                          child: _warnBar(
+                            'Gagal load roles: ${roleSnap.error}',
+                          ),
                         ),
                     ],
                   ),
@@ -781,14 +813,12 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
             FutureBuilder<Map<String, dynamic>>(
               future: _future,
               builder: (context, snap) {
-                final loading =
-                    snap.connectionState != ConnectionState.done;
+                final loading = snap.connectionState != ConnectionState.done;
                 final error = snap.hasError;
 
                 final data = snap.data ?? {};
-                final List rows = (data['data'] is List)
-                    ? (data['data'] as List)
-                    : const [];
+                final List rows =
+                    (data['data'] is List) ? (data['data'] as List) : const [];
 
                 final currentPage = _i(data['current_page']);
                 final lastPage = _i(data['last_page']);
@@ -812,8 +842,9 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                 Widget listBody;
 
                 if (rows.isEmpty) {
-                  listBody =
-                      const _EmptyState(text: 'Tidak ada user untuk filter ini.');
+                  listBody = const _EmptyState(
+                    text: 'Tidak ada user untuk filter ini.',
+                  );
                 } else {
                   final content = Column(
                     children: [
@@ -828,16 +859,18 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                           frozen: _b((e as Map)['is_frozen']),
                           active: _b((e as Map)['is_active']),
                           onEdit: () => _editUser(Map<String, dynamic>.from(e)),
-                          onDelete: () => _deleteUser(Map<String, dynamic>.from(e)),
-                          onToggleActive: () =>
-                              _toggleActive(Map<String, dynamic>.from(e)),
+                          onDelete:
+                              () => _deleteUser(Map<String, dynamic>.from(e)),
+                          onToggleActive:
+                              () => _toggleActive(Map<String, dynamic>.from(e)),
                           onFreeze: () => _freeze(Map<String, dynamic>.from(e)),
-                          onUnfreeze: () =>
-                              _unfreeze(Map<String, dynamic>.from(e)),
-                          onResetPassword: () =>
-                              _resetPassword(Map<String, dynamic>.from(e)),
-                          onForceLogout: () =>
-                              _forceLogout(Map<String, dynamic>.from(e)),
+                          onUnfreeze:
+                              () => _unfreeze(Map<String, dynamic>.from(e)),
+                          onResetPassword:
+                              () =>
+                                  _resetPassword(Map<String, dynamic>.from(e)),
+                          onForceLogout:
+                              () => _forceLogout(Map<String, dynamic>.from(e)),
                           formatTime: formatWaktuID,
                           s: _s,
                         ),
@@ -874,21 +907,26 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: (_page > 1 && !loading)
-                                ? () {
-                                    _page -= 1;
-                                    _reloadUsers();
-                                  }
-                                : null,
+                            onPressed:
+                                (_page > 1 && !loading)
+                                    ? () {
+                                      _page -= 1;
+                                      _reloadUsers();
+                                    }
+                                    : null,
                             icon: const Icon(Icons.chevron_left_rounded),
                             label: const Text('Prev'),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                               color: const Color(0xFFF8FAFC),
                             ),
                             child: Text(
@@ -901,12 +939,13 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                             ),
                           ),
                           OutlinedButton.icon(
-                            onPressed: (!loading && _page < safeLast)
-                                ? () {
-                                    _page += 1;
-                                    _reloadUsers();
-                                  }
-                                : null,
+                            onPressed:
+                                (!loading && _page < safeLast)
+                                    ? () {
+                                      _page += 1;
+                                      _reloadUsers();
+                                    }
+                                    : null,
                             icon: const Icon(Icons.chevron_right_rounded),
                             label: const Text('Next'),
                           ),
@@ -950,45 +989,51 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
   }) async {
     return showDialog<bool?>(
       context: context,
-      builder: (_) => SimpleDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        children: [
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('All'),
+      builder:
+          (_) => SimpleDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(title),
+            children: [
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: const Text('All'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Ya'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Tidak'),
+              ),
+            ],
           ),
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Ya'),
-          ),
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Tidak'),
-          ),
-        ],
-      ),
     );
   }
 
   Future<int?> _pickRole(List<Map<String, dynamic>> roles, int? currentRoleId) {
     return showDialog<int?>(
       context: context,
-      builder: (_) => SimpleDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Pilih Role'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('All Roles'),
-          ),
-          for (final r in roles)
-            SimpleDialogOption(
-              onPressed: () => Navigator.of(context).pop(_i(r['id'])),
-              child: Text('${_s(r['name'])}  (${_s(r['slug'])})'),
+      builder:
+          (_) => SimpleDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-        ],
-      ),
+            title: const Text('Pilih Role'),
+            children: [
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: const Text('All Roles'),
+              ),
+              for (final r in roles)
+                SimpleDialogOption(
+                  onPressed: () => Navigator.of(context).pop(_i(r['id'])),
+                  child: Text('${_s(r['name'])}  (${_s(r['slug'])})'),
+                ),
+            ],
+          ),
     );
   }
 
@@ -1215,24 +1260,32 @@ class _HeaderRow extends StatelessWidget {
       child: const Row(
         children: [
           Expanded(
-              flex: 3,
-              child: Text('User', style: TextStyle(fontWeight: FontWeight.w900))),
+            flex: 3,
+            child: Text('User', style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
           SizedBox(width: 10),
           Expanded(
-              flex: 2,
-              child: Text('Role', style: TextStyle(fontWeight: FontWeight.w900))),
+            flex: 2,
+            child: Text('Role', style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
           Expanded(
-              flex: 2,
-              child:
-                  Text('Status', style: TextStyle(fontWeight: FontWeight.w900))),
+            flex: 2,
+            child: Text(
+              'Status',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
           Expanded(
-              flex: 2,
-              child:
-                  Text('Login', style: TextStyle(fontWeight: FontWeight.w900))),
+            flex: 2,
+            child: Text('Login', style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
           Expanded(
-              flex: 3,
-              child: Text('Actions',
-                  style: TextStyle(fontWeight: FontWeight.w900))),
+            flex: 3,
+            child: Text(
+              'Actions',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
         ],
       ),
     );
@@ -1301,14 +1354,14 @@ class _UserRowCrudState extends State<_UserRowCrud> {
     final lastLoginAt =
         lastLoginAtRaw == '-' ? '-' : widget.formatTime(lastLoginAtRaw);
 
-    final statusColor = widget.frozen
-        ? const Color(0xFFDC2626)
-        : (widget.active
-            ? const Color(0xFF16A34A)
-            : const Color(0xFF64748B));
-    final statusLabel = widget.frozen
-        ? 'FROZEN'
-        : (widget.active ? 'ACTIVE' : 'INACTIVE');
+    final statusColor =
+        widget.frozen
+            ? const Color(0xFFDC2626)
+            : (widget.active
+                ? const Color(0xFF16A34A)
+                : const Color(0xFF64748B));
+    final statusLabel =
+        widget.frozen ? 'FROZEN' : (widget.active ? 'ACTIVE' : 'INACTIVE');
 
     // ===== DESKTOP ROW =====
     if (widget.isWide) {
@@ -1327,7 +1380,9 @@ class _UserRowCrudState extends State<_UserRowCrud> {
                   Text(
                     '$name  (#$id)',
                     style: const TextStyle(
-                        fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F172A),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1365,7 +1420,9 @@ class _UserRowCrudState extends State<_UserRowCrud> {
               child: Text(
                 lastLoginAt,
                 style: const TextStyle(
-                    fontWeight: FontWeight.w700, color: Color(0xFF64748B)),
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF64748B),
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1377,20 +1434,23 @@ class _UserRowCrudState extends State<_UserRowCrud> {
                 runSpacing: 8,
                 children: [
                   _miniBtn(
-                      icon: Icons.edit_rounded,
-                      label: 'Edit',
-                      onTap: widget.onEdit),
+                    icon: Icons.edit_rounded,
+                    label: 'Edit',
+                    onTap: widget.onEdit,
+                  ),
                   _miniBtn(
-                    icon: widget.active
-                        ? Icons.toggle_off_rounded
-                        : Icons.toggle_on_rounded,
+                    icon:
+                        widget.active
+                            ? Icons.toggle_off_rounded
+                            : Icons.toggle_on_rounded,
                     label: widget.active ? 'Off' : 'On',
                     onTap: widget.onToggleActive,
                   ),
                   _miniBtn(
-                    icon: widget.frozen
-                        ? Icons.lock_open_rounded
-                        : Icons.lock_rounded,
+                    icon:
+                        widget.frozen
+                            ? Icons.lock_open_rounded
+                            : Icons.lock_rounded,
                     label: widget.frozen ? 'Unfreeze' : 'Freeze',
                     onTap: widget.frozen ? widget.onUnfreeze : widget.onFreeze,
                     danger: !widget.frozen,
@@ -1471,15 +1531,20 @@ class _UserRowCrudState extends State<_UserRowCrud> {
                           _pill(statusLabel, statusColor),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              border:
-                                  Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                               color: const Color(0xFFF8FAFC),
                             ),
                             child: Text(
-                              lastLoginAt == '-' ? 'Login: -' : 'Login: $lastLoginAt',
+                              lastLoginAt == '-'
+                                  ? 'Login: -'
+                                  : 'Login: $lastLoginAt',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 11.4,
@@ -1532,14 +1597,24 @@ class _UserRowCrudState extends State<_UserRowCrud> {
               child: Column(
                 children: [
                   const Divider(height: 18),
-                  _actionTile(icon: Icons.edit_rounded, title: 'Edit', onTap: widget.onEdit),
                   _actionTile(
-                    icon: widget.active ? Icons.toggle_off_rounded : Icons.toggle_on_rounded,
+                    icon: Icons.edit_rounded,
+                    title: 'Edit',
+                    onTap: widget.onEdit,
+                  ),
+                  _actionTile(
+                    icon:
+                        widget.active
+                            ? Icons.toggle_off_rounded
+                            : Icons.toggle_on_rounded,
                     title: widget.active ? 'Nonaktifkan' : 'Aktifkan',
                     onTap: widget.onToggleActive,
                   ),
                   _actionTile(
-                    icon: widget.frozen ? Icons.lock_open_rounded : Icons.lock_rounded,
+                    icon:
+                        widget.frozen
+                            ? Icons.lock_open_rounded
+                            : Icons.lock_rounded,
                     title: widget.frozen ? 'Unfreeze' : 'Freeze',
                     onTap: widget.frozen ? widget.onUnfreeze : widget.onFreeze,
                     danger: !widget.frozen,
@@ -1566,7 +1641,9 @@ class _UserRowCrudState extends State<_UserRowCrud> {
               ),
             ),
             crossFadeState:
-                _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                _expanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 180),
           ),
         ],
@@ -1639,7 +1716,10 @@ class _UserRowCrudState extends State<_UserRowCrud> {
             Text(
               label,
               style: TextStyle(
-                  fontWeight: FontWeight.w900, fontSize: 11.8, color: c),
+                fontWeight: FontWeight.w900,
+                fontSize: 11.8,
+                color: c,
+              ),
             ),
           ],
         ),
@@ -1762,8 +1842,9 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                     labelText: 'Nama',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Nama wajib' : null,
+                  validator:
+                      (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Nama wajib' : null,
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
@@ -1789,7 +1870,8 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
-                            _obscure ? Icons.visibility_off : Icons.visibility),
+                          _obscure ? Icons.visibility_off : Icons.visibility,
+                        ),
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
@@ -1816,7 +1898,8 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                       DropdownMenuItem<int?>(
                         value: _i(r['id']),
                         child: Text(
-                            '${_s(r['name'], 'Role')}  (${_s(r['slug'], '-')})'),
+                          '${_s(r['name'], 'Role')}  (${_s(r['slug'], '-')})',
+                        ),
                       ),
                   ],
                   onChanged: (v) => setState(() => _roleId = v),
@@ -1826,8 +1909,9 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                   value: _isActive,
                   onChanged: (v) => setState(() => _isActive = v),
                   title: const Text('Akun Aktif'),
-                  subtitle:
-                      const Text('Jika nonaktif, user tidak boleh akses sistem.'),
+                  subtitle: const Text(
+                    'Jika nonaktif, user tidak boleh akses sistem.',
+                  ),
                 ),
               ],
             ),
@@ -1903,8 +1987,11 @@ class _FilterChipX extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.expand_more_rounded,
-                size: 18, color: Color(0xFF64748B)),
+            const Icon(
+              Icons.expand_more_rounded,
+              size: 18,
+              color: Color(0xFF64748B),
+            ),
           ],
         ),
       ),
@@ -1938,7 +2025,9 @@ class _BusyDialog extends StatelessWidget {
               child: Text(
                 label,
                 style: const TextStyle(
-                    fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0F172A),
+                ),
               ),
             ),
           ],
@@ -1975,7 +2064,9 @@ class _LoadingCardX extends StatelessWidget {
               child: Text(
                 'Loading…',
                 style: TextStyle(
-                    fontWeight: FontWeight.w800, color: Color(0xFF334155)),
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF334155),
+                ),
               ),
             ),
           ],
@@ -2045,7 +2136,9 @@ class _EmptyState extends StatelessWidget {
             child: Text(
               text,
               style: const TextStyle(
-                  color: Color(0xFF64748B), fontWeight: FontWeight.w700),
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],

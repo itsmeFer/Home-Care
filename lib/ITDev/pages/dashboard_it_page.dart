@@ -210,29 +210,35 @@ class _DashboardITPageState extends State<DashboardITPage> {
         final data = snap.data ?? {};
         final rangeLabel = _s(data['range'], widget.range);
 
-        final sys = (data['system_health'] is Map)
-            ? Map<String, dynamic>.from(data['system_health'])
-            : <String, dynamic>{};
+        final sys =
+            (data['system_health'] is Map)
+                ? Map<String, dynamic>.from(data['system_health'])
+                : <String, dynamic>{};
 
-        final api = (sys['api'] is Map)
-            ? Map<String, dynamic>.from(sys['api'])
-            : <String, dynamic>{};
+        final api =
+            (sys['api'] is Map)
+                ? Map<String, dynamic>.from(sys['api'])
+                : <String, dynamic>{};
 
-        final storage = (sys['storage'] is Map)
-            ? Map<String, dynamic>.from(sys['storage'])
-            : <String, dynamic>{};
+        final storage =
+            (sys['storage'] is Map)
+                ? Map<String, dynamic>.from(sys['storage'])
+                : <String, dynamic>{};
 
-        final queue = (sys['queue'] is Map)
-            ? Map<String, dynamic>.from(sys['queue'])
-            : <String, dynamic>{};
+        final queue =
+            (sys['queue'] is Map)
+                ? Map<String, dynamic>.from(sys['queue'])
+                : <String, dynamic>{};
 
-        final maintenance = (sys['maintenance'] is Map)
-            ? Map<String, dynamic>.from(sys['maintenance'])
-            : <String, dynamic>{};
+        final maintenance =
+            (sys['maintenance'] is Map)
+                ? Map<String, dynamic>.from(sys['maintenance'])
+                : <String, dynamic>{};
 
-        final stats = (data['stats'] is Map)
-            ? Map<String, dynamic>.from(data['stats'])
-            : <String, dynamic>{};
+        final stats =
+            (data['stats'] is Map)
+                ? Map<String, dynamic>.from(data['stats'])
+                : <String, dynamic>{};
 
         final apiStatus = _s(api['status'], 'up').toLowerCase() == 'up';
         final apiName = _s(api['app_name'], 'HomeCare API');
@@ -259,9 +265,8 @@ class _DashboardITPageState extends State<DashboardITPage> {
         final diskFree = storage['disk_free_bytes'];
 
         final pct = _pct(diskUsed, diskTotal);
-        final storagePctLabel = (pct == null)
-            ? '-'
-            : '${pct.toStringAsFixed(0)}%';
+        final storagePctLabel =
+            (pct == null) ? '-' : '${pct.toStringAsFixed(0)}%';
 
         final maintEnabled = maintenance['enabled'] == true;
 
@@ -282,12 +287,14 @@ class _DashboardITPageState extends State<DashboardITPage> {
                   title: 'API Status',
                   value: apiStatus ? 'UP' : 'DOWN',
                   hint: apiName,
-                  icon: apiStatus
-                      ? Icons.check_circle_outline
-                      : Icons.error_outline,
-                  accent: apiStatus
-                      ? const Color(0xFF16A34A)
-                      : const Color(0xFFDC2626),
+                  icon:
+                      apiStatus
+                          ? Icons.check_circle_outline
+                          : Icons.error_outline,
+                  accent:
+                      apiStatus
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFFDC2626),
                 ),
                 KpiCard(
                   title: 'Sessions',
@@ -349,9 +356,8 @@ class _DashboardITPageState extends State<DashboardITPage> {
                   }
 
                   final m = s.data ?? {};
-                  final points = (m['points'] is List)
-                      ? (m['points'] as List)
-                      : const [];
+                  final points =
+                      (m['points'] is List) ? (m['points'] as List) : const [];
                   if (points.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.all(12),
@@ -451,23 +457,23 @@ class _DashboardITPageState extends State<DashboardITPage> {
                   ),
                   OutlineButtonX(
                     icon: Icons.health_and_safety_outlined,
-                    label: maintEnabled
-                        ? 'Maintenance: ON'
-                        : 'Maintenance: OFF',
+                    label:
+                        maintEnabled ? 'Maintenance: ON' : 'Maintenance: OFF',
                     onTap: () async {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => Scaffold(
-                            body: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: SystemMaintenancePage(
-                                isDesktop: widget.isDesktop,
-                                isTablet: widget.isTablet,
-                                range: widget.range,
+                          builder:
+                              (_) => Scaffold(
+                                body: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: SystemMaintenancePage(
+                                    isDesktop: widget.isDesktop,
+                                    isTablet: widget.isTablet,
+                                    range: widget.range,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                         ),
                       );
 

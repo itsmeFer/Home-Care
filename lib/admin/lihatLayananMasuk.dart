@@ -50,7 +50,8 @@ class OrderLayananAdmin {
       id: json['id'] as int,
       kodeOrder: json['kode_order']?.toString() ?? '-',
       statusOrder: json['status_order']?.toString() ?? 'pending',
-      namaLayanan: json['nama_layanan']?.toString() ??
+      namaLayanan:
+          json['nama_layanan']?.toString() ??
           (json['layanan']?['nama_layanan']?.toString() ?? '-'),
       tanggalMulai: json['tanggal_mulai']?.toString(),
       jamMulai: json['jam_mulai']?.toString(),
@@ -134,7 +135,8 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
         if (!success) {
           setState(() {
             _isLoading = false;
-            _error = decoded['message']?.toString() ??
+            _error =
+                decoded['message']?.toString() ??
                 'Gagal memuat data order layanan.';
           });
           return;
@@ -262,10 +264,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
       flexibleSpace: FlexibleSpaceBar(
         title: const Text(
           'Layanan Masuk',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         background: Container(
           decoration: const BoxDecoration(
@@ -312,10 +311,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
               const SizedBox(width: 8),
               const Text(
                 'Filter Status',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -331,9 +327,15 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              prefixIcon: Icon(Icons.assignment, color: HCColor.primary, size: 20),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              prefixIcon: Icon(
+                Icons.assignment,
+                color: HCColor.primary,
+                size: 20,
+              ),
             ),
             hint: const Text('Semua Status'),
             items: [
@@ -442,29 +444,22 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
     }
 
     if (_error != null) {
-      return SliverFillRemaining(
-        child: _buildError(),
-      );
+      return SliverFillRemaining(child: _buildError());
     }
 
     if (_orders.isEmpty) {
-      return SliverFillRemaining(
-        child: _buildEmpty(),
-      );
+      return SliverFillRemaining(child: _buildEmpty());
     }
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildOrderCard(_orders[index]),
-            );
-          },
-          childCount: _orders.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildOrderCard(_orders[index]),
+          );
+        }, childCount: _orders.length),
       ),
     );
   }
@@ -510,11 +505,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 80,
-            color: HCColor.textMuted,
-          ),
+          Icon(Icons.inbox_outlined, size: 80, color: HCColor.textMuted),
           const SizedBox(height: 16),
           Text(
             'Belum ada order layanan',
@@ -529,10 +520,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
             _selectedStatus != null
                 ? 'Tidak ada order dengan status ini'
                 : 'Order akan muncul di sini',
-            style: TextStyle(
-              fontSize: 13,
-              color: HCColor.textMuted,
-            ),
+            style: TextStyle(fontSize: 13, color: HCColor.textMuted),
           ),
         ],
       ),
@@ -629,7 +617,9 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
                         color: _statusColor(order.statusOrder).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: _statusColor(order.statusOrder).withOpacity(0.3),
+                          color: _statusColor(
+                            order.statusOrder,
+                          ).withOpacity(0.3),
                         ),
                       ),
                       child: Text(
@@ -662,8 +652,11 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
                 // Info rows
                 _buildInfoRow(Icons.person, 'Pasien', pasienNama),
                 const SizedBox(height: 6),
-                _buildInfoRow(Icons.supervisor_account, 'Koordinator',
-                    koordinatorNama),
+                _buildInfoRow(
+                  Icons.supervisor_account,
+                  'Koordinator',
+                  koordinatorNama,
+                ),
                 const SizedBox(height: 6),
                 _buildInfoRow(Icons.local_hospital, 'Perawat', perawatNama),
               ],
@@ -720,10 +713,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
           ),
         ),

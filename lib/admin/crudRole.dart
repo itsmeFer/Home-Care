@@ -82,8 +82,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
       if (res.statusCode != 200) {
         setState(() {
           _isError = true;
-          _errorMessage =
-              'Gagal mengambil data role (kode ${res.statusCode})';
+          _errorMessage = 'Gagal mengambil data role (kode ${res.statusCode})';
         });
         return;
       }
@@ -94,9 +93,10 @@ class _CrudRolePageState extends State<CrudRolePage> {
         final paginated = body['data'];
         if (paginated is Map && paginated['data'] != null) {
           final List<dynamic> data = paginated['data'];
-          final list = data
-              .map((e) => RoleModel.fromJson(e as Map<String, dynamic>))
-              .toList();
+          final list =
+              data
+                  .map((e) => RoleModel.fromJson(e as Map<String, dynamic>))
+                  .toList();
           setState(() {
             _list = list;
           });
@@ -242,23 +242,24 @@ class _CrudRolePageState extends State<CrudRolePage> {
   Future<void> _deleteRole(RoleModel r) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Hapus Role'),
-        content: Text(
-          'Yakin ingin menghapus role "${r.name}"?\n'
-          'Role tidak bisa dihapus jika masih dipakai user.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Hapus Role'),
+            content: Text(
+              'Yakin ingin menghapus role "${r.name}"?\n'
+              'Role tidak bisa dihapus jika masih dipakai user.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -438,8 +439,9 @@ class _CrudRolePageState extends State<CrudRolePage> {
 
     UserSummary? selectedUser;
     String searchQuery = '';
-    List<UserSummary> filteredUsers =
-        List<UserSummary>.from(_assignData!.users);
+    List<UserSummary> filteredUsers = List<UserSummary>.from(
+      _assignData!.users,
+    );
 
     await showModalBottomSheet(
       context: context,
@@ -482,9 +484,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
 
                           if (_assignLoading)
                             const Expanded(
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
+                              child: Center(child: CircularProgressIndicator()),
                             )
                           else ...[
                             // FIELD SEARCH
@@ -492,34 +492,37 @@ class _CrudRolePageState extends State<CrudRolePage> {
                               decoration: InputDecoration(
                                 labelText: 'Cari user (nama / email)',
                                 prefixIcon: const Icon(Icons.search),
-                                suffixIcon: searchQuery.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear),
-                                        onPressed: () {
-                                          setModalState(() {
-                                            searchQuery = '';
-                                            filteredUsers =
-                                                List<UserSummary>.from(
-                                                    _assignData!.users);
-                                            selectedUser = null;
-                                          });
-                                        },
-                                      )
-                                    : null,
+                                suffixIcon:
+                                    searchQuery.isNotEmpty
+                                        ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            setModalState(() {
+                                              searchQuery = '';
+                                              filteredUsers =
+                                                  List<UserSummary>.from(
+                                                    _assignData!.users,
+                                                  );
+                                              selectedUser = null;
+                                            });
+                                          },
+                                        )
+                                        : null,
                                 border: const OutlineInputBorder(),
                               ),
                               onChanged: (v) {
                                 setModalState(() {
                                   searchQuery = v;
                                   final lower = v.toLowerCase();
-                                  filteredUsers = _assignData!.users.where((u) {
-                                    return u.name
-                                            .toLowerCase()
-                                            .contains(lower) ||
-                                        u.email
-                                            .toLowerCase()
-                                            .contains(lower);
-                                  }).toList();
+                                  filteredUsers =
+                                      _assignData!.users.where((u) {
+                                        return u.name.toLowerCase().contains(
+                                              lower,
+                                            ) ||
+                                            u.email.toLowerCase().contains(
+                                              lower,
+                                            );
+                                      }).toList();
                                 });
                               },
                             ),
@@ -527,96 +530,103 @@ class _CrudRolePageState extends State<CrudRolePage> {
 
                             // LIST USER DI DALAM SHEET (BUKAN DROPDOWN)
                             Expanded(
-                              child: filteredUsers.isEmpty
-                                  ? const Center(
-                                      child: Text('User tidak ditemukan'),
-                                    )
-                                  : ListView.separated(
-                                      itemCount: filteredUsers.length,
-                                      separatorBuilder: (_, __) =>
-                                          const Divider(height: 1),
-                                      itemBuilder: (_, index) {
-                                        final u = filteredUsers[index];
-                                        final currentRoleName =
-                                            _getRoleNameById(u.roleId);
-                                        final isSameRole = u.roleId == role.id;
-                                        final isSelected =
-                                            selectedUser?.id == u.id;
+                              child:
+                                  filteredUsers.isEmpty
+                                      ? const Center(
+                                        child: Text('User tidak ditemukan'),
+                                      )
+                                      : ListView.separated(
+                                        itemCount: filteredUsers.length,
+                                        separatorBuilder:
+                                            (_, __) => const Divider(height: 1),
+                                        itemBuilder: (_, index) {
+                                          final u = filteredUsers[index];
+                                          final currentRoleName =
+                                              _getRoleNameById(u.roleId);
+                                          final isSameRole =
+                                              u.roleId == role.id;
+                                          final isSelected =
+                                              selectedUser?.id == u.id;
 
-                                        return InkWell(
-                                          onTap: () {
-                                            setModalState(() {
-                                              selectedUser = u;
-                                            });
-                                          },
-                                          child: Container(
-                                            color: isSelected
-                                                ? HCColor.primary
-                                                    .withOpacity(0.06)
-                                                : null,
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                              vertical: 8,
-                                              horizontal: 4,
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Text(
-                                                        u.name,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontSize: 14,
+                                          return InkWell(
+                                            onTap: () {
+                                              setModalState(() {
+                                                selectedUser = u;
+                                              });
+                                            },
+                                            child: Container(
+                                              color:
+                                                  isSelected
+                                                      ? HCColor.primary
+                                                          .withOpacity(0.06)
+                                                      : null,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 8,
+                                                    horizontal: 4,
+                                                  ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          u.name,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontSize: 14,
+                                                              ),
                                                         ),
                                                       ),
+                                                      if (isSelected)
+                                                        const Icon(
+                                                          Icons.check_circle,
+                                                          size: 18,
+                                                        ),
+                                                    ],
+                                                  ),
+                                                  Text(
+                                                    u.email,
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color:
+                                                          Colors.grey.shade700,
                                                     ),
-                                                    if (isSelected)
-                                                      const Icon(
-                                                        Icons.check_circle,
-                                                        size: 18,
-                                                      ),
-                                                  ],
-                                                ),
-                                                Text(
-                                                  u.email,
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color:
-                                                        Colors.grey.shade700,
                                                   ),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  'Role sekarang: $currentRoleName',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: isSameRole
-                                                        ? Colors.green
-                                                        : Colors
-                                                            .grey.shade700,
-                                                    fontStyle:
-                                                        FontStyle.italic,
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    'Role sekarang: $currentRoleName',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color:
+                                                          isSameRole
+                                                              ? Colors.green
+                                                              : Colors
+                                                                  .grey
+                                                                  .shade700,
+                                                      fontStyle:
+                                                          FontStyle.italic,
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  'Akan di-set menjadi: ${role.name}',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color:
-                                                        HCColor.primaryDark,
+                                                  Text(
+                                                    'Akan di-set menjadi: ${role.name}',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color:
+                                                          HCColor.primaryDark,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    ),
+                                          );
+                                        },
+                                      ),
                             ),
                           ],
 
@@ -630,15 +640,18 @@ class _CrudRolePageState extends State<CrudRolePage> {
                                 if (selectedUser == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content:
-                                          Text('Pilih user terlebih dahulu'),
+                                      content: Text(
+                                        'Pilih user terlebih dahulu',
+                                      ),
                                     ),
                                   );
                                   return;
                                 }
 
                                 await _assignRoleToUser(
-                                    selectedUser!.id, role.id);
+                                  selectedUser!.id,
+                                  role.id,
+                                );
                                 if (context.mounted) {
                                   Navigator.of(ctx).pop();
                                 }
@@ -664,8 +677,7 @@ class _CrudRolePageState extends State<CrudRolePage> {
       backgroundColor: HCColor.bg,
       appBar: AppBar(
         backgroundColor: HCColor.primary,
-        title:
-            const Text('Kelola Role', style: TextStyle(color: Colors.white)),
+        title: const Text('Kelola Role', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(onPressed: _fetchRoles, icon: const Icon(Icons.refresh)),
@@ -677,168 +689,159 @@ class _CrudRolePageState extends State<CrudRolePage> {
         icon: const Icon(Icons.add),
         label: const Text('Tambah Role'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _isError
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _isError
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      _errorMessage ?? 'Terjadi kesalahan',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _errorMessage ?? 'Terjadi kesalahan',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
                   ),
-                )
+                ),
+              )
               : _list.isEmpty
-                  ? const Center(child: Text('Belum ada role, tambahkan dulu.'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _list.length,
-                      itemBuilder: (_, i) {
-                        final r = _list[i];
+              ? const Center(child: Text('Belum ada role, tambahkan dulu.'))
+              : ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _list.length,
+                itemBuilder: (_, i) {
+                  final r = _list[i];
 
-                        // user yang punya role ini
-                        final List<UserSummary> assignedUsers =
-                            _assignData?.users
-                                    .where((u) => u.roleId == r.id)
-                                    .toList() ??
-                                [];
+                  // user yang punya role ini
+                  final List<UserSummary> assignedUsers =
+                      _assignData?.users
+                          .where((u) => u.roleId == r.id)
+                          .toList() ??
+                      [];
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          elevation: 2,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 22,
+                            backgroundColor: HCColor.primary.withOpacity(.1),
+                            child: Text(
+                              r.inisial,
+                              style: TextStyle(
+                                color: HCColor.primaryDark,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                CircleAvatar(
-                                  radius: 22,
-                                  backgroundColor:
-                                      HCColor.primary.withOpacity(.1),
-                                  child: Text(
-                                    r.inisial,
-                                    style: TextStyle(
-                                      color: HCColor.primaryDark,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              r.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                          if (r.isDefault)
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green.shade50,
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: const Text(
-                                                'Default',
-                                                style: TextStyle(
-                                                  color: Colors.green,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Slug: ${r.slug}',
-                                        style:
-                                            const TextStyle(fontSize: 12),
-                                      ),
-                                      if (r.description != null &&
-                                          r.description!.isNotEmpty) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          r.description!,
-                                          style: const TextStyle(
-                                              fontSize: 12),
-                                        ),
-                                      ],
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Dipakai user: ${r.usersCount}',
-                                        style:
-                                            const TextStyle(fontSize: 12),
-                                      ),
-                                      if (_assignData != null) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          assignedUsers.isEmpty
-                                              ? 'User: -'
-                                              : 'User: ${assignedUsers.map((u) => u.name).join(', ')}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                Row(
                                   children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          tooltip: 'Assign ke user',
-                                          icon: const Icon(Icons.person_add),
-                                          onPressed: () =>
-                                              _showAssignSheet(r),
+                                    Expanded(
+                                      child: Text(
+                                        r.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.edit,
-                                              size: 20),
-                                          onPressed: () =>
-                                              _openForm(role: r),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                            size: 20,
-                                            color: Colors.red,
-                                          ),
-                                          onPressed: () => _deleteRole(r),
-                                        ),
-                                      ],
+                                      ),
                                     ),
+                                    if (r.isDefault)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade50,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Default',
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Slug: ${r.slug}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                if (r.description != null &&
+                                    r.description!.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    r.description!,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Dipakai user: ${r.usersCount}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                if (_assignData != null) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    assignedUsers.isEmpty
+                                        ? 'User: -'
+                                        : 'User: ${assignedUsers.map((u) => u.name).join(', ')}',
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
-                        );
-                      },
+                          const SizedBox(width: 8),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    tooltip: 'Assign ke user',
+                                    icon: const Icon(Icons.person_add),
+                                    onPressed: () => _showAssignSheet(r),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, size: 20),
+                                    onPressed: () => _openForm(role: r),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      size: 20,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => _deleteRole(r),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                  );
+                },
+              ),
     );
   }
 }
@@ -898,12 +901,14 @@ class AssignFormData {
     final usersJson = (json['users'] ?? []) as List<dynamic>;
 
     return AssignFormData(
-      roles: rolesJson
-          .map((e) => RoleModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      users: usersJson
-          .map((e) => UserSummary.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      roles:
+          rolesJson
+              .map((e) => RoleModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      users:
+          usersJson
+              .map((e) => UserSummary.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
   }
 }
@@ -1018,8 +1023,7 @@ class _RoleFormDialogState extends State<_RoleFormDialog> {
                 TextFormField(
                   controller: _slugC,
                   decoration: const InputDecoration(
-                    labelText:
-                        'Slug (boleh kosong, auto dari nama di backend)',
+                    labelText: 'Slug (boleh kosong, auto dari nama di backend)',
                     border: OutlineInputBorder(),
                   ),
                 ),

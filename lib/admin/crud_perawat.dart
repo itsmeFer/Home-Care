@@ -95,20 +95,23 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
       final raw = decoded['data'];
       final List<dynamic> dataList = raw is List ? raw : [];
 
-      final items = dataList
-          .map((e) => PerawatModel.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      final items =
+          dataList
+              .map((e) => PerawatModel.fromJson(Map<String, dynamic>.from(e)))
+              .toList();
 
       // filter lokal karena endpoint /admin/perawat dari ShowPerawatController
       // baru support search, belum ada status_verifikasi / is_active
-      final filtered = items.where((x) {
-        final statusOk =
-            _filterStatus == null || x.statusVerifikasi == _filterStatus;
-        final activeOk = _filterActive == null
-            ? true
-            : (_filterActive == 1 ? x.isActive : !x.isActive);
-        return statusOk && activeOk;
-      }).toList();
+      final filtered =
+          items.where((x) {
+            final statusOk =
+                _filterStatus == null || x.statusVerifikasi == _filterStatus;
+            final activeOk =
+                _filterActive == null
+                    ? true
+                    : (_filterActive == 1 ? x.isActive : !x.isActive);
+            return statusOk && activeOk;
+          }).toList();
 
       if (mounted) {
         setState(() {
@@ -148,17 +151,21 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     }
 
     final data = Map<String, dynamic>.from(decoded['data']);
-    final perawatMap = data['perawat'] is Map<String, dynamic>
-        ? Map<String, dynamic>.from(data['perawat'])
-        : <String, dynamic>{};
+    final perawatMap =
+        data['perawat'] is Map<String, dynamic>
+            ? Map<String, dynamic>.from(data['perawat'])
+            : <String, dynamic>{};
 
     final koorRaw = data['koordinator_options'];
-    final List<KoordinatorItem> koorList = (koorRaw is List)
-        ? koorRaw
-              .map((e) => KoordinatorItem.fromJson(Map<String, dynamic>.from(e)))
-              .where((e) => e.id != 0)
-              .toList()
-        : [];
+    final List<KoordinatorItem> koorList =
+        (koorRaw is List)
+            ? koorRaw
+                .map(
+                  (e) => KoordinatorItem.fromJson(Map<String, dynamic>.from(e)),
+                )
+                .where((e) => e.id != 0)
+                .toList()
+            : [];
 
     return PerawatDetailModel(
       perawat: PerawatModel.fromJson(perawatMap),
@@ -184,33 +191,36 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
       final payload = await showDialog<PerawatFormResult>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => _PerawatFormDialog(
-          perawat: detail?.perawat ?? perawat,
-          apiBase: baseUrl,
-          koordinatorOptions: detail?.koordinatorOptions ?? const [],
-        ),
+        builder:
+            (_) => _PerawatFormDialog(
+              perawat: detail?.perawat ?? perawat,
+              apiBase: baseUrl,
+              koordinatorOptions: detail?.koordinatorOptions ?? const [],
+            ),
       );
 
       if (payload == null) return;
 
       final isEdit = perawat != null;
-      final url = isEdit
-          ? _buildUri('/admin/perawat-crud/${perawat.id}')
-          : _buildUri('/admin/perawat-crud');
+      final url =
+          isEdit
+              ? _buildUri('/admin/perawat-crud/${perawat.id}')
+              : _buildUri('/admin/perawat-crud');
 
       final bodyMap = payload.toPayloadWithoutKoordinator();
 
-      final res = isEdit
-          ? await http.put(
-              url,
-              headers: await _authHeaders(jsonBody: true),
-              body: json.encode(bodyMap),
-            )
-          : await http.post(
-              url,
-              headers: await _authHeaders(jsonBody: true),
-              body: json.encode(bodyMap),
-            );
+      final res =
+          isEdit
+              ? await http.put(
+                url,
+                headers: await _authHeaders(jsonBody: true),
+                body: json.encode(bodyMap),
+              )
+              : await http.post(
+                url,
+                headers: await _authHeaders(jsonBody: true),
+                body: json.encode(bodyMap),
+              );
 
       if (res.statusCode != 200 && res.statusCode != 201) {
         String msg = 'Gagal menyimpan perawat (kode ${res.statusCode})';
@@ -291,20 +301,18 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
 
       final selected = await showDialog<int?>(
         context: context,
-        builder: (_) => _AssignKoordinatorDialog(
-          currentKoordinatorId: detail.perawat.koordinatorId,
-          coordinators: detail.koordinatorOptions,
-          perawatName: detail.perawat.namaLengkap,
-        ),
+        builder:
+            (_) => _AssignKoordinatorDialog(
+              currentKoordinatorId: detail.perawat.koordinatorId,
+              coordinators: detail.koordinatorOptions,
+              perawatName: detail.perawat.namaLengkap,
+            ),
       );
 
       if (!mounted) return;
       if (selected == null && detail.perawat.koordinatorId == null) return;
 
-      await _assignKoordinatorDirect(
-        perawatId: p.id,
-        koordinatorId: selected,
-      );
+      await _assignKoordinatorDirect(perawatId: p.id, koordinatorId: selected);
 
       if (!mounted) return;
 
@@ -334,9 +342,7 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     final res = await http.put(
       _buildUri('/admin/perawat/$perawatId/assign-koordinator'),
       headers: await _authHeaders(jsonBody: true),
-      body: json.encode({
-        'koordinator_id': koordinatorId,
-      }),
+      body: json.encode({'koordinator_id': koordinatorId}),
     );
 
     if (res.statusCode != 200) {
@@ -357,20 +363,21 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
   Future<void> _deletePerawat(PerawatModel p) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Hapus Perawat'),
-        content: Text('Yakin ingin menghapus perawat "${p.namaLengkap}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Hapus Perawat'),
+            content: Text('Yakin ingin menghapus perawat "${p.namaLengkap}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -481,10 +488,11 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     final result = await showDialog<_VerifyResult>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _VerifikasiDialog(
-        initial: p.statusVerifikasi,
-        initialNote: p.catatanVerifikasi,
-      ),
+      builder:
+          (_) => _VerifikasiDialog(
+            initial: p.statusVerifikasi,
+            initialNote: p.catatanVerifikasi,
+          ),
     );
 
     if (result == null) return;
@@ -495,9 +503,8 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
         headers: await _authHeaders(jsonBody: true),
         body: json.encode({
           'status_verifikasi': result.status,
-          'catatan_verifikasi': result.note?.trim().isEmpty == true
-              ? null
-              : result.note,
+          'catatan_verifikasi':
+              result.note?.trim().isEmpty == true ? null : result.note,
         }),
       );
 
@@ -558,9 +565,11 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
   @override
   Widget build(BuildContext context) {
     final total = _list.length;
-    final verified = _list.where((x) => x.statusVerifikasi == 'verified').length;
+    final verified =
+        _list.where((x) => x.statusVerifikasi == 'verified').length;
     final pending = _list.where((x) => x.statusVerifikasi == 'pending').length;
-    final rejected = _list.where((x) => x.statusVerifikasi == 'rejected').length;
+    final rejected =
+        _list.where((x) => x.statusVerifikasi == 'rejected').length;
     final active = _list.where((x) => x.isActive).length;
 
     return Scaffold(
@@ -615,17 +624,19 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
                     TextField(
                       controller: _searchC,
                       decoration: InputDecoration(
-                        labelText: 'Cari perawat (nama / kode / hp / koordinator)',
+                        labelText:
+                            'Cari perawat (nama / kode / hp / koordinator)',
                         prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchC.text.trim().isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  setState(() => _searchC.clear());
-                                  _fetchPerawat();
-                                },
-                              )
-                            : null,
+                        suffixIcon:
+                            _searchC.text.trim().isNotEmpty
+                                ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() => _searchC.clear());
+                                    _fetchPerawat();
+                                  },
+                                )
+                                : null,
                         border: const OutlineInputBorder(),
                       ),
                       onSubmitted: (_) => _fetchPerawat(),
@@ -705,215 +716,211 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _isError
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _isError
                     ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            _errorMessage ?? 'Terjadi kesalahan',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.red),
-                          ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          _errorMessage ?? 'Terjadi kesalahan',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
                         ),
-                      )
+                      ),
+                    )
                     : _list.isEmpty
-                        ? const Center(child: Text('Belum ada perawat.'))
-                        : ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                            itemCount: _list.length,
-                            itemBuilder: (_, i) {
-                              final p = _list[i];
-                              final statusColor = _statusColor(p.statusVerifikasi);
+                    ? const Center(child: Text('Belum ada perawat.'))
+                    : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      itemCount: _list.length,
+                      itemBuilder: (_, i) {
+                        final p = _list[i];
+                        final statusColor = _statusColor(p.statusVerifikasi);
 
-                              final koorText =
-                                  (p.koordinatorNama != null &&
-                                          p.koordinatorNama!.trim().isNotEmpty)
-                                      ? '${p.koordinatorNama} • ID ${p.koordinatorId ?? "-"}'
-                                      : (p.koordinatorId != null
-                                          ? 'ID ${p.koordinatorId}'
-                                          : '-');
+                        final koorText =
+                            (p.koordinatorNama != null &&
+                                    p.koordinatorNama!.trim().isNotEmpty)
+                                ? '${p.koordinatorNama} • ID ${p.koordinatorId ?? "-"}'
+                                : (p.koordinatorId != null
+                                    ? 'ID ${p.koordinatorId}'
+                                    : '-');
 
-                              return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 6),
-                                elevation: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          elevation: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: HCColor.primary.withOpacity(
+                                    .1,
+                                  ),
+                                  child: Icon(
+                                    Icons.person_outline,
+                                    color: HCColor.primaryDark,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      CircleAvatar(
-                                        radius: 22,
-                                        backgroundColor:
-                                            HCColor.primary.withOpacity(.1),
-                                        child: Icon(
-                                          Icons.person_outline,
-                                          color: HCColor.primaryDark,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    p.namaLengkap,
-                                                    style: const TextStyle(
-                                                      fontWeight: FontWeight.w700,
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        statusColor.withOpacity(.10),
-                                                    borderRadius:
-                                                        BorderRadius.circular(20),
-                                                  ),
-                                                  child: Text(
-                                                    _statusLabel(
-                                                        p.statusVerifikasi),
-                                                    style: TextStyle(
-                                                      color: statusColor,
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: (p.isActive
-                                                            ? Colors.green
-                                                            : Colors.grey)
-                                                        .withOpacity(.12),
-                                                    borderRadius:
-                                                        BorderRadius.circular(20),
-                                                  ),
-                                                  child: Text(
-                                                    p.isActive
-                                                        ? 'Aktif'
-                                                        : 'Nonaktif',
-                                                    style: TextStyle(
-                                                      color: p.isActive
-                                                          ? Colors.green
-                                                          : Colors.grey.shade700,
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text(
-                                              'Kode: ${p.kodePerawat ?? "-"}',
-                                              style: const TextStyle(fontSize: 12),
-                                            ),
-                                            Text(
-                                              'Email: ${p.email ?? "-"}',
-                                              style: const TextStyle(fontSize: 12),
-                                            ),
-                                            Text(
-                                              'HP: ${p.noHp ?? "-"}',
-                                              style: const TextStyle(fontSize: 12),
-                                            ),
-                                            Text(
-                                              'NIK: ${p.nik ?? "-"}',
-                                              style: const TextStyle(fontSize: 12),
-                                            ),
-                                            Text(
-                                              'Koordinator: $koorText',
-                                              style: const TextStyle(fontSize: 12),
-                                            ),
-                                            Text(
-                                              'Rating: ${p.avgRatingPerawat.toStringAsFixed(1)} (${p.totalRatingPerawat})',
-                                              style: const TextStyle(fontSize: 12),
-                                            ),
-                                            if ((p.catatanVerifikasi ?? '')
-                                                .trim()
-                                                .isNotEmpty) ...[
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                'Catatan: ${p.catatanVerifikasi}',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey.shade700,
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
+                                      Row(
                                         children: [
-                                          IconButton(
-                                            tooltip: 'Edit',
-                                            icon:
-                                                const Icon(Icons.edit, size: 20),
-                                            onPressed: () =>
-                                                _savePerawat(perawat: p),
-                                          ),
-                                          IconButton(
-                                            tooltip: 'Assign Koordinator',
-                                            icon: const Icon(
-                                              Icons.people_alt_outlined,
-                                              size: 20,
+                                          Expanded(
+                                            child: Text(
+                                              p.namaLengkap,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 16,
+                                              ),
                                             ),
-                                            onPressed: () =>
-                                                _assignKoordinator(p),
                                           ),
-                                          IconButton(
-                                            tooltip: 'Set Password',
-                                            icon: const Icon(
-                                              Icons.key_outlined,
-                                              size: 20,
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
                                             ),
-                                            onPressed: () => _setPassword(p),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withOpacity(
+                                                .10,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              _statusLabel(p.statusVerifikasi),
+                                              style: TextStyle(
+                                                color: statusColor,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
                                           ),
-                                          IconButton(
-                                            tooltip: 'Verifikasi',
-                                            icon: const Icon(
-                                              Icons.verified_outlined,
-                                              size: 20,
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
                                             ),
-                                            onPressed: () => _verifikasi(p),
-                                          ),
-                                          IconButton(
-                                            tooltip: 'Hapus',
-                                            icon: const Icon(
-                                              Icons.delete_outline,
-                                              size: 20,
-                                              color: Colors.red,
+                                            decoration: BoxDecoration(
+                                              color: (p.isActive
+                                                      ? Colors.green
+                                                      : Colors.grey)
+                                                  .withOpacity(.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
                                             ),
-                                            onPressed: () => _deletePerawat(p),
+                                            child: Text(
+                                              p.isActive ? 'Aktif' : 'Nonaktif',
+                                              style: TextStyle(
+                                                color:
+                                                    p.isActive
+                                                        ? Colors.green
+                                                        : Colors.grey.shade700,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Kode: ${p.kodePerawat ?? "-"}',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      Text(
+                                        'Email: ${p.email ?? "-"}',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      Text(
+                                        'HP: ${p.noHp ?? "-"}',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      Text(
+                                        'NIK: ${p.nik ?? "-"}',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      Text(
+                                        'Koordinator: $koorText',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      Text(
+                                        'Rating: ${p.avgRatingPerawat.toStringAsFixed(1)} (${p.totalRatingPerawat})',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      if ((p.catatanVerifikasi ?? '')
+                                          .trim()
+                                          .isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Catatan: ${p.catatanVerifikasi}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
-                              );
-                            },
+                                const SizedBox(width: 8),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Edit',
+                                      icon: const Icon(Icons.edit, size: 20),
+                                      onPressed: () => _savePerawat(perawat: p),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Assign Koordinator',
+                                      icon: const Icon(
+                                        Icons.people_alt_outlined,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => _assignKoordinator(p),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Set Password',
+                                      icon: const Icon(
+                                        Icons.key_outlined,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => _setPassword(p),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Verifikasi',
+                                      icon: const Icon(
+                                        Icons.verified_outlined,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => _verifikasi(p),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Hapus',
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () => _deletePerawat(p),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
@@ -1045,10 +1052,11 @@ class PerawatModel {
       tanggalLahir: json['tanggal_lahir']?.toString(),
       tempatLahir: json['tempat_lahir']?.toString(),
       noHp: json['no_hp']?.toString(),
-      email: (json['email'] ??
-              json['email_login_perawat'] ??
-              json['user']?['email'])
-          ?.toString(),
+      email:
+          (json['email'] ??
+                  json['email_login_perawat'] ??
+                  json['user']?['email'])
+              ?.toString(),
       profesi: json['profesi']?.toString(),
       keahlian: json['keahlian']?.toString(),
       noStr: json['no_str']?.toString(),
@@ -1065,9 +1073,10 @@ class PerawatModel {
       kodeKoordinator: json['kode_koordinator']?.toString(),
       statusVerifikasi: (json['status_verifikasi'] ?? 'pending').toString(),
       catatanVerifikasi: json['catatan_verifikasi']?.toString(),
-      isActive: (json['is_active'] == true ||
-          json['is_active'] == 1 ||
-          json['is_active']?.toString() == '1'),
+      isActive:
+          (json['is_active'] == true ||
+              json['is_active'] == 1 ||
+              json['is_active']?.toString() == '1'),
       avgRatingPerawat: _toDouble(json['avg_rating_perawat']),
       totalRatingPerawat: _toInt(json['total_rating_perawat']),
     );
@@ -1095,10 +1104,7 @@ class PerawatDetailModel {
   final PerawatModel perawat;
   final List<KoordinatorItem> koordinatorOptions;
 
-  PerawatDetailModel({
-    required this.perawat,
-    required this.koordinatorOptions,
-  });
+  PerawatDetailModel({required this.perawat, required this.koordinatorOptions});
 }
 
 class KoordinatorItem {
@@ -1128,11 +1134,15 @@ class KoordinatorItem {
             .toString();
 
     return KoordinatorItem(
-      id: (j['id'] ?? 0) is int ? (j['id'] ?? 0) : int.tryParse('${j['id']}') ?? 0,
+      id:
+          (j['id'] ?? 0) is int
+              ? (j['id'] ?? 0)
+              : int.tryParse('${j['id']}') ?? 0,
       nama: nama,
       kode: j['kode_koordinator']?.toString(),
       noHp: j['no_hp']?.toString(),
-      isActive: j['is_active'] == true ||
+      isActive:
+          j['is_active'] == true ||
           j['is_active'] == 1 ||
           j['is_active']?.toString() == '1',
       emailLogin: j['email_login']?.toString(),
@@ -1144,10 +1154,7 @@ class PerawatFormResult {
   final Map<String, dynamic> payload;
   final int? koordinatorId;
 
-  PerawatFormResult({
-    required this.payload,
-    required this.koordinatorId,
-  });
+  PerawatFormResult({required this.payload, required this.koordinatorId});
 
   Map<String, dynamic> toPayloadWithoutKoordinator() {
     final map = Map<String, dynamic>.from(payload);
@@ -1291,33 +1298,32 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
       'nik': _nikC.text.trim().isEmpty ? null : _nikC.text.trim(),
       'jenis_kelamin': _jk,
       'tanggal_lahir': _tglLahir == null ? null : _fmtDate(_tglLahir!),
-      'tempat_lahir': _tmpLahirC.text.trim().isEmpty ? null : _tmpLahirC.text.trim(),
+      'tempat_lahir':
+          _tmpLahirC.text.trim().isEmpty ? null : _tmpLahirC.text.trim(),
       'email': _emailC.text.trim().isEmpty ? null : _emailC.text.trim(),
       'no_hp': _hpC.text.trim().isEmpty ? null : _hpC.text.trim(),
       'profesi': _profesiC.text.trim().isEmpty ? null : _profesiC.text.trim(),
-      'keahlian': _keahlianC.text.trim().isEmpty ? null : _keahlianC.text.trim(),
+      'keahlian':
+          _keahlianC.text.trim().isEmpty ? null : _keahlianC.text.trim(),
       'no_str': _noStrC.text.trim().isEmpty ? null : _noStrC.text.trim(),
       'no_sip': _noSipC.text.trim().isEmpty ? null : _noSipC.text.trim(),
       'tahun_pengalaman': int.tryParse(_tahunExpC.text.trim()) ?? 0,
-      'tempat_kerja_terakhir': _tempatKerjaC.text.trim().isEmpty
-          ? null
-          : _tempatKerjaC.text.trim(),
+      'tempat_kerja_terakhir':
+          _tempatKerjaC.text.trim().isEmpty ? null : _tempatKerjaC.text.trim(),
       'wilayah': _wilayahC.text.trim().isEmpty ? null : _wilayahC.text.trim(),
       'alamat': _alamatC.text.trim().isEmpty ? null : _alamatC.text.trim(),
-      'kontak_darurat_nama': _kdNamaC.text.trim().isEmpty ? null : _kdNamaC.text.trim(),
-      'kontak_darurat_no_hp': _kdHpC.text.trim().isEmpty ? null : _kdHpC.text.trim(),
-      'kontak_darurat_hubungan': _kdHubunganC.text.trim().isEmpty
-          ? null
-          : _kdHubunganC.text.trim(),
+      'kontak_darurat_nama':
+          _kdNamaC.text.trim().isEmpty ? null : _kdNamaC.text.trim(),
+      'kontak_darurat_no_hp':
+          _kdHpC.text.trim().isEmpty ? null : _kdHpC.text.trim(),
+      'kontak_darurat_hubungan':
+          _kdHubunganC.text.trim().isEmpty ? null : _kdHubunganC.text.trim(),
       'is_active': _isActive,
     };
 
     Navigator.pop(
       context,
-      PerawatFormResult(
-        payload: payload,
-        koordinatorId: _selectedKoorId,
-      ),
+      PerawatFormResult(payload: payload, koordinatorId: _selectedKoorId),
     );
   }
 
@@ -1343,8 +1349,11 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                     labelText: 'Nama Lengkap',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
+                  validator:
+                      (v) =>
+                          (v == null || v.trim().isEmpty)
+                              ? 'Nama wajib diisi'
+                              : null,
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -1400,7 +1409,9 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  _tglLahir == null ? '-' : _fmtDate(_tglLahir!),
+                                  _tglLahir == null
+                                      ? '-'
+                                      : _fmtDate(_tglLahir!),
                                 ),
                               ),
                               const Icon(Icons.date_range_outlined),
@@ -1649,7 +1660,8 @@ class _AssignKoordinatorDialog extends StatefulWidget {
   });
 
   @override
-  State<_AssignKoordinatorDialog> createState() => _AssignKoordinatorDialogState();
+  State<_AssignKoordinatorDialog> createState() =>
+      _AssignKoordinatorDialogState();
 }
 
 class _AssignKoordinatorDialogState extends State<_AssignKoordinatorDialog> {
@@ -1758,8 +1770,11 @@ class _PasswordDialogState extends State<_PasswordDialog> {
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
-            validator: (v) =>
-                (v == null || v.trim().length < 6) ? 'Minimal 6 karakter' : null,
+            validator:
+                (v) =>
+                    (v == null || v.trim().length < 6)
+                        ? 'Minimal 6 karakter'
+                        : null,
           ),
         ),
       ),
@@ -1791,10 +1806,7 @@ class _VerifikasiDialog extends StatefulWidget {
   final String initial;
   final String? initialNote;
 
-  const _VerifikasiDialog({
-    required this.initial,
-    this.initialNote,
-  });
+  const _VerifikasiDialog({required this.initial, this.initialNote});
 
   @override
   State<_VerifikasiDialog> createState() => _VerifikasiDialogState();

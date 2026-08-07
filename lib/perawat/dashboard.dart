@@ -26,7 +26,8 @@ class PerawatDashboard extends StatefulWidget {
 }
 
 class _PerawatDashboardState extends State<PerawatDashboard> {
-  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static const String kBaseUrl =
+      'https://homecare.primamadanitalenta.my.id/api';
 
   int _chatUnreadCount = 0;
   int _orderUnreadCount = 0;
@@ -228,11 +229,12 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
         'sedang_berjalan',
       ];
 
-      final filteredData = data.where((item) {
-        if (item is! Map) return false;
-        final status = item['status_order']?.toString() ?? '';
-        return relevantStatuses.contains(status);
-      }).toList();
+      final filteredData =
+          data.where((item) {
+            if (item is! Map) return false;
+            final status = item['status_order']?.toString() ?? '';
+            return relevantStatuses.contains(status);
+          }).toList();
 
       debugPrint('📊 Total Perawat Orders: ${data.length}');
       debugPrint('📊 Filtered Perawat Orders (aktif): ${filteredData.length}');
@@ -470,10 +472,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
                           debugPrint('🔄 Manual Refresh Perawat Badge');
                           _loadBadges(silent: false);
                         },
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Colors.white,
-                        ),
+                        icon: const Icon(Icons.refresh, color: Colors.white),
                         tooltip: 'Refresh Badge',
                       ),
                     ],
@@ -502,10 +501,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
                         SizedBox(width: 8),
                         Text(
                           'Memuat notifikasi...',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                       ],
                     ),

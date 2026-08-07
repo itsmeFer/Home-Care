@@ -154,25 +154,22 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
           ),
           const SizedBox(height: 8),
           url == null || url.isEmpty
               ? const Text('-')
               : ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    url,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, st) =>
-                        const Text('Gambar tidak tersedia'),
-                  ),
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  url,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (ctx, err, st) => const Text('Gambar tidak tersedia'),
                 ),
+              ),
         ],
       ),
     );
@@ -191,47 +188,51 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
       ),
       body: RefreshIndicator(
         onRefresh: _fetchProfil,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
                 ? ListView(
-                    children: [
-                      const SizedBox(height: 40),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: Text(
-                            _error!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.red),
-                          ),
+                  children: [
+                    const SizedBox(height: 40),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Text(
+                          _error!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
-                    ],
-                  )
+                    ),
+                  ],
+                )
                 : ListView(
-                    padding: const EdgeInsets.all(16.0),
-                    children: [
-                      // ====== HEADER CARD (NAMA + PROFESI) ======
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                radius: 32,
-                                backgroundColor:
-                                    const Color(0xFF0BA5A7).withOpacity(.1),
-                                backgroundImage: (fotoUrl != null)
-                                    ? NetworkImage(fotoUrl)
-                                    : null,
-                                child: (fotoUrl != null)
-                                    ? null
-                                    : Text(
+                  padding: const EdgeInsets.all(16.0),
+                  children: [
+                    // ====== HEADER CARD (NAMA + PROFESI) ======
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 32,
+                              backgroundColor: const Color(
+                                0xFF0BA5A7,
+                              ).withOpacity(.1),
+                              backgroundImage:
+                                  (fotoUrl != null)
+                                      ? NetworkImage(fotoUrl)
+                                      : null,
+                              child:
+                                  (fotoUrl != null)
+                                      ? null
+                                      : Text(
                                         (profil?['nama_lengkap'] ?? 'P')
                                             .toString()
                                             .substring(0, 1)
@@ -241,285 +242,289 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              profil?['nama_lengkap'] ?? '-',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                profil?['nama_lengkap'] ?? '-',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              profil?['profesi'] ?? 'Perawat',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                profil?['profesi'] ?? 'Perawat',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Kode: ${profil?['kode_perawat'] ?? '-'}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Kode: ${profil?['kode_perawat'] ?? '-'}',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                      // ====== DATA PRIBADI ======
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Data Pribadi',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
+                    // ====== DATA PRIBADI ======
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Data Pribadi',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
                               ),
-                              const SizedBox(height: 8),
-                              _buildRow(
-                                label: 'NIK',
-                                value: profil?['nik'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'Jenis Kelamin',
-                                value: _mapGender(profil?['jenis_kelamin']),
-                              ),
-                              _buildRow(
-                                label: 'Tempat Lahir',
-                                value: profil?['tempat_lahir'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'Tanggal Lahir',
-                                value: profil?['tanggal_lahir']?.toString(),
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildRow(
+                              label: 'NIK',
+                              value: profil?['nik'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Jenis Kelamin',
+                              value: _mapGender(profil?['jenis_kelamin']),
+                            ),
+                            _buildRow(
+                              label: 'Tempat Lahir',
+                              value: profil?['tempat_lahir'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Tanggal Lahir',
+                              value: profil?['tanggal_lahir']?.toString(),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                      // ====== KONTAK & AREA ======
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Kontak & Area Kerja',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
+                    // ====== KONTAK & AREA ======
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Kontak & Area Kerja',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
                               ),
-                              const SizedBox(height: 8),
-                              _buildRow(
-                                label: 'No. HP',
-                                value: profil?['no_hp'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'Email',
-                                value: profil?['email'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'Wilayah',
-                                value: profil?['wilayah'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'Alamat',
-                                value: profil?['alamat'] as String?,
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildRow(
+                              label: 'No. HP',
+                              value: profil?['no_hp'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Email',
+                              value: profil?['email'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Wilayah',
+                              value: profil?['wilayah'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Alamat',
+                              value: profil?['alamat'] as String?,
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                      // ====== PROFESIONAL ======
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Data Profesional',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
+                    // ====== PROFESIONAL ======
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Data Profesional',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
                               ),
-                              const SizedBox(height: 8),
-                              _buildRow(
-                                label: 'Keahlian',
-                                value: profil?['keahlian'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'No. STR',
-                                value: profil?['no_str'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'No. SIP',
-                                value: profil?['no_sip'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'Pengalaman (tahun)',
-                                value: profil?['tahun_pengalaman']?.toString(),
-                              ),
-                              _buildRow(
-                                label: 'Tempat Kerja Terakhir',
-                                value:
-                                    profil?['tempat_kerja_terakhir'] as String?,
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildRow(
+                              label: 'Keahlian',
+                              value: profil?['keahlian'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'No. STR',
+                              value: profil?['no_str'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'No. SIP',
+                              value: profil?['no_sip'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Pengalaman (tahun)',
+                              value: profil?['tahun_pengalaman']?.toString(),
+                            ),
+                            _buildRow(
+                              label: 'Tempat Kerja Terakhir',
+                              value:
+                                  profil?['tempat_kerja_terakhir'] as String?,
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                      // ====== KONTAK DARURAT ======
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Kontak Darurat',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
+                    // ====== KONTAK DARURAT ======
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Kontak Darurat',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
                               ),
-                              const SizedBox(height: 8),
-                              _buildRow(
-                                label: 'Nama',
-                                value:
-                                    profil?['kontak_darurat_nama'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'No. HP',
-                                value: profil?['kontak_darurat_no_hp']
-                                    as String?,
-                              ),
-                              _buildRow(
-                                label: 'Hubungan',
-                                value: profil?['kontak_darurat_hubungan']
-                                    as String?,
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildRow(
+                              label: 'Nama',
+                              value: profil?['kontak_darurat_nama'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'No. HP',
+                              value: profil?['kontak_darurat_no_hp'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Hubungan',
+                              value:
+                                  profil?['kontak_darurat_hubungan'] as String?,
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                      // ====== STATUS ======
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Status',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
+                    // ====== STATUS ======
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Status',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
                               ),
-                              const SizedBox(height: 8),
-                              _buildRow(
-                                label: 'Status Verifikasi',
-                                value:
-                                    profil?['status_verifikasi'] as String?,
-                              ),
-                              _buildRow(
-                                label: 'Aktif',
-                                value: (profil?['is_active'] == true)
-                                    ? 'Aktif'
-                                    : 'Nonaktif',
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildRow(
+                              label: 'Status Verifikasi',
+                              value: profil?['status_verifikasi'] as String?,
+                            ),
+                            _buildRow(
+                              label: 'Aktif',
+                              value:
+                                  (profil?['is_active'] == true)
+                                      ? 'Aktif'
+                                      : 'Nonaktif',
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                      // ====== FOTO & DOKUMEN ======
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Foto & Dokumen',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
+                    // ====== FOTO & DOKUMEN ======
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Foto & Dokumen',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
                               ),
-                              const SizedBox(height: 12),
-                              _imageItem('Foto Profil', profil?['foto']),
-                              _imageItem('Foto KTP', profil?['foto_ktp']),
-                              _imageItem('Ijazah', profil?['ijazah']),
-                              _imageItem('STR (Scan)', profil?['str_file']),
-                              _imageItem('SIP (Scan)', profil?['sip_file']),
-                              _imageItem('Sertifikat BTCLS',
-                                  profil?['sertifikat_btcls']),
-                              _imageItem('Sertifikat PPRA',
-                                  profil?['sertifikat_ppra']),
-                              _imageItem('Sertifikat Lainnya',
-                                  profil?['sertifikat_lainnya']),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 12),
+                            _imageItem('Foto Profil', profil?['foto']),
+                            _imageItem('Foto KTP', profil?['foto_ktp']),
+                            _imageItem('Ijazah', profil?['ijazah']),
+                            _imageItem('STR (Scan)', profil?['str_file']),
+                            _imageItem('SIP (Scan)', profil?['sip_file']),
+                            _imageItem(
+                              'Sertifikat BTCLS',
+                              profil?['sertifikat_btcls'],
+                            ),
+                            _imageItem(
+                              'Sertifikat PPRA',
+                              profil?['sertifikat_ppra'],
+                            ),
+                            _imageItem(
+                              'Sertifikat Lainnya',
+                              profil?['sertifikat_lainnya'],
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
       ),
     );
   }

@@ -31,21 +31,25 @@ class OrderKoordinator {
 
   factory OrderKoordinator.fromJson(Map<String, dynamic> json) {
     return OrderKoordinator(
-      id: json['id'] is int
-          ? json['id'] as int
-          : int.tryParse('${json['id']}') ?? 0,
+      id:
+          json['id'] is int
+              ? json['id'] as int
+              : int.tryParse('${json['id']}') ?? 0,
       kodeOrder: json['kode_order']?.toString() ?? '-',
       statusOrder: json['status_order']?.toString() ?? 'pending',
-      namaLayanan: json['nama_layanan']?.toString() ??
+      namaLayanan:
+          json['nama_layanan']?.toString() ??
           (json['layanan']?['nama_layanan']?.toString() ?? '-'),
       tanggalMulai: json['tanggal_mulai']?.toString(),
       jamMulai: json['jam_mulai']?.toString(),
-      pasien: json['pasien'] is Map<String, dynamic>
-          ? json['pasien'] as Map<String, dynamic>
-          : null,
-      perawat: json['perawat'] is Map<String, dynamic>
-          ? json['perawat'] as Map<String, dynamic>
-          : null,
+      pasien:
+          json['pasien'] is Map<String, dynamic>
+              ? json['pasien'] as Map<String, dynamic>
+              : null,
+      perawat:
+          json['perawat'] is Map<String, dynamic>
+              ? json['perawat'] as Map<String, dynamic>
+              : null,
     );
   }
 }
@@ -125,17 +129,20 @@ class _LihatOrderanMasukKoordinatorPageState
       }
 
       if (_tanggalDari != null) {
-        queryParams['tanggal_mulai_dari'] =
-            DateFormat('yyyy-MM-dd').format(_tanggalDari!);
+        queryParams['tanggal_mulai_dari'] = DateFormat(
+          'yyyy-MM-dd',
+        ).format(_tanggalDari!);
       }
 
       if (_tanggalSampai != null) {
-        queryParams['tanggal_mulai_sampai'] =
-            DateFormat('yyyy-MM-dd').format(_tanggalSampai!);
+        queryParams['tanggal_mulai_sampai'] = DateFormat(
+          'yyyy-MM-dd',
+        ).format(_tanggalSampai!);
       }
 
-      final uri = Uri.parse('$kBaseUrl/koordinator/order-layanan')
-          .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+      final uri = Uri.parse(
+        '$kBaseUrl/koordinator/order-layanan',
+      ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
 
       final response = await http.get(
         uri,
@@ -161,10 +168,14 @@ class _LihatOrderanMasukKoordinatorPageState
         }
 
         final List<dynamic> data = decoded['data'] ?? [];
-        final list = data
-            .whereType<Map>()
-            .map((e) => OrderKoordinator.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
+        final list =
+            data
+                .whereType<Map>()
+                .map(
+                  (e) =>
+                      OrderKoordinator.fromJson(Map<String, dynamic>.from(e)),
+                )
+                .toList();
 
         setState(() {
           _isLoading = false;
@@ -307,11 +318,14 @@ class _LihatOrderanMasukKoordinatorPageState
   int get _totalPending =>
       _orders.where((e) => e.statusOrder == 'pending').length;
 
-  int get _totalAktif => _orders
-      .where((e) =>
-          e.statusOrder == 'menunggu_penugasan' ||
-          e.statusOrder == 'mendapatkan_perawat')
-      .length;
+  int get _totalAktif =>
+      _orders
+          .where(
+            (e) =>
+                e.statusOrder == 'menunggu_penugasan' ||
+                e.statusOrder == 'mendapatkan_perawat',
+          )
+          .length;
 
   int get _totalSelesai =>
       _orders.where((e) => e.statusOrder == 'selesai').length;
@@ -382,7 +396,7 @@ class _LihatOrderanMasukKoordinatorPageState
               for (int i = 0; i < cards.length; i++) ...[
                 Expanded(child: cards[i]),
                 if (i != cards.length - 1) const SizedBox(width: 12),
-              ]
+              ],
             ],
           );
         }
@@ -427,12 +441,13 @@ class _LihatOrderanMasukKoordinatorPageState
             decoration: InputDecoration(
               isDense: true,
               prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: _clearSearch,
-                    )
-                  : null,
+              suffixIcon:
+                  _searchController.text.isNotEmpty
+                      ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: _clearSearch,
+                      )
+                      : null,
               filled: true,
               fillColor: const Color(0xFFF4F7FA),
               border: OutlineInputBorder(
@@ -448,10 +463,7 @@ class _LihatOrderanMasukKoordinatorPageState
           final dateButton = OutlinedButton.icon(
             onPressed: _pickTanggalRange,
             icon: const Icon(Icons.calendar_today, size: 18),
-            label: Text(
-              _tanggalFilterLabel(),
-              overflow: TextOverflow.ellipsis,
-            ),
+            label: Text(_tanggalFilterLabel(), overflow: TextOverflow.ellipsis),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
               shape: RoundedRectangleBorder(
@@ -471,8 +483,10 @@ class _LihatOrderanMasukKoordinatorPageState
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
+              ),
             ),
             hint: const Text('Semua status'),
             items: [
@@ -599,11 +613,7 @@ class _LihatOrderanMasukKoordinatorPageState
         ),
         child: Column(
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.redAccent,
-              size: 42,
-            ),
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
             const SizedBox(height: 10),
             Text(
               _error!,
@@ -634,11 +644,7 @@ class _LihatOrderanMasukKoordinatorPageState
         ),
         child: const Column(
           children: [
-            Icon(
-              Icons.inbox_outlined,
-              size: 52,
-              color: Colors.grey,
-            ),
+            Icon(Icons.inbox_outlined, size: 52, color: Colors.grey),
             SizedBox(height: 12),
             Text(
               'Belum ada order masuk untuk koordinator ini.',
@@ -779,10 +785,7 @@ class _LihatOrderanMasukKoordinatorPageState
                 ],
               ),
               const SizedBox(height: 14),
-              Container(
-                height: 1,
-                color: Colors.black.withValues(alpha: 0.06),
-              ),
+              Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
               const SizedBox(height: 12),
               _buildInfoRow('Pasien', pasienNama),
               const SizedBox(height: 6),
@@ -830,10 +833,7 @@ class _LihatOrderanMasukKoordinatorPageState
             ),
           ),
         ),
-        const Text(
-          ': ',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
+        const Text(': ', style: TextStyle(fontSize: 12, color: Colors.grey)),
         Expanded(
           child: Text(
             value,

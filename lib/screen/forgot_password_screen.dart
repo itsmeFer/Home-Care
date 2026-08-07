@@ -13,7 +13,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _emailSent = false;
   int _cooldownSeconds = 0;
@@ -90,7 +90,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (res.statusCode == 200) {
         setState(() => _emailSent = true);
-        _showSuccess(body['message'] ?? 'Link reset password telah dikirim ke email Anda');
+        _showSuccess(
+          body['message'] ?? 'Link reset password telah dikirim ke email Anda',
+        );
         _startCooldown();
       } else {
         _showError(body['message'] ?? 'Gagal mengirim link reset password');
@@ -112,10 +114,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1E3A8A),
-              Color(0xFF3B82F6),
-            ],
+            colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
           ),
         ),
         child: SafeArea(
@@ -132,7 +131,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       children: [
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -143,7 +146,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   // Content Area
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: size.width * 0.08),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: size.width * 0.08,
+                      ),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -166,7 +171,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
                               child: Center(
                                 child: Icon(
-                                  _emailSent ? Icons.mark_email_read : Icons.lock_reset,
+                                  _emailSent
+                                      ? Icons.mark_email_read
+                                      : Icons.lock_reset,
                                   size: 50,
                                   color: const Color(0xFF1E3A8A),
                                 ),
@@ -177,7 +184,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                             // Title
                             Text(
-                              _emailSent ? 'Email Terkirim! 📧' : 'Lupa Password?',
+                              _emailSent
+                                  ? 'Email Terkirim! 📧'
+                                  : 'Lupa Password?',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontSize: 28,
@@ -270,29 +279,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    disabledBackgroundColor: Colors.white.withOpacity(0.5),
+                                    disabledBackgroundColor: Colors.white
+                                        .withOpacity(0.5),
                                     disabledForegroundColor: Colors.grey[600],
                                   ),
                                   onPressed: canSend ? _sendResetLink : null,
-                                  child: _isLoading
-                                      ? const SizedBox(
-                                          height: 24,
-                                          width: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.5,
-                                            color: Color(0xFF1E3A8A),
+                                  child:
+                                      _isLoading
+                                          ? const SizedBox(
+                                            height: 24,
+                                            width: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                              color: Color(0xFF1E3A8A),
+                                            ),
+                                          )
+                                          : Text(
+                                            _cooldownSeconds > 0
+                                                ? 'Tunggu $_cooldownSeconds detik'
+                                                : 'Kirim Link Reset Password',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 16,
+                                              letterSpacing: 0.3,
+                                            ),
                                           ),
-                                        )
-                                      : Text(
-                                          _cooldownSeconds > 0
-                                              ? 'Tunggu $_cooldownSeconds detik'
-                                              : 'Kirim Link Reset Password',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 16,
-                                            letterSpacing: 0.3,
-                                          ),
-                                        ),
                                 ),
                               ),
                             ] else ...[
@@ -380,12 +391,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    disabledBackgroundColor: Colors.white.withOpacity(0.5),
+                                    disabledBackgroundColor: Colors.white
+                                        .withOpacity(0.5),
                                     disabledForegroundColor: Colors.grey[600],
                                   ),
                                   onPressed: canSend ? _sendResetLink : null,
                                   icon: Icon(
-                                    _cooldownSeconds > 0 ? Icons.timer : Icons.refresh,
+                                    _cooldownSeconds > 0
+                                        ? Icons.timer
+                                        : Icons.refresh,
                                     size: 24,
                                   ),
                                   label: Text(
@@ -408,7 +422,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 24,
+                                ),
                               ),
                               child: const Text(
                                 'Kembali ke Login',

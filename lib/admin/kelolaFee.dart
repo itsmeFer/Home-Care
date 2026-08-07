@@ -385,9 +385,8 @@ class FeeRule {
   });
 
   factory FeeRule.fromJson(Map<String, dynamic> j) {
-    final user = (j['user'] is Map)
-        ? (j['user'] as Map<String, dynamic>)
-        : null;
+    final user =
+        (j['user'] is Map) ? (j['user'] as Map<String, dynamic>) : null;
     final rawFoto =
         j['foto_url'] ??
         j['avatar_url'] ??
@@ -400,9 +399,8 @@ class FeeRule {
 
     return FeeRule(
       id: (j['id'] as num).toInt(),
-      layananId: j['layanan_id'] == null
-          ? null
-          : (j['layanan_id'] as num).toInt(),
+      layananId:
+          j['layanan_id'] == null ? null : (j['layanan_id'] as num).toInt(),
       addonId: j['addon_id'] == null ? null : (j['addon_id'] as num).toInt(),
       userId: j['user_id'] == null ? null : (j['user_id'] as num).toInt(),
       namaPenerima: (j['nama_penerima'] ?? '').toString(),
@@ -881,25 +879,29 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
         query: {idKey: _selectedId.toString(), 'per_page': '200', 'aktif': '1'},
       );
 
-      final pageObj = (res['data'] is Map)
-          ? Map<String, dynamic>.from(res['data'])
-          : <String, dynamic>{};
+      final pageObj =
+          (res['data'] is Map)
+              ? Map<String, dynamic>.from(res['data'])
+              : <String, dynamic>{};
       final rawList = pageObj['data'];
       final list = (rawList is List) ? rawList : const [];
 
-      _rules = list
-          .where((e) => e is Map)
-          .map((e) => FeeRule.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList();
+      _rules =
+          list
+              .where((e) => e is Map)
+              .map((e) => FeeRule.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList();
 
-      final meta = (res['meta'] is Map)
-          ? Map<String, dynamic>.from(res['meta'])
-          : <String, dynamic>{};
+      final meta =
+          (res['meta'] is Map)
+              ? Map<String, dynamic>.from(res['meta'])
+              : <String, dynamic>{};
 
       _sumPercent = parseNum(meta['sum_percent_active']);
-      _activeCount = (meta['active_count'] ?? 0) is num
-          ? (meta['active_count'] as num).toInt()
-          : 0;
+      _activeCount =
+          (meta['active_count'] ?? 0) is num
+              ? (meta['active_count'] as num).toInt()
+              : 0;
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -978,8 +980,8 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
         }
       }
 
-      final listAgg = agg.values.toList()
-        ..sort((a, b) => b.nominal.compareTo(a.nominal));
+      final listAgg =
+          agg.values.toList()..sort((a, b) => b.nominal.compareTo(a.nominal));
 
       _globalItems = listAgg;
       _globalTotalNominal = grandTotal;
@@ -996,12 +998,13 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
     final ok = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _FeeRuleFormDialog(
-        api: widget.api,
-        itemId: _selectedId!,
-        isAddon: widget.isAddon,
-        existing: existing,
-      ),
+      builder:
+          (_) => _FeeRuleFormDialog(
+            api: widget.api,
+            itemId: _selectedId!,
+            isAddon: widget.isAddon,
+            existing: existing,
+          ),
     );
 
     if (ok == true) {
@@ -1014,9 +1017,10 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
     if (id == null) return;
 
     try {
-      final url = widget.isAddon
-          ? '$kFeeAddonRulesUrl/$id/recalc'
-          : '$kFeeRulesUrl/$id/recalc';
+      final url =
+          widget.isAddon
+              ? '$kFeeAddonRulesUrl/$id/recalc'
+              : '$kFeeRulesUrl/$id/recalc';
       await widget.api.postJson(url, {});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1038,55 +1042,57 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
   Future<void> _confirmDelete(FeeRule r) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => _RoundedDialog(
-        width: R.dialogWidth(context, max: 560),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Nonaktifkan Penerima?',
-                style: TextStyle(color: kText, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Penerima "${r.namaPenerima}" akan dinonaktifkan.',
-                style: const TextStyle(color: kTextSub),
-              ),
-              const SizedBox(height: 16),
-              Row(
+      builder:
+          (_) => _RoundedDialog(
+            width: R.dialogWidth(context, max: 560),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _RBtn(
-                      filled: false,
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Batal'),
-                    ),
+                  const Text(
+                    'Nonaktifkan Penerima?',
+                    style: TextStyle(color: kText, fontWeight: FontWeight.w900),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _RBtn(
-                      filled: true,
-                      color: kDanger,
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Nonaktifkan'),
-                    ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Penerima "${r.namaPenerima}" akan dinonaktifkan.',
+                    style: const TextStyle(color: kTextSub),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _RBtn(
+                          filled: false,
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Batal'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _RBtn(
+                          filled: true,
+                          color: kDanger,
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Nonaktifkan'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
 
     if (ok == true) {
       try {
-        final url = widget.isAddon
-            ? '$kFeeAddonRulesUrl/${r.id}'
-            : '$kFeeRulesUrl/${r.id}';
+        final url =
+            widget.isAddon
+                ? '$kFeeAddonRulesUrl/${r.id}'
+                : '$kFeeRulesUrl/${r.id}';
         await widget.api.deleteJson(url);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1112,9 +1118,10 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
     final totalNominal = chartItems.fold<num>(0, (p, e) => p + e.nominal);
 
     final itemLabel = widget.isAddon ? 'add-on' : 'layanan';
-    final itemIcon = widget.isAddon
-        ? Icons.extension_outlined
-        : Icons.medical_services_outlined;
+    final itemIcon =
+        widget.isAddon
+            ? Icons.extension_outlined
+            : Icons.medical_services_outlined;
     final itemColor = widget.isAddon ? kAddon : kPrimary;
 
     return RefreshIndicator(
@@ -1149,49 +1156,57 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
                     hint: 'Pilih $itemLabel',
                     prefixIcon: Icon(itemIcon),
                   ),
-                  items: _items.map((i) {
-                    return DropdownMenuItem<int>(
-                      value: i.id,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          if ((i.gambarUrl ?? '').isNotEmpty) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                i.gambarUrl!,
-                                width: 28,
-                                height: 28,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const SizedBox(width: 28, height: 28),
+                  items:
+                      _items.map((i) {
+                        return DropdownMenuItem<int>(
+                          value: i.id,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              if ((i.gambarUrl ?? '').isNotEmpty) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    i.gambarUrl!,
+                                    width: 28,
+                                    height: 28,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (_, __, ___) => const SizedBox(
+                                          width: 28,
+                                          height: 28,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                              ] else ...[
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: itemColor.withOpacity(.10),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    itemIcon,
+                                    size: 16,
+                                    color: itemColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                              ],
+                              Expanded(
+                                child: Text(
+                                  '${i.nama} • ${formatRupiah(i.hargaFix)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: kText),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                          ] else ...[
-                            Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                color: itemColor.withOpacity(.10),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(itemIcon, size: 16, color: itemColor),
-                            ),
-                            const SizedBox(width: 10),
-                          ],
-                          Expanded(
-                            child: Text(
-                              '${i.nama} • ${formatRupiah(i.hargaFix)}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: kText),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                   selectedItemBuilder: (context) {
                     return _items.map<Widget>((i) {
                       return Row(
@@ -1204,8 +1219,12 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
                                 width: 24,
                                 height: 24,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    Icon(itemIcon, size: 18, color: itemColor),
+                                errorBuilder:
+                                    (_, __, ___) => Icon(
+                                      itemIcon,
+                                      size: 18,
+                                      color: itemColor,
+                                    ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1228,12 +1247,13 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
                       );
                     }).toList();
                   },
-                  onChanged: _loading
-                      ? null
-                      : (v) async {
-                          setState(() => _selectedId = v);
-                          await _loadRules();
-                        },
+                  onChanged:
+                      _loading
+                          ? null
+                          : (v) async {
+                            setState(() => _selectedId = v);
+                            await _loadRules();
+                          },
                 ),
 
                 const SizedBox(height: 12),
@@ -1490,9 +1510,10 @@ class _FeeManagementTabState extends State<_FeeManagementTab> {
     }
     if (items.isEmpty) {
       return _HintBox(
-        text: isGlobal
-            ? 'Belum ada data fee global untuk ditampilkan.'
-            : 'Belum ada penerima fee aktif.',
+        text:
+            isGlobal
+                ? 'Belum ada data fee global untuk ditampilkan.'
+                : 'Belum ada penerima fee aktif.',
       );
     }
 
@@ -1556,9 +1577,8 @@ class _RecipientCardState extends State<_RecipientCard> {
   Widget build(BuildContext context) {
     final r = widget.rule;
     final badgeColor = r.isActive ? kSuccess : kDanger;
-    final num nominal = r.isActive
-        ? (widget.itemHargaFix * (r.percent / 100))
-        : 0;
+    final num nominal =
+        r.isActive ? (widget.itemHargaFix * (r.percent / 100)) : 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1606,9 +1626,10 @@ class _RecipientCardState extends State<_RecipientCard> {
                           _MiniChip(
                             text: r.isActive ? 'Aktif' : 'Nonaktif',
                             color: badgeColor,
-                            icon: r.isActive
-                                ? Icons.check_circle_outline
-                                : Icons.block_outlined,
+                            icon:
+                                r.isActive
+                                    ? Icons.check_circle_outline
+                                    : Icons.block_outlined,
                           ),
                           _MiniChip(
                             text: 'Share: ${r.percent.toStringAsFixed(4)}%',
@@ -1619,9 +1640,8 @@ class _RecipientCardState extends State<_RecipientCard> {
                             borderRadius: BorderRadius.circular(100),
                             child: _MiniChip(
                               text: _open ? 'Tutup nominal' : 'Lihat nominal',
-                              icon: _open
-                                  ? Icons.expand_less
-                                  : Icons.expand_more,
+                              icon:
+                                  _open ? Icons.expand_less : Icons.expand_more,
                             ),
                           ),
                         ],
@@ -1648,9 +1668,8 @@ class _RecipientCardState extends State<_RecipientCard> {
             borderRadius: BorderRadius.circular(16),
             child: AnimatedCrossFade(
               duration: const Duration(milliseconds: 180),
-              crossFadeState: _open
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
+              crossFadeState:
+                  _open ? CrossFadeState.showSecond : CrossFadeState.showFirst,
               firstChild: const SizedBox.shrink(),
               secondChild: Container(
                 width: double.infinity,
@@ -1716,13 +1735,14 @@ class _LeaderboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = rank == 1
-        ? Colors.amber.shade600
-        : rank == 2
-        ? Colors.blueGrey.shade400
-        : rank == 3
-        ? Colors.brown.shade400
-        : kPrimary.withOpacity(0.15);
+    final badgeColor =
+        rank == 1
+            ? Colors.amber.shade600
+            : rank == 2
+            ? Colors.blueGrey.shade400
+            : rank == 3
+            ? Colors.brown.shade400
+            : kPrimary.withOpacity(0.15);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -1874,83 +1894,84 @@ class _FeeBarChart extends StatelessWidget {
 
         return SingleChildScrollView(
           child: Column(
-            children: items.map((e) {
-              final ratio = e.nominal <= 0
-                  ? 0.0
-                  : (e.nominal / maxNominal).clamp(0, 1).toDouble();
-              final barWidth = (barMaxWidth * ratio)
-                  .clamp(10, barMaxWidth)
-                  .toDouble();
+            children:
+                items.map((e) {
+                  final ratio =
+                      e.nominal <= 0
+                          ? 0.0
+                          : (e.nominal / maxNominal).clamp(0, 1).toDouble();
+                  final barWidth =
+                      (barMaxWidth * ratio).clamp(10, barMaxWidth).toDouble();
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            e.nama,
-                            style: const TextStyle(
-                              color: kText,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                e.nama,
+                                style: const TextStyle(
+                                  color: kText,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${e.percent.toStringAsFixed(2)}%',
+                              style: const TextStyle(
+                                color: kTextSub,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${e.percent.toStringAsFixed(2)}%',
-                          style: const TextStyle(
-                            color: kTextSub,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: kBorder,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                  ),
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 180),
+                                    height: 12,
+                                    width: barWidth,
+                                    decoration: BoxDecoration(
+                                      color: kPrimary.withOpacity(0.85),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              formatRupiah(e.nominal),
+                              style: const TextStyle(
+                                color: kTextSub,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: kBorder,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                              ),
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                height: 12,
-                                width: barWidth,
-                                decoration: BoxDecoration(
-                                  color: kPrimary.withOpacity(0.85),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          formatRupiah(e.nominal),
-                          style: const TextStyle(
-                            color: kTextSub,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
           ),
         );
       },
@@ -1979,19 +2000,20 @@ class _FeePieChart extends StatelessWidget {
       );
     }
 
-    final sections = items.map((e) {
-      final value = e.nominal.toDouble();
-      return PieChartSectionData(
-        value: value,
-        title: '${e.percent.toStringAsFixed(1)}%',
-        radius: 60,
-        titleStyle: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      );
-    }).toList();
+    final sections =
+        items.map((e) {
+          final value = e.nominal.toDouble();
+          return PieChartSectionData(
+            value: value,
+            title: '${e.percent.toStringAsFixed(1)}%',
+            radius: 60,
+            titleStyle: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          );
+        }).toList();
 
     return Row(
       children: [
@@ -2011,47 +2033,49 @@ class _FeePieChart extends StatelessWidget {
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: items.map((e) {
-                final persen = e.nominal <= 0 || totalNominal <= 0
-                    ? 0.0
-                    : (e.nominal / totalNominal * 100);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: kPrimary.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          e.nama,
-                          style: const TextStyle(
-                            color: kText,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+              children:
+                  items.map((e) {
+                    final persen =
+                        e.nominal <= 0 || totalNominal <= 0
+                            ? 0.0
+                            : (e.nominal / totalNominal * 100);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: kPrimary.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              e.nama,
+                              style: const TextStyle(
+                                color: kText,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${persen.toStringAsFixed(1)}%',
+                            style: const TextStyle(
+                              color: kTextSub,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${persen.toStringAsFixed(1)}%',
-                        style: const TextStyle(
-                          color: kTextSub,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
             ),
           ),
         ),
@@ -2126,10 +2150,11 @@ class _FeeAreaChart extends StatelessWidget {
                 reservedSize: 40,
                 showTitles: true,
                 interval: maxY / 4,
-                getTitlesWidget: (value, meta) => Text(
-                  value.toInt().toString(),
-                  style: const TextStyle(color: kTextSub, fontSize: 10),
-                ),
+                getTitlesWidget:
+                    (value, meta) => Text(
+                      value.toInt().toString(),
+                      style: const TextStyle(color: kTextSub, fontSize: 10),
+                    ),
               ),
             ),
             topTitles: const AxisTitles(
@@ -2213,9 +2238,10 @@ class _UserPickerDialogState extends State<_UserPickerDialog> {
 
       final data = (res['data'] ?? {}) as Map<String, dynamic>;
       final list = (data['data'] ?? []) as List;
-      _items = list
-          .map((e) => SelectableUser.fromJson(e as Map<String, dynamic>))
-          .toList();
+      _items =
+          list
+              .map((e) => SelectableUser.fromJson(e as Map<String, dynamic>))
+              .toList();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -2254,41 +2280,42 @@ class _UserPickerDialogState extends State<_UserPickerDialog> {
             const SizedBox(height: 12),
             if (_error != null) _ErrorBox(message: _error!),
             Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _items.isEmpty
-                  ? const _HintBox(text: 'User tidak ditemukan.')
-                  : ListView.separated(
-                      itemCount: _items.length,
-                      separatorBuilder: (_, __) =>
-                          const Divider(color: kBorder, height: 1),
-                      itemBuilder: (_, i) {
-                        final u = _items[i];
-                        return ListTile(
-                          onTap: () => Navigator.pop(context, u),
-                          leading: _avatarCircle(
-                            url: u.fotoUrl,
-                            fallback: Icons.person,
-                            radius: 20,
-                          ),
-                          title: Text(
-                            u.displayName,
-                            style: const TextStyle(
-                              color: kText,
-                              fontWeight: FontWeight.w800,
+              child:
+                  _loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _items.isEmpty
+                      ? const _HintBox(text: 'User tidak ditemukan.')
+                      : ListView.separated(
+                        itemCount: _items.length,
+                        separatorBuilder:
+                            (_, __) => const Divider(color: kBorder, height: 1),
+                        itemBuilder: (_, i) {
+                          final u = _items[i];
+                          return ListTile(
+                            onTap: () => Navigator.pop(context, u),
+                            leading: _avatarCircle(
+                              url: u.fotoUrl,
+                              fallback: Icons.person,
+                              radius: 20,
                             ),
-                          ),
-                          subtitle: Text(
-                            '${u.role} • ${u.email}${(u.noHp ?? '').isNotEmpty ? ' • ${u.noHp}' : ''}',
-                            style: const TextStyle(color: kTextSub),
-                          ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: kTextSub,
-                          ),
-                        );
-                      },
-                    ),
+                            title: Text(
+                              u.displayName,
+                              style: const TextStyle(
+                                color: kText,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${u.role} • ${u.email}${(u.noHp ?? '').isNotEmpty ? ' • ${u.noHp}' : ''}',
+                              style: const TextStyle(color: kTextSub),
+                            ),
+                            trailing: const Icon(
+                              Icons.chevron_right,
+                              color: kTextSub,
+                            ),
+                          );
+                        },
+                      ),
             ),
             const SizedBox(height: 10),
             Row(
@@ -2402,9 +2429,10 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
         query: {'per_page': '100'},
       );
       final list = extractList(res);
-      _roleOptions = list
-          .map((e) => RoleOption.fromJson(e as Map<String, dynamic>))
-          .toList();
+      _roleOptions =
+          list
+              .map((e) => RoleOption.fromJson(e as Map<String, dynamic>))
+              .toList();
 
       if (_roleOptions.isNotEmpty) {
         _selectedRole ??= _roleOptions.first;
@@ -2443,9 +2471,8 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
       'bank_nama': _bankNama.text.trim().isEmpty ? null : _bankNama.text.trim(),
       'bank_kode': _bankKode.text.trim().isEmpty ? null : _bankKode.text.trim(),
       'no_rekening': _noRek.text.trim().isEmpty ? null : _noRek.text.trim(),
-      'atas_nama_rekening': _atasNama.text.trim().isEmpty
-          ? null
-          : _atasNama.text.trim(),
+      'atas_nama_rekening':
+          _atasNama.text.trim().isEmpty ? null : _atasNama.text.trim(),
       'percent': widget.percent,
     };
 
@@ -2505,8 +2532,9 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                     hint: 'Nama lengkap',
                     prefixIcon: const Icon(Icons.badge_outlined),
                   ),
-                  validator: (v) =>
-                      (v ?? '').trim().isEmpty ? 'Nama wajib diisi' : null,
+                  validator:
+                      (v) =>
+                          (v ?? '').trim().isEmpty ? 'Nama wajib diisi' : null,
                 ),
                 const SizedBox(height: 12),
 
@@ -2587,32 +2615,35 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                 const _Label('Jabatan/Role'),
                 _loadingRoles
                     ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: LinearProgressIndicator(minHeight: 4),
-                      )
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: LinearProgressIndicator(minHeight: 4),
+                    )
                     : DropdownButtonFormField<RoleOption>(
-                        value: _selectedRole,
-                        decoration: fieldDeco(
-                          hint: 'Pilih role',
-                          prefixIcon: const Icon(
-                            Icons.admin_panel_settings_outlined,
-                          ),
+                      value: _selectedRole,
+                      decoration: fieldDeco(
+                        hint: 'Pilih role',
+                        prefixIcon: const Icon(
+                          Icons.admin_panel_settings_outlined,
                         ),
-                        items: _roleOptions.map((r) {
-                          return DropdownMenuItem<RoleOption>(
-                            value: r,
-                            child: Text(
-                              r.name,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: _saving
-                            ? null
-                            : (v) => setState(() => _selectedRole = v),
-                        validator: (v) =>
-                            v == null ? 'Role/jabatan wajib dipilih.' : null,
                       ),
+                      items:
+                          _roleOptions.map((r) {
+                            return DropdownMenuItem<RoleOption>(
+                              value: r,
+                              child: Text(
+                                r.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                      onChanged:
+                          _saving
+                              ? null
+                              : (v) => setState(() => _selectedRole = v),
+                      validator:
+                          (v) =>
+                              v == null ? 'Role/jabatan wajib dipilih.' : null,
+                    ),
 
                 const SizedBox(height: 12),
                 const _Label('Password (opsional)'),
@@ -2620,23 +2651,23 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                   controller: _password,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: kText),
-                  decoration:
-                      fieldDeco(
-                        hint: 'Kosongkan untuk auto-generate',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                      ).copyWith(
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: kTextSub,
-                          ),
-                          onPressed: () => setState(
+                  decoration: fieldDeco(
+                    hint: 'Kosongkan untuk auto-generate',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                  ).copyWith(
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: kTextSub,
+                      ),
+                      onPressed:
+                          () => setState(
                             () => _obscurePassword = !_obscurePassword,
                           ),
-                        ),
-                      ),
+                    ),
+                  ),
                   validator: _validatePassword,
                 ),
 
@@ -2751,13 +2782,14 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                   _RBtn(
                     filled: true,
                     onPressed: _saving ? null : _submit,
-                    child: _saving
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Buat & Tambah'),
+                    child:
+                        _saving
+                            ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Text('Buat & Tambah'),
                   ),
                 ] else ...[
                   Row(
@@ -2765,9 +2797,8 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                       Expanded(
                         child: _RBtn(
                           filled: false,
-                          onPressed: _saving
-                              ? null
-                              : () => Navigator.pop(context),
+                          onPressed:
+                              _saving ? null : () => Navigator.pop(context),
                           child: const Text('Batal'),
                         ),
                       ),
@@ -2776,15 +2807,16 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                         child: _RBtn(
                           filled: true,
                           onPressed: _saving ? null : _submit,
-                          child: _saving
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Buat & Tambah'),
+                          child:
+                              _saving
+                                  ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Text('Buat & Tambah'),
                         ),
                       ),
                     ],
@@ -2904,12 +2936,13 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
     final created = await showDialog<_CreatedUserResult>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _CreateUserDialog(
-        api: widget.api,
-        itemId: widget.itemId,
-        isAddon: widget.isAddon,
-        percent: percentVal,
-      ),
+      builder:
+          (_) => _CreateUserDialog(
+            api: widget.api,
+            itemId: widget.itemId,
+            isAddon: widget.isAddon,
+            percent: percentVal,
+          ),
     );
 
     if (created == null) return;
@@ -2957,13 +2990,11 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
       idKey: widget.itemId,
       'user_id': _userId,
       'bank_nama': _bankNama.text.trim().isEmpty ? null : _bankNama.text.trim(),
-      'bank_kode': _bankKode.text.trim().isNotEmpty
-          ? _bankKode.text.trim()
-          : null,
+      'bank_kode':
+          _bankKode.text.trim().isNotEmpty ? _bankKode.text.trim() : null,
       'no_rekening': _noRek.text.trim().isEmpty ? null : _noRek.text.trim(),
-      'atas_nama_rekening': _atasNama.text.trim().isEmpty
-          ? null
-          : _atasNama.text.trim(),
+      'atas_nama_rekening':
+          _atasNama.text.trim().isEmpty ? null : _atasNama.text.trim(),
       'percent': percentVal,
       'is_active': _isActive,
     };
@@ -3027,8 +3058,8 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                       hint: 'Klik "Cari User" / "Buat User Baru"',
                       prefixIcon: const Icon(Icons.person_outline),
                     ),
-                    validator: (_) =>
-                        _userId == null ? 'User wajib dipilih.' : null,
+                    validator:
+                        (_) => _userId == null ? 'User wajib dipilih.' : null,
                   ),
                   const SizedBox(height: 10),
                   _RBtn(
@@ -3056,8 +3087,11 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                             hint: 'Klik "Cari User" / "Buat User Baru"',
                             prefixIcon: const Icon(Icons.person_outline),
                           ),
-                          validator: (_) =>
-                              _userId == null ? 'User wajib dipilih.' : null,
+                          validator:
+                              (_) =>
+                                  _userId == null
+                                      ? 'User wajib dipilih.'
+                                      : null,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -3150,15 +3184,14 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                     decimal: true,
                   ),
                   style: const TextStyle(color: kText),
-                  decoration:
-                      fieldDeco(
-                        hint: 'contoh: 25 atau 12.5',
-                        prefixIcon: const Icon(Icons.percent),
-                      ).copyWith(
-                        helperText:
-                            'Total persentase aktif per $itemLabel maksimal 100%',
-                        helperStyle: const TextStyle(color: kTextSub),
-                      ),
+                  decoration: fieldDeco(
+                    hint: 'contoh: 25 atau 12.5',
+                    prefixIcon: const Icon(Icons.percent),
+                  ).copyWith(
+                    helperText:
+                        'Total persentase aktif per $itemLabel maksimal 100%',
+                    helperStyle: const TextStyle(color: kTextSub),
+                  ),
                   validator: (v) {
                     final s = (v ?? '').trim();
                     if (s.isEmpty) return null;
@@ -3172,9 +3205,8 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                 const SizedBox(height: 12),
                 SwitchListTile.adaptive(
                   value: _isActive,
-                  onChanged: _saving
-                      ? null
-                      : (v) => setState(() => _isActive = v),
+                  onChanged:
+                      _saving ? null : (v) => setState(() => _isActive = v),
                   activeColor: kPrimary,
                   contentPadding: EdgeInsets.zero,
                   title: const Text(
@@ -3195,9 +3227,10 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                     Expanded(
                       child: _RBtn(
                         filled: false,
-                        onPressed: _saving
-                            ? null
-                            : () => Navigator.pop(context, false),
+                        onPressed:
+                            _saving
+                                ? null
+                                : () => Navigator.pop(context, false),
                         child: const Text('Batal'),
                       ),
                     ),
@@ -3206,15 +3239,16 @@ class _FeeRuleFormDialogState extends State<_FeeRuleFormDialog> {
                       child: _RBtn(
                         filled: true,
                         onPressed: _saving ? null : _save,
-                        child: _saving
-                            ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(isEdit ? 'Simpan' : 'Tambah'),
+                        child:
+                            _saving
+                                ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : Text(isEdit ? 'Simpan' : 'Tambah'),
                       ),
                     ),
                   ],

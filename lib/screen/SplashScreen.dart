@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_care/main.dart';
+import 'package:home_care/screen/onboarding_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,20 +19,30 @@ class _SplashScreenState extends State<SplashScreen> {
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    Timer(const Duration(seconds: 4), () {
+    Timer(const Duration(seconds: 4), () async {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const RootAuthGate()),
-      );
+      if (hasSeenOnboarding) {
+        // Jika sudah pernah melihat onboarding, arahkan ke pengecekan login (RootAuthGate)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const RootAuthGate()),
+        );
+      } else {
+        // Jika belum, tampilkan Onboarding
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        );
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color teal = Color(0xFF0F9D94);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -38,44 +50,38 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 130,
-                height: 130,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: teal.withOpacity(0.08),
-                  shape: BoxShape.circle,
-                ),
-                child: Image.asset(
-                  'assets/images/home_nobg.png',
-                  fit: BoxFit.contain,
+              Image.asset(
+                'assets/images/home_nobg.png',
+                width: 150,
+                height: 150,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 12),
+              ShaderMask(
+                blendMode: BlendMode.srcIn,
+                shaderCallback:
+                    (bounds) => const LinearGradient(
+                      colors: [Color(0xFF0F9D94), Color(0xFF05645E)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                child: const Text(
+                  'PRIMA HomeCare',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'PRIMA HomeCare',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: teal,
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               const Text(
                 'Melayani dengan sepenuh hati',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.black54,
                   fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 28),
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(teal),
+                  color: Colors.black45,
+                  letterSpacing: 1.0,
                 ),
               ),
             ],
@@ -84,4 +90,4 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
-} 
+}
