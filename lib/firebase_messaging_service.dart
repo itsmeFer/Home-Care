@@ -86,12 +86,10 @@ class FirebaseMessagingService {
       print('✅ Firebase Messaging Initialized!');
     } catch (e) {
       print('❌ Error initializing Firebase Messaging: $e');
-
     }
   }
 
   static Future<void> _setupLocalNotifications() async {
-
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings(_androidSmallIcon);
 
