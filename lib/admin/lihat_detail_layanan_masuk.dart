@@ -5,21 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
-
-class HCColor {
-  static const primary = Color(0xFF0BA5A7);
-  static const primaryDark = Color(0xFF088088);
-  static const bg = Color(0xFFF5F7FA);
-  static const card = Colors.white;
-  static const textMuted = Colors.black54;
-  static const lightTeal = Color(0xFFE0F7F7);
-  static const success = Color(0xFF10B981);
-  static const warning = Color(0xFFF59E0B);
-  static const error = Color(0xFFEF4444);
-}
 
 class DetailOrderLayananAdminPage extends StatefulWidget {
   final int orderId;

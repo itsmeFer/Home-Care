@@ -3,11 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:home_care/users/layananPage.dart';
+import 'package:home_care/users/layanan_page.dart';
 import 'package:home_care/users/payment_method_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/features/orders/domain/addon_model.dart';
@@ -16,15 +17,6 @@ import 'package:home_care/features/orders/domain/order_pricing_calculator.dart';
 export 'package:home_care/features/orders/domain/addon_model.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
-
-class HCColor {
-  static const primary = Color(0xFF0BA5A7);
-  static const primaryDark = Color(0xFF088088);
-  static const bg = Color(0xFFF5F7FA);
-  static const card = Colors.white;
-  static const textMuted = Colors.black54;
-  static const lightTeal = Color(0xFFE0F7F7);
-}
 
 class PesanLayananPage extends StatefulWidget {
   final Layanan layanan;

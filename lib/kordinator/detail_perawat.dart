@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/nurses/domain/nurse_model.dart';
-import 'package:home_care/kordinator/kelolaPerawat.dart';
+import 'package:home_care/kordinator/kelola_perawat.dart';
 
 class DetailPerawatPage extends StatefulWidget {
   final Perawat perawat;

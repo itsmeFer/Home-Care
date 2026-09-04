@@ -5,23 +5,10 @@ import 'package:home_care/users/payment_method_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
-
-class HCColors {
-  static const primary = Color(0xFF0BA5A7);
-  static const primaryDark = Color(0xFF088088);
-  static const accent = Color(0xFF6C63FF);
-  static const bg = Color(0xFFF5F7FA);
-  static const card = Colors.white;
-  static const textDark = Color(0xFF2D3436);
-  static const textMuted = Color(0xFF636E72);
-  static const success = Color(0xFF00B894);
-  static const warning = Color(0xFFFDAA2E);
-  static const danger = Color(0xFFFF6B6B);
-  static const pending = Color(0xFFFF9F43);
-}
 
 class LihatDetailDraftPemesananPage extends StatefulWidget {
   final int draftId;

@@ -6,8 +6,9 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../chat.dart'
-    show kBaseUrl;
+import 'package:home_care/core/constants/api_constants.dart';
+
+String get kBaseUrl => ApiConstants.apiBase;
 
 class BuatOrderDariChatPage extends StatefulWidget {
   final int layananId;

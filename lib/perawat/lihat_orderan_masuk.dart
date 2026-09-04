@@ -1,38 +1,45 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/orders/domain/order_models.dart';
-import 'package:home_care/kordinator/lihatDetailOrderanMasuk.dart';
+import 'package:home_care/perawat/lihat_detail_orderan_masuk.dart';
 
 export 'package:home_care/features/orders/domain/order_models.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
-class LihatOrderanMasukKoordinatorPage extends StatefulWidget {
-  const LihatOrderanMasukKoordinatorPage({super.key});
+class LihatOrderanMasukPerawatPage extends StatefulWidget {
+  const LihatOrderanMasukPerawatPage({super.key});
 
   @override
-  State<LihatOrderanMasukKoordinatorPage> createState() =>
-      _LihatOrderanMasukKoordinatorPageState();
+  State<LihatOrderanMasukPerawatPage> createState() =>
+      _LihatOrderanMasukPerawatPageState();
 }
 
-class _LihatOrderanMasukKoordinatorPageState
-    extends State<LihatOrderanMasukKoordinatorPage> {
+class _LihatOrderanMasukPerawatPageState
+    extends State<LihatOrderanMasukPerawatPage> {
   bool _isLoading = true;
   String? _error;
-  List<OrderKoordinator> _orders = [];
+  List<OrderLayananPerawat> _orders = [];
 
   String? _selectedStatus;
   final TextEditingController _searchController = TextEditingController();
   DateTime? _tanggalDari;
   DateTime? _tanggalSampai;
 
+  Timer? _debounceTimer;
+
   final List<String> _statusOptions = const [
     'pending',
     'menunggu_penugasan',
     'mendapatkan_perawat',
+    'sedang_dalam_perjalanan',
+    'sampai_ditempat',
+    'sedang_berjalan',
     'selesai',
     'dibatalkan',
   ];
@@ -41,12 +48,25 @@ class _LihatOrderanMasukKoordinatorPageState
   void initState() {
     super.initState();
     _fetchOrders();
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {});
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _fetchOrders();
+      }
+    });
   }
 
   Future<void> _fetchOrders() async {
@@ -73,14 +93,13 @@ class _LihatOrderanMasukKoordinatorPageState
         queryParams['tanggal_mulai_dari'] =
             DateFormat('yyyy-MM-dd').format(_tanggalDari!);
       }
-
       if (_tanggalSampai != null) {
         queryParams['tanggal_mulai_sampai'] =
             DateFormat('yyyy-MM-dd').format(_tanggalSampai!);
       }
 
       final res = await ApiClient.get(
-        '/koordinator/order-layanan',
+        '/perawat/order-layanan',
         queryParams: queryParams.isEmpty ? null : queryParams,
       );
 
@@ -90,9 +109,8 @@ class _LihatOrderanMasukKoordinatorPageState
         final List list = res['data'] as List;
         setState(() {
           _orders = list
-              .whereType<Map>()
-              .map((e) => OrderKoordinator.fromJson(
-                  Map<String, dynamic>.from(e)))
+              .map((e) => OrderLayananPerawat.fromJson(
+                  Map<String, dynamic>.from(e as Map)))
               .toList();
           _isLoading = false;
         });
@@ -129,8 +147,8 @@ class _LihatOrderanMasukKoordinatorPageState
 
   String _getNama(Map<String, dynamic>? obj) {
     if (obj == null) return '-';
-    return obj['nama']?.toString() ??
-        obj['nama_lengkap']?.toString() ??
+    return obj['nama_lengkap']?.toString() ??
+        obj['nama']?.toString() ??
         obj['full_name']?.toString() ??
         '-';
   }
@@ -143,6 +161,12 @@ class _LihatOrderanMasukKoordinatorPageState
         return Colors.deepOrange;
       case 'mendapatkan_perawat':
         return Colors.blue;
+      case 'sedang_dalam_perjalanan':
+        return Colors.teal;
+      case 'sampai_ditempat':
+        return Colors.indigo;
+      case 'sedang_berjalan':
+        return Colors.purple;
       case 'selesai':
         return Colors.green;
       case 'dibatalkan':
@@ -155,11 +179,17 @@ class _LihatOrderanMasukKoordinatorPageState
   String _statusLabel(String status) {
     switch (status) {
       case 'pending':
-        return 'Pending';
+        return 'Menunggu Konfirmasi';
       case 'menunggu_penugasan':
         return 'Menunggu Penugasan';
       case 'mendapatkan_perawat':
-        return 'Mendapatkan Perawat';
+        return 'Menunggu Respon';
+      case 'sedang_dalam_perjalanan':
+        return 'Dalam Perjalanan';
+      case 'sampai_ditempat':
+        return 'Sudah Sampai';
+      case 'sedang_berjalan':
+        return 'Sedang Berjalan';
       case 'selesai':
         return 'Selesai';
       case 'dibatalkan':
@@ -173,9 +203,7 @@ class _LihatOrderanMasukKoordinatorPageState
     if (_tanggalDari == null && _tanggalSampai == null) {
       return 'Semua tanggal';
     }
-
     final fmt = DateFormat('dd MMM yyyy');
-
     if (_tanggalDari != null && _tanggalSampai != null) {
       return '${fmt.format(_tanggalDari!)} - ${fmt.format(_tanggalSampai!)}';
     }
@@ -198,6 +226,18 @@ class _LihatOrderanMasukKoordinatorPageState
       helpText: 'Pilih rentang tanggal order',
       cancelText: 'Batal',
       confirmText: 'Pilih',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: HCColor.primary,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -218,21 +258,18 @@ class _LihatOrderanMasukKoordinatorPageState
   }
 
   void _clearSearch() {
-    setState(() {
-      _searchController.clear();
-    });
-    _fetchOrders();
-  }
+    _searchController.clear();
 
-  int get _totalPending =>
-      _orders.where((e) => e.statusOrder == 'pending').length;
+  }
 
   int get _totalAktif =>
       _orders
           .where(
             (e) =>
-                e.statusOrder == 'menunggu_penugasan' ||
-                e.statusOrder == 'mendapatkan_perawat',
+                e.statusOrder == 'mendapatkan_perawat' ||
+                e.statusOrder == 'sedang_dalam_perjalanan' ||
+                e.statusOrder == 'sampai_ditempat' ||
+                e.statusOrder == 'sedang_berjalan',
           )
           .length;
 
@@ -245,15 +282,17 @@ class _LihatOrderanMasukKoordinatorPageState
     final horizontalPadding = size.width >= 900 ? 28.0 : 16.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: HCColor.bg,
       appBar: AppBar(
-        title: const Text('Order Masuk'),
+        title: const Text('Orderan Masuk'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
+        centerTitle: false,
       ),
       body: RefreshIndicator(
         onRefresh: _fetchOrders,
+        color: HCColor.primary,
         child: ListView(
           padding: EdgeInsets.fromLTRB(
             horizontalPadding,
@@ -280,13 +319,7 @@ class _LihatOrderanMasukKoordinatorPageState
 
         final cards = [
           _MiniStatCard(
-            title: 'Pending',
-            value: _totalPending.toString(),
-            icon: Icons.pending_actions_outlined,
-            color: Colors.orange,
-          ),
-          _MiniStatCard(
-            title: 'Aktif',
+            title: 'Orderan Aktif',
             value: _totalAktif.toString(),
             icon: Icons.assignment_turned_in_outlined,
             color: Colors.blue,
@@ -310,17 +343,11 @@ class _LihatOrderanMasukKoordinatorPageState
           );
         }
 
-        return Column(
+        return Row(
           children: [
-            Row(
-              children: [
-                Expanded(child: cards[0]),
-                const SizedBox(width: 12),
-                Expanded(child: cards[1]),
-              ],
-            ),
-            const SizedBox(height: 12),
-            cards[2],
+            Expanded(child: cards[0]),
+            const SizedBox(width: 12),
+            Expanded(child: cards[1]),
           ],
         );
       },
@@ -335,7 +362,7 @@ class _LihatOrderanMasukKoordinatorPageState
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -345,28 +372,64 @@ class _LihatOrderanMasukKoordinatorPageState
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 760;
 
-          final searchField = TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              isDense: true,
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon:
-                  _searchController.text.isNotEmpty
-                      ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: _clearSearch,
-                      )
-                      : null,
-              filled: true,
-              fillColor: const Color(0xFFF4F7FA),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
+          final searchField = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.search, color: HCColor.primary),
+                  suffixIcon:
+                      _isLoading && _searchController.text.isNotEmpty
+                          ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: HCColor.primary,
+                              ),
+                            ),
+                          )
+                          : _searchController.text.isNotEmpty
+                          ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: _clearSearch,
+                            tooltip: 'Hapus pencarian',
+                          )
+                          : null,
+                  filled: true,
+                  fillColor: HCColor.lightTeal.withOpacity(0.3),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: HCColor.primary,
+                      width: 2,
+                    ),
+                  ),
+                  hintText: 'Ketik untuk mencari...',
+                  hintStyle: TextStyle(color: HCColor.textMuted, fontSize: 13),
+                ),
               ),
-              hintText: 'Cari kode order / pasien / perawat / layanan',
-            ),
-            textInputAction: TextInputAction.search,
-            onSubmitted: (_) => _fetchOrders(),
+              if (_searchController.text.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 12),
+                  child: Text(
+                    'Mencari: "${_searchController.text}"',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: HCColor.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+            ],
           );
 
           final dateButton = OutlinedButton.icon(
@@ -374,6 +437,8 @@ class _LihatOrderanMasukKoordinatorPageState
             icon: const Icon(Icons.calendar_today, size: 18),
             label: Text(_tanggalFilterLabel(), overflow: TextOverflow.ellipsis),
             style: OutlinedButton.styleFrom(
+              foregroundColor: HCColor.primary,
+              side: BorderSide(color: HCColor.primary.withOpacity(0.3)),
               minimumSize: const Size.fromHeight(48),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -386,7 +451,7 @@ class _LihatOrderanMasukKoordinatorPageState
             isExpanded: true,
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFFF4F7FA),
+              fillColor: HCColor.lightTeal.withOpacity(0.3),
               isDense: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -432,6 +497,7 @@ class _LihatOrderanMasukKoordinatorPageState
                         tooltip: 'Hapus filter tanggal',
                         onPressed: _clearTanggalFilter,
                         icon: const Icon(Icons.close),
+                        color: Colors.red,
                       ),
                     ],
                   ],
@@ -448,8 +514,9 @@ class _LihatOrderanMasukKoordinatorPageState
                         icon: const Icon(Icons.refresh),
                         label: const Text('Refresh'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0BA5A7),
+                          backgroundColor: HCColor.primary,
                           foregroundColor: Colors.white,
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -474,6 +541,7 @@ class _LihatOrderanMasukKoordinatorPageState
                       tooltip: 'Hapus filter tanggal',
                       onPressed: _clearTanggalFilter,
                       icon: const Icon(Icons.close),
+                      color: Colors.red,
                     ),
                 ],
               ),
@@ -488,8 +556,9 @@ class _LihatOrderanMasukKoordinatorPageState
                   icon: const Icon(Icons.refresh),
                   label: const Text('Refresh Data'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0BA5A7),
+                    backgroundColor: HCColor.primary,
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -508,7 +577,17 @@ class _LihatOrderanMasukKoordinatorPageState
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 60),
         alignment: Alignment.center,
-        child: const CircularProgressIndicator(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            CircularProgressIndicator(color: HCColor.primary),
+            SizedBox(height: 16),
+            Text(
+              'Memuat data orderan...',
+              style: TextStyle(color: HCColor.textMuted),
+            ),
+          ],
+        ),
       );
     }
 
@@ -522,21 +601,23 @@ class _LihatOrderanMasukKoordinatorPageState
         ),
         child: Column(
           children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
-            const SizedBox(height: 10),
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+            const SizedBox(height: 12),
             Text(
               _error!,
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.red),
             ),
-            const SizedBox(height: 14),
-            ElevatedButton(
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
               onPressed: _fetchOrders,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0BA5A7),
+                backgroundColor: HCColor.primary,
                 foregroundColor: Colors.white,
+                elevation: 0,
               ),
-              child: const Text('Coba Lagi'),
             ),
           ],
         ),
@@ -546,19 +627,28 @@ class _LihatOrderanMasukKoordinatorPageState
     if (_orders.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.inbox_outlined, size: 52, color: Colors.grey),
-            SizedBox(height: 12),
+            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            const Text(
+              'Belum ada orderan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
             Text(
-              'Belum ada order masuk untuk koordinator ini.',
+              'Orderan yang ditugaskan ke Anda akan muncul di sini',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: TextStyle(fontSize: 13, color: HCColor.textMuted),
             ),
           ],
         ),
@@ -578,7 +668,7 @@ class _LihatOrderanMasukKoordinatorPageState
               crossAxisCount: 2,
               crossAxisSpacing: 14,
               mainAxisSpacing: 14,
-              childAspectRatio: 1.65,
+              childAspectRatio: 1.5,
             ),
             itemBuilder: (context, index) {
               return _buildOrderCard(_orders[index]);
@@ -601,11 +691,11 @@ class _LihatOrderanMasukKoordinatorPageState
     );
   }
 
-  Widget _buildOrderCard(OrderKoordinator order) {
+  Widget _buildOrderCard(OrderLayananPerawat order) {
     final tanggal = _formatTanggal(order.tanggalMulai);
     final jam = _formatJam(order.jamMulai);
     final pasienNama = _getNama(order.pasien);
-    final perawatNama = _getNama(order.perawat);
+    final koordinatorNama = _getNama(order.koordinator);
     final statusColor = _statusColor(order.statusOrder);
 
     return Material(
@@ -613,14 +703,13 @@ class _LihatOrderanMasukKoordinatorPageState
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () async {
-          final result = await Navigator.push(
+          final needRefresh = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => DetailOrderKoordinatorPage(orderId: order.id),
+              builder: (_) => DetailOrderanMasukPerawatPage(orderId: order.id),
             ),
           );
-
-          if (result == true) {
+          if (needRefresh == true) {
             _fetchOrders();
           }
         },
@@ -631,7 +720,7 @@ class _LihatOrderanMasukKoordinatorPageState
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
@@ -659,7 +748,7 @@ class _LihatOrderanMasukKoordinatorPageState
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
+                      color: statusColor.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
@@ -694,11 +783,11 @@ class _LihatOrderanMasukKoordinatorPageState
                 ],
               ),
               const SizedBox(height: 14),
-              Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
+              Container(height: 1, color: Colors.black.withOpacity(0.06)),
               const SizedBox(height: 12),
               _buildInfoRow('Pasien', pasienNama),
               const SizedBox(height: 6),
-              _buildInfoRow('Perawat', perawatNama),
+              _buildInfoRow('Koordinator', koordinatorNama),
             ],
           ),
         ),
@@ -710,17 +799,21 @@ class _LihatOrderanMasukKoordinatorPageState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F7FA),
+        color: HCColor.lightTeal.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.black54),
+          Icon(icon, size: 14, color: HCColor.primary),
           const SizedBox(width: 6),
           Text(
             text,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
           ),
         ],
       ),
@@ -732,7 +825,7 @@ class _LihatOrderanMasukKoordinatorPageState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 72,
+          width: 82,
           child: Text(
             label,
             style: const TextStyle(
@@ -781,7 +874,7 @@ class _MiniStatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -793,7 +886,7 @@ class _MiniStatCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
+              color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color),

@@ -1,23 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:home_care/users/pesanLayanan.dart';
+import 'package:home_care/users/pesan_layanan.dart';
 import 'package:home_care/users/profile.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
-
-class HCColor {
-  static const primary = Color(0xFF0BA5A7);
-  static const primaryDark = Color(0xFF088088);
-  static const bg = Color(0xFFF5F7FA);
-  static const card = Colors.white;
-  static const textMuted = Colors.black54;
-  static const lightTeal = Color(0xFFE0F7F7);
-}
 
 class Layanan {
   final int id;

@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/chat/pasien_chat_list_page.dart';
-import 'package:home_care/users/Menu.dart';
-import 'package:home_care/users/layananPage.dart';
+import 'package:home_care/users/menu_page.dart';
+import 'package:home_care/users/layanan_page.dart';
 import 'package:home_care/users/notifikasi_page.dart';
 import 'package:home_care/users/profile.dart';
 import 'package:home_care/users/search_page.dart';
@@ -13,21 +13,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/users/lihatHistoriPemesanan.dart';
+import 'package:home_care/users/lihat_histori_pemesanan.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 import 'package:home_care/users/widgets/home_bottom_nav.dart';
 import 'package:home_care/users/widgets/home_sections.dart';
 
 export 'package:home_care/users/widgets/home_bottom_nav.dart';
 export 'package:home_care/users/widgets/home_sections.dart';
-
-class HCColor {
-  static const primary = Color(0xFF0BA5A7);
-  static const primaryDark = Color(0xFF088088);
-  static const bg = Color(0xFFF5F7FA);
-  static const card = Colors.white;
-  static const textMuted = Colors.black54;
-}
 
 class BannerItem {
   final int id;

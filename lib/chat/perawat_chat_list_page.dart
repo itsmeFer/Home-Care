@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../chat.dart' show ChatRoomPage;
+import 'package:home_care/features/chat/presentation/screens/chat_room_page.dart' show ChatRoomPage;
 
 String get kBaseUrl => ApiConstants.apiBase;
 

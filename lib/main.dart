@@ -1,4 +1,4 @@
-import 'package:device_preview/device_preview.dart';
+﻿import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +12,10 @@ import 'package:home_care/direktur/direktur_dashboard.dart';
 import 'package:home_care/kordinator/dashboard.dart';
 import 'package:home_care/manager/manager_dashboard.dart';
 import 'package:home_care/perawat/dashboard.dart';
-import 'package:home_care/screen/SplashScreen.dart';
+import 'package:home_care/screen/splash_screen.dart';
 import 'package:home_care/screen/login.dart';
 import 'package:home_care/services/firebase_notification_service.dart';
-import 'package:home_care/users/HomePage.dart';
+import 'package:home_care/users/home_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'firebase_options.dart';

@@ -1,25 +1,26 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:home_care/admin/crudKategori.dart';
+import 'package:home_care/admin/crud_kategori.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import 'package:home_care/admin/lihatLayananMasuk.dart' as admin;
+import 'package:home_care/admin/lihat_layanan_masuk.dart' as admin;
 
-import 'package:home_care/admin/crudRole.dart';
-import 'package:home_care/admin/crud_add-ons.dart';
+import 'package:home_care/admin/crud_role.dart';
+import 'package:home_care/admin/crud_addons.dart';
 import 'package:home_care/admin/crud_banner.dart';
 import 'package:home_care/admin/crud_perawat.dart';
-import 'package:home_care/admin/kelolaFee.dart';
-import 'package:home_care/admin/kelolaKordinator.dart';
-import 'package:home_care/admin/kelolaLayanan.dart';
+import 'package:home_care/admin/kelola_fee.dart';
+import 'package:home_care/admin/kelola_kordinator.dart';
+import 'package:home_care/admin/kelola_layanan.dart';
 import 'package:home_care/admin/lapor_it.dart';
-import 'package:home_care/admin/lihatCatatanFee.dart';
-import 'package:home_care/admin/lihatPerawat.dart';
+import 'package:home_care/admin/lihat_catatan_fee.dart';
+import 'package:home_care/admin/lihat_perawat.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/screen/login.dart';
-import 'package:home_care/users/HomePage.dart';
+import 'package:home_care/users/home_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});

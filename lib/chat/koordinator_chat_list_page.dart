@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
-import 'package:home_care/chat.dart';
+import 'package:home_care/features/chat/presentation/screens/chat_room_page.dart';
 import 'package:home_care/chat/chat_models.dart';
 import 'package:home_care/chat/chat_unread_counter.dart';
 import 'package:home_care/core/constants/api_constants.dart';
