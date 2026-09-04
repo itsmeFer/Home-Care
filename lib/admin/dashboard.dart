@@ -17,6 +17,7 @@ import 'package:home_care/admin/kelolaLayanan.dart';
 import 'package:home_care/admin/lapor_it.dart';
 import 'package:home_care/admin/lihatCatatanFee.dart';
 import 'package:home_care/admin/lihatPerawat.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/screen/login.dart';
 import 'package:home_care/users/HomePage.dart';
 
@@ -28,7 +29,7 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   bool _isLoadingStats = true;
   Map<String, dynamic> _summary = {};

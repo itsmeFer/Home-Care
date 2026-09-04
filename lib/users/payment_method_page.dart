@@ -4,11 +4,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:home_care/users/lihatDetailHistoriPemesanan.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
-const String kApiBase = '$kBaseUrl/api';
+String get kBaseUrl => ApiConstants.baseUrl;
+String get kApiBase => ApiConstants.apiBase;
 
 class PaymentMethodPage extends StatefulWidget {
   final int draftId;

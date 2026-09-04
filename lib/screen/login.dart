@@ -11,8 +11,9 @@ import 'package:home_care/ITDev/dashboard_it_page.dart';
 import 'package:home_care/screen/forgot_password_screen.dart';
 import 'package:home_care/users/HomePage.dart';
 
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/screen/register.dart';
 import 'package:home_care/services/firebase_notification_service.dart';
 
@@ -32,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscure = true;
   bool _rememberMe = false;
 
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   @override
   void initState() {
@@ -48,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _loadSavedCredentials() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await StorageService.instance;
     final savedUsername = prefs.getString('saved_username');
 
     if (savedUsername != null && savedUsername.isNotEmpty) {
@@ -65,43 +66,24 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
+      final body = await ApiClient.post(
+        '/login',
+        body: {
           'username': _usernameC.text.trim(),
           'password': _passwordC.text.trim(),
-        }),
+        },
       );
 
       if (!mounted) return;
 
-      if (res.statusCode != 200 && res.statusCode != 201) {
-        String msg = 'Login gagal (${res.statusCode})';
-        try {
-          final b = json.decode(res.body);
-          if (b['message'] != null) msg = b['message'];
-        } catch (_) {}
-        _showError(msg);
-        return;
-      }
-
-      final body = json.decode(res.body);
-
-      if (body['success'] != true) {
-        _showError(body['message'] ?? 'Login gagal');
-        return;
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-
-      final token = body['token']?.toString() ?? '';
+      final token = (body['token'] ?? body['access_token'])?.toString() ?? '';
       if (token.isEmpty) {
         _showError('Token tidak ditemukan');
         return;
       }
 
-      await prefs.setString('auth_token', token);
+      await StorageService.saveToken(token);
+      final prefs = await StorageService.instance;
 
       String role = 'pasien';
 

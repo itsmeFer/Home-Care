@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:home_care/chat.dart';
 import 'package:home_care/chat/chat_models.dart';
 import 'package:home_care/chat/chat_unread_counter.dart';
-import 'package:http/http.dart' as http;
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class PasienChatListPage extends StatefulWidget {
   const PasienChatListPage({super.key});
@@ -33,62 +31,37 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final body = await ApiClient.get('/pasien/chat-rooms');
 
-      if (token == null) {
+      if (!mounted) return;
+
+      if (body is Map && body['data'] is List) {
+        final List data = body['data'] as List;
+        final rooms = data
+            .map((e) => ChatRoom.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+
+        final totalUnread = rooms.fold<int>(
+          0,
+          (sum, room) => sum + room.unreadCount,
+        );
+        ChatUnreadCounter.setTotal(totalUnread);
+
         setState(() {
+          _rooms = rooms;
           _isLoading = false;
-          _error = 'Sesi login berakhir, silakan login ulang.';
         });
-        return;
-      }
-
-      final res = await http.get(
-        Uri.parse('$kBaseUrl/pasien/chat-rooms'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (res.statusCode != 200) {
+      } else {
         setState(() {
+          _rooms = [];
           _isLoading = false;
-          _error =
-              'Gagal memuat daftar chat (${res.statusCode} ${res.reasonPhrase})';
         });
-        return;
       }
-
-      final body = json.decode(res.body) as Map<String, dynamic>;
-      if (body['success'] != true) {
-        setState(() {
-          _isLoading = false;
-          _error = body['message']?.toString() ?? 'Gagal memuat chat.';
-        });
-        return;
-      }
-
-      final List data = body['data'] as List;
-      final rooms = data
-          .map((e) => ChatRoom.fromJson(e as Map<String, dynamic>))
-          .toList();
-
-      final totalUnread = rooms.fold<int>(
-        0,
-        (sum, room) => sum + room.unreadCount,
-      );
-      ChatUnreadCounter.setTotal(totalUnread);
-
-      setState(() {
-        _rooms = rooms;
-        _isLoading = false;
-      });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = 'Terjadi kesalahan: $e';
+        _error = e.toString().replaceFirst('Exception: ', '');
       });
     }
   }
@@ -128,57 +101,31 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
     if (confirm != true) return;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      await ApiClient.delete('/pasien/chat-rooms/${room.id}');
 
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sesi login berakhir, silakan login ulang.'),
-          ),
-        );
-        return;
-      }
+      setState(() {
+        _rooms.removeWhere((r) => r.id == room.id);
+      });
 
-      final res = await http.delete(
-        Uri.parse('$kBaseUrl/pasien/chat-rooms/${room.id}'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+      final totalUnread = _rooms.fold<int>(
+        0,
+        (sum, item) => sum + item.unreadCount,
       );
+      ChatUnreadCounter.setTotal(totalUnread);
 
-      if (res.statusCode == 200) {
-        setState(() {
-          _rooms.removeWhere((r) => r.id == room.id);
-        });
-
-        final totalUnread = _rooms.fold<int>(
-          0,
-          (sum, item) => sum + item.unreadCount,
-        );
-        ChatUnreadCounter.setTotal(totalUnread);
-
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Chat berhasil dihapus')),
         );
-      } else {
-        String msg = 'Gagal menghapus chat (${res.statusCode})';
-        try {
-          final body = json.decode(res.body) as Map<String, dynamic>;
-          if (body['message'] != null) {
-            msg = body['message'].toString();
-          }
-        } catch (_) {}
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+          ),
+        );
+      }
     }
   }
 

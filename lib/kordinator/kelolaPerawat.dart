@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:home_care/kordinator/detailPerawat.dart';
 
-import 'package:home_care/users/HomePage.dart';
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/features/nurses/domain/nurse_model.dart';
 
 class KelolaPerawatPage extends StatefulWidget {
   const KelolaPerawatPage({super.key});
@@ -17,7 +18,7 @@ class KelolaPerawatPage extends StatefulWidget {
 }
 
 class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   bool _isLoading = true;
   bool _isError = false;
@@ -724,203 +725,9 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   }
 }
 
-class Perawat {
-  final int? id;
-  final String? kodePerawat;
-  final String? namaLengkap;
-  final String? nik;
-  final String? jenisKelamin;
-  final String? tanggalLahir;
-  final String? tempatLahir;
+String get kBaseUrl => ApiConstants.baseUrl;
 
-  final String? noHp;
-  final String? email;
-  final String? profesi;
-  final String? keahlian;
-  final String? noStr;
-  final String? noSip;
-
-  final int? tahunPengalaman;
-  final String? tempatKerjaTerakhir;
-
-  final String? wilayah;
-  final String? alamat;
-
-  final String? kontakDaruratNama;
-  final String? kontakDaruratNoHp;
-  final String? kontakDaruratHubungan;
-
-  final bool? isActive;
-
-  final String? statusVerifikasi;
-  final String? verifiedAt;
-  final String? catatanVerifikasi;
-
-  final String? foto;
-  final String? fotoKtp;
-  final String? ijazah;
-  final String? strFile;
-  final String? sipFile;
-  final String? sertifikatBtcls;
-  final String? sertifikatPpra;
-  final String? sertifikatLainnya;
-
-  Perawat({
-    this.id,
-    this.kodePerawat,
-    this.namaLengkap,
-    this.nik,
-    this.jenisKelamin,
-    this.tanggalLahir,
-    this.tempatLahir,
-    this.noHp,
-    this.email,
-    this.profesi,
-    this.keahlian,
-    this.noStr,
-    this.noSip,
-    this.tahunPengalaman,
-    this.tempatKerjaTerakhir,
-    this.wilayah,
-    this.alamat,
-    this.kontakDaruratNama,
-    this.kontakDaruratNoHp,
-    this.kontakDaruratHubungan,
-    this.isActive,
-
-    this.statusVerifikasi,
-    this.verifiedAt,
-    this.catatanVerifikasi,
-
-    this.foto,
-    this.fotoKtp,
-    this.ijazah,
-    this.strFile,
-    this.sipFile,
-    this.sertifikatBtcls,
-    this.sertifikatPpra,
-    this.sertifikatLainnya,
-  });
-
-  factory Perawat.fromJson(Map<String, dynamic> json) {
-    int? parseInt(dynamic v) {
-      if (v == null) return null;
-      if (v is int) return v;
-      if (v is String && v.trim().isNotEmpty) {
-        return int.tryParse(v);
-      }
-      return null;
-    }
-
-    return Perawat(
-      id: json['id'] as int?,
-      kodePerawat: json['kode_perawat']?.toString(),
-      namaLengkap: json['nama_lengkap']?.toString(),
-      nik: json['nik']?.toString(),
-      jenisKelamin: json['jenis_kelamin']?.toString(),
-      tanggalLahir: json['tanggal_lahir']?.toString(),
-      tempatLahir: json['tempat_lahir']?.toString(),
-      noHp: json['no_hp']?.toString(),
-      email: json['email']?.toString(),
-      profesi: json['profesi']?.toString(),
-      keahlian: json['keahlian']?.toString(),
-      noStr: json['no_str']?.toString(),
-      noSip: json['no_sip']?.toString(),
-      tahunPengalaman: parseInt(json['tahun_pengalaman']),
-      tempatKerjaTerakhir: json['tempat_kerja_terakhir']?.toString(),
-      wilayah: json['wilayah']?.toString(),
-      alamat: json['alamat']?.toString(),
-      kontakDaruratNama: json['kontak_darurat_nama']?.toString(),
-      kontakDaruratNoHp: json['kontak_darurat_no_hp']?.toString(),
-      kontakDaruratHubungan: json['kontak_darurat_hubungan']?.toString(),
-      isActive:
-          json['is_active'] == null
-              ? null
-              : (json['is_active'] is bool
-                  ? json['is_active']
-                  : json['is_active'].toString() == '1'),
-
-      statusVerifikasi: json['status_verifikasi']?.toString(),
-      verifiedAt: json['verified_at']?.toString(),
-      catatanVerifikasi: json['catatan_verifikasi']?.toString(),
-
-      foto: json['foto']?.toString(),
-      fotoKtp: json['foto_ktp']?.toString(),
-      ijazah: json['ijazah']?.toString(),
-      strFile: json['str_file']?.toString(),
-      sipFile: json['sip_file']?.toString(),
-      sertifikatBtcls: json['sertifikat_btcls']?.toString(),
-      sertifikatPpra: json['sertifikat_ppra']?.toString(),
-      sertifikatLainnya: json['sertifikat_lainnya']?.toString(),
-    );
-  }
-
-  String? get inisial {
-    if (namaLengkap == null || namaLengkap!.isEmpty) return null;
-    final parts = namaLengkap!.trim().split(' ');
-    if (parts.length == 1) return parts.first[0].toUpperCase();
-    return (parts.first[0] + parts.last[0]).toUpperCase();
-  }
-
-  String get labelJenisKelamin {
-    if (jenisKelamin == 'L') return 'Laki-laki';
-    if (jenisKelamin == 'P') return 'Perempuan';
-    return '-';
-  }
-
-  String get labelStatusVerifikasi {
-    switch (statusVerifikasi) {
-      case 'verified':
-        return 'Terverifikasi';
-      case 'rejected':
-        return 'Ditolak';
-      case 'pending':
-      default:
-        return 'Pending';
-    }
-  }
-
-  Color get chipColorVerifikasi {
-    switch (statusVerifikasi) {
-      case 'verified':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      case 'pending':
-      default:
-        return Colors.orange;
-    }
-  }
-}
-
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
-
-String? resolveMediaUrl(String? raw) {
-  if (raw == null) return null;
-  var v = raw.trim();
-  if (v.isEmpty) return null;
-
-  if (v.contains('/api/media/')) {
-
-    if (!v.startsWith('http')) {
-      return '$kBaseUrl$v';
-    }
-    return v;
-  }
-
-  if (v.startsWith('http://') || v.startsWith('https://')) {
-    final uri = Uri.parse(v);
-    v = uri.path;
-  }
-
-  if (v.startsWith('/')) v = v.substring(1);
-
-  if (v.startsWith('storage/')) {
-    v = v.substring('storage/'.length);
-  }
-
-  return '$kBaseUrl/api/media/$v';
-}
+String? resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
 class _PerawatFormDialog extends StatefulWidget {
   final Perawat? perawat;

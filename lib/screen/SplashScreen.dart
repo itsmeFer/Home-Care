@@ -13,13 +13,15 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    Timer(const Duration(seconds: 4), () async {
+    _timer = Timer(const Duration(seconds: 2), () async {
       final prefs = await SharedPreferences.getInstance();
       final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
 
@@ -37,6 +39,12 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override

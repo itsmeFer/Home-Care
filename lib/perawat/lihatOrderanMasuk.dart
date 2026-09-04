@@ -1,62 +1,28 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:home_care/perawat/lihatDetailOrderanMasuk.dart';
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+export 'package:home_care/features/orders/domain/order_models.dart';
+
+String get kBaseUrl => ApiConstants.apiBase;
 
 class HCColor {
-  static const primary = Color(0xFF0BA5A7);
+  static const primary = AppColors.primary;
   static const primaryDark = Color(0xFF088088);
-  static const bg = Color(0xFFF5F7FA);
-  static const card = Colors.white;
-  static const textMuted = Colors.black54;
+  static const bg = AppColors.background;
+  static const card = AppColors.card;
+  static const textMuted = AppColors.textSecondary;
   static const lightTeal = Color(0xFFE0F7F7);
 }
 
-class OrderLayananPerawat {
-  final int id;
-  final String kodeOrder;
-  final String statusOrder;
-  final String namaLayanan;
-  final String? tanggalMulai;
-  final String? jamMulai;
-  final Map<String, dynamic>? pasien;
-  final Map<String, dynamic>? koordinator;
-
-  OrderLayananPerawat({
-    required this.id,
-    required this.kodeOrder,
-    required this.statusOrder,
-    required this.namaLayanan,
-    this.tanggalMulai,
-    this.jamMulai,
-    this.pasien,
-    this.koordinator,
-  });
-
-  factory OrderLayananPerawat.fromJson(Map<String, dynamic> json) {
-    return OrderLayananPerawat(
-      id: json['id'] as int,
-      kodeOrder: json['kode_order']?.toString() ?? '-',
-      statusOrder: json['status_order']?.toString() ?? 'pending',
-      namaLayanan:
-          json['nama_layanan']?.toString() ??
-          (json['layanan']?['nama_layanan']?.toString() ?? '-'),
-      tanggalMulai: json['tanggal_mulai']?.toString(),
-      jamMulai: json['jam_mulai']?.toString(),
-      pasien: json['pasien'] as Map<String, dynamic>?,
-      koordinator: json['koordinator'] as Map<String, dynamic>?,
-    );
-  }
-}
-
 class LihatOrderanMasukPerawatPage extends StatefulWidget {
-  const LihatOrderanMasukPerawatPage({Key? key}) : super(key: key);
+  const LihatOrderanMasukPerawatPage({super.key});
 
   @override
   State<LihatOrderanMasukPerawatPage> createState() =>
@@ -91,7 +57,6 @@ class _LihatOrderanMasukPerawatPageState
   void initState() {
     super.initState();
     _fetchOrders();
-
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -104,21 +69,13 @@ class _LihatOrderanMasukPerawatPageState
   }
 
   void _onSearchChanged() {
-
     setState(() {});
-
     _debounceTimer?.cancel();
-
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
         _fetchOrders();
       }
     });
-  }
-
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
   }
 
   Future<void> _fetchOrders() async {
@@ -130,17 +87,7 @@ class _LihatOrderanMasukPerawatPageState
     });
 
     try {
-      final token = await _getToken();
-      if (token == null) {
-        if (!mounted) return;
-        setState(() {
-          _isLoading = false;
-          _error = 'Token tidak ditemukan. Silakan login sebagai perawat.';
-        });
-        return;
-      }
-
-      final Map<String, String> queryParams = {};
+      final Map<String, dynamic> queryParams = {};
 
       if (_selectedStatus != null && _selectedStatus!.isNotEmpty) {
         queryParams['status'] = _selectedStatus!;
@@ -152,84 +99,41 @@ class _LihatOrderanMasukPerawatPageState
       }
 
       if (_tanggalDari != null) {
-        queryParams['tanggal_mulai_dari'] = DateFormat(
-          'yyyy-MM-dd',
-        ).format(_tanggalDari!);
+        queryParams['tanggal_mulai_dari'] =
+            DateFormat('yyyy-MM-dd').format(_tanggalDari!);
       }
       if (_tanggalSampai != null) {
-        queryParams['tanggal_mulai_sampai'] = DateFormat(
-          'yyyy-MM-dd',
-        ).format(_tanggalSampai!);
+        queryParams['tanggal_mulai_sampai'] =
+            DateFormat('yyyy-MM-dd').format(_tanggalSampai!);
       }
 
-      final uri = Uri.parse(
-        '$kBaseUrl/perawat/order-layanan',
-      ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
-
-      debugPrint('🔍 Fetching orders with URL: $uri');
-      debugPrint('🔍 Search keyword: "$keyword"');
-      debugPrint('🔍 Query params: $queryParams');
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+      final res = await ApiClient.get(
+        '/perawat/order-layanan',
+        queryParams: queryParams.isEmpty ? null : queryParams,
       );
-
-      debugPrint('📦 Response status: ${response.statusCode}');
-      debugPrint('📦 Response body: ${response.body}');
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        final success = decoded['success'] == true;
-
-        if (!success) {
-          setState(() {
-            _isLoading = false;
-            _error =
-                decoded['message']?.toString() ??
-                'Gagal memuat orderan untuk perawat.';
-          });
-          return;
-        }
-
-        final List<dynamic> data = decoded['data'] ?? [];
-        final list =
-            data
-                .map(
-                  (e) =>
-                      OrderLayananPerawat.fromJson(e as Map<String, dynamic>),
-                )
-                .toList();
-
-        debugPrint('✅ Loaded ${list.length} orders');
-
+      if (res is Map && res['data'] is List) {
+        final List list = res['data'] as List;
         setState(() {
+          _orders = list
+              .map((e) => OrderLayananPerawat.fromJson(
+                  Map<String, dynamic>.from(e as Map)))
+              .toList();
           _isLoading = false;
-          _orders = list;
-        });
-      } else if (response.statusCode == 401) {
-        setState(() {
-          _isLoading = false;
-          _error = 'Sesi login perawat berakhir. Silakan login ulang.';
         });
       } else {
         setState(() {
+          _orders = [];
           _isLoading = false;
-          _error =
-              'Gagal memuat data. Kode: ${response.statusCode} ${response.reasonPhrase}';
         });
       }
     } catch (e) {
-      debugPrint('❌ Error fetching orders: $e');
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = 'Terjadi kesalahan: $e';
+        _error = e.toString().replaceFirst('Exception: ', '');
       });
     }
   }

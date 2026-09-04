@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../chat.dart' show ChatRoomPage;
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+String get kBaseUrl => ApiConstants.apiBase;
 
 class PerawatChatListPage extends StatefulWidget {
   const PerawatChatListPage({super.key});

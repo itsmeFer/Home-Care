@@ -4,36 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/HomePage.dart';
+import 'package:home_care/utils/app_cached_image.dart';
 
-const String kApiBase = 'https://homecare.primamadanitalenta.my.id/api';
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
+String get kApiBase => ApiConstants.apiBase;
+String get kBaseUrl => ApiConstants.baseUrl;
 
-String? resolveMediaUrl(String? raw) {
-  if (raw == null) return null;
-  var v = raw.trim();
-  if (v.isEmpty) return null;
-
-  if (v.contains('/api/media/')) {
-    if (!v.startsWith('http')) {
-      return '$kBaseUrl$v';
-    }
-    return v;
-  }
-
-  if (v.startsWith('http://') || v.startsWith('https://')) {
-    final uri = Uri.parse(v);
-    v = uri.path;
-  }
-
-  if (v.startsWith('/')) v = v.substring(1);
-
-  if (v.startsWith('storage/')) {
-    v = v.substring('storage/'.length);
-  }
-
-  return '$kBaseUrl/api/media/$v';
-}
+String? resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
 class PerawatAdmin {
   final int? id;
@@ -314,26 +292,25 @@ class _LihatPerawatPageState extends State<LihatPerawatPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
 
-                                CircleAvatar(
-                                  radius: 22,
-                                  backgroundColor: HCColor.primary.withOpacity(
-                                    .1,
-                                  ),
-                                  backgroundImage:
-                                      (fotoUrl != null)
-                                          ? NetworkImage(fotoUrl)
-                                          : null,
-                                  child:
-                                      (fotoUrl != null)
-                                          ? null
-                                          : Text(
-                                            p.inisial,
-                                            style: TextStyle(
-                                              color: HCColor.primaryDark,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                ),
+                                (fotoUrl != null && fotoUrl.isNotEmpty)
+                                    ? AppCircleAvatar(
+                                      imageUrl: fotoUrl,
+                                      radius: 22,
+                                      fallbackIcon: Icons.person,
+                                      backgroundColor: HCColor.primary.withOpacity(.1),
+                                      foregroundColor: HCColor.primaryDark,
+                                    )
+                                    : CircleAvatar(
+                                      radius: 22,
+                                      backgroundColor: HCColor.primary.withOpacity(.1),
+                                      child: Text(
+                                        p.inisial,
+                                        style: TextStyle(
+                                          color: HCColor.primaryDark,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                 const SizedBox(width: 12),
 
                                 Expanded(

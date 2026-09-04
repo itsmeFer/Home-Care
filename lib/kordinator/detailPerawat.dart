@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:home_care/users/HomePage.dart';
-
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/features/nurses/domain/nurse_model.dart';
 import 'package:home_care/kordinator/kelolaPerawat.dart';
 
 class DetailPerawatPage extends StatefulWidget {
@@ -18,7 +19,7 @@ class DetailPerawatPage extends StatefulWidget {
 }
 
 class _DetailPerawatPageState extends State<DetailPerawatPage> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   final TextEditingController _passwordC = TextEditingController();
   bool _obscurePwd = true;
@@ -41,23 +42,7 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
     return v.toString();
   }
 
-  String? _resolveMediaUrl(String? raw) {
-    if (raw == null) return null;
-    String path = raw.trim();
-    if (path.isEmpty) return null;
-
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return path;
-    }
-
-    if (path.startsWith('/')) {
-      path = path.substring(1);
-    }
-
-    const String baseApi = 'https://homecare.primamadanitalenta.my.id/api';
-
-    return '$baseApi/media/$path';
-  }
+  String? _resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
   void _showSnack(String msg, {bool error = false}) {
     ScaffoldMessenger.of(context).showSnackBar(

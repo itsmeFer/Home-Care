@@ -7,6 +7,7 @@ import 'package:home_care/kordinator/kelolaPerawat.dart';
 import 'package:home_care/kordinator/lapor_it.dart';
 import 'package:home_care/kordinator/lihatOrderanMasuk.dart';
 import 'package:home_care/screen/login.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -26,8 +27,7 @@ class KoordinatorDashboard extends StatefulWidget {
 }
 
 class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
-  static const String kBaseUrl =
-      'https://homecare.primamadanitalenta.my.id/api';
+  static String get kBaseUrl => ApiConstants.apiBase;
 
   int _chatUnreadCount = 0;
   int _orderUnreadCount = 0;
@@ -88,7 +88,6 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   }
 
   Future<void> _loadBadges({bool silent = false}) async {
-
     if (_isLoadingBadge && !silent) return;
 
     if (!silent && mounted) {

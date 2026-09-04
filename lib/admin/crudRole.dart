@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/HomePage.dart';
 
 class CrudRolePage extends StatefulWidget {
@@ -14,7 +15,7 @@ class CrudRolePage extends StatefulWidget {
 }
 
 class _CrudRolePageState extends State<CrudRolePage> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   bool _isLoading = true;
   bool _isError = false;

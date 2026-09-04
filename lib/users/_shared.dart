@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class NetImage extends StatelessWidget {
   final String url; final BoxFit fit; final double? targetWidth;
@@ -7,14 +8,24 @@ class NetImage extends StatelessWidget {
   @override
   Widget build(BuildContext context){
     final mq=MediaQuery.of(context);
-    final px=((targetWidth??mq.size.width)*mq.devicePixelRatio).clamp(300,1600).toInt();
-    return Image.network(url,fit:fit,cacheWidth:px,filterQuality:FilterQuality.low,
-      loadingBuilder:(c,child,p)=>p==null?child:const ColoredBox(
+    final px=((targetWidth??mq.size.width)*mq.devicePixelRatio).clamp(200,1200).toInt();
+    if (url.trim().isEmpty) {
+      return const ColoredBox(
         color: Color(0xFFF2F4F7),
-        child: Center(child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))),
+        child: Center(child: Icon(Icons.broken_image_outlined, color: Colors.black26)),
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: fit,
+      memCacheWidth: px,
+      placeholder: (c, _) => const ColoredBox(
+        color: Color(0xFFF2F4F7),
+        child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))),
       ),
-      errorBuilder:(_,__,___)=>const ColoredBox(
-        color: Color(0xFFF2F4F7), child: Center(child: Icon(Icons.broken_image_outlined,color: Colors.black26)),
+      errorWidget: (_, __, ___) => const ColoredBox(
+        color: Color(0xFFF2F4F7),
+        child: Center(child: Icon(Icons.broken_image_outlined, color: Colors.black26)),
       ),
     );
   }

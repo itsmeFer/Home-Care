@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,8 +24,8 @@ class UserMonitorPage extends StatefulWidget {
 }
 
 class _UserMonitorPageState extends State<UserMonitorPage> {
-  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
-  String get kApiBase => '$kBaseUrl/api';
+  String get kBaseUrl => ApiConstants.baseUrl;
+  String get kApiBase => ApiConstants.apiBase;
 
   final _qC = TextEditingController();
   Timer? _debounce;

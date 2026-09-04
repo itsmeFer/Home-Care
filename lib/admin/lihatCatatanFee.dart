@@ -1,92 +1,35 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/features/fee_management/domain/fee_models.dart';
 
-const Color kBg = Color(0xFFF7F8FA);
-const Color kCard = Colors.white;
-const Color kBorder = Color(0xFFE5E7EB);
+export 'package:home_care/features/fee_management/domain/fee_models.dart';
+
+const Color kBg = AppColors.background;
+const Color kCard = AppColors.card;
+const Color kBorder = AppColors.border;
 const Color kPrimary = Color(0xFF2563EB);
-const Color kText = Color(0xFF111827);
-const Color kTextSub = Color(0xFF6B7280);
-const Color kDanger = Color(0xFFDC2626);
-const Color kSuccess = Color(0xFF16A34A);
+const Color kText = AppColors.textPrimary;
+const Color kTextSub = AppColors.textSecondary;
+const Color kDanger = AppColors.danger;
+const Color kSuccess = AppColors.success;
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
+String get kBaseUrl => ApiConstants.baseUrl;
+String get apiBaseUrl => ApiConstants.apiBase;
 
-String get apiBaseUrl => '$kBaseUrl/api';
-
-class FeeTimelinePoint {
-  final DateTime date;
-  final double amount;
-
-  FeeTimelinePoint({required this.date, required this.amount});
-}
-
-class FeeByLayanan {
-  final int layananId;
-  final String layananNama;
-  final double totalFee;
-
-  FeeByLayanan({
-    required this.layananId,
-    required this.layananNama,
-    required this.totalFee,
-  });
-}
-
-class LeaderboardItem {
-  final int userId;
-  final String nama;
-  final double totalFee;
-
-  LeaderboardItem({
-    required this.userId,
-    required this.nama,
-    required this.totalFee,
-  });
-}
-
-class SimpleUserOption {
-  final int id;
-  final String name;
-  final String? email;
-  final String? role;
-
-  SimpleUserOption({
-    required this.id,
-    required this.name,
-    this.email,
-    this.role,
-  });
-}
-
-String formatRupiah(num value) {
-  final s = value.toStringAsFixed(0);
-  final buffer = StringBuffer();
-  int count = 0;
-  for (int i = s.length - 1; i >= 0; i--) {
-    buffer.write(s[i]);
-    count++;
-    if (count == 3 && i != 0) {
-      buffer.write('.');
-      count = 0;
-    }
-  }
-  final result = buffer.toString().split('').reversed.join();
-  return 'Rp $result';
-}
+String formatRupiah(num value) => AppFormatters.formatRupiah(value);
 
 class LihatCatatanFeePage extends StatefulWidget {
-  const LihatCatatanFeePage({Key? key}) : super(key: key);
+  const LihatCatatanFeePage({super.key});
 
   @override
   State<LihatCatatanFeePage> createState() => _LihatCatatanFeePageState();
 }
 
 class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
-
   SimpleUserOption? _selectedUser;
 
   List<SimpleUserOption> _userSearchResults = [];
@@ -116,7 +59,6 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
   @override
   void initState() {
     super.initState();
-
     _searchUsers();
   }
 
@@ -126,63 +68,39 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final token = prefs.getString('auth_token');
-      if (token == null) {
-        throw Exception('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      final uri = Uri.parse(
-        '$apiBaseUrl/admin/fee/searchable-users?per_page=20&search=${Uri.encodeQueryComponent(_userSearchQuery)}',
-      );
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
+      final jsonRes = await ApiClient.get(
+        ApiConstants.adminFeeSearchableUsers,
+        queryParams: {
+          'per_page': 20,
+          if (_userSearchQuery.trim().isNotEmpty)
+            'search': _userSearchQuery.trim(),
         },
       );
 
-      if (response.statusCode != 200) {
-        debugPrint('searchable-users status: ${response.statusCode}');
-        debugPrint('body: ${response.body}');
-        throw Exception(
-          'Gagal memuat daftar user (code ${response.statusCode}).',
-        );
-      }
+      if (jsonRes is Map && jsonRes['success'] == true) {
+        final data = jsonRes['data'] ?? {};
+        final list = (data['data'] ?? []) as List;
 
-      final jsonRes = jsonDecode(response.body);
-      if (jsonRes is! Map || jsonRes['success'] != true) {
-        throw Exception(jsonRes['message'] ?? 'Response tidak valid.');
-      }
+        _userSearchResults = list
+            .map((e) =>
+                SimpleUserOption.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
 
-      final data = jsonRes['data'] ?? {};
-      final list = (data['data'] ?? []) as List;
-
-      _userSearchResults =
-          list.map((e) {
-            return SimpleUserOption(
-              id: e['id'] ?? 0,
-              name: e['display_name'] ?? e['name'] ?? 'User',
-              email: e['email']?.toString(),
-              role: e['role']?.toString(),
-            );
-          }).toList();
-
-      if (_selectedUser == null && _userSearchResults.isNotEmpty) {
-        _selectedUser = _userSearchResults.first;
-        _selectedLayananId = null;
-        await _loadFeeData();
+        if (_selectedUser == null && _userSearchResults.isNotEmpty) {
+          _selectedUser = _userSearchResults.first;
+          _selectedLayananId = null;
+          await _loadFeeData();
+        }
       }
     } catch (e) {
       debugPrint('Error search users: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSearchingUser = false;
+        });
+      }
     }
-
-    setState(() {
-      _isSearchingUser = false;
-    });
   }
 
   Future<void> _loadFeeData() async {
@@ -194,94 +112,62 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final token = prefs.getString('auth_token');
-      if (token == null) {
-        throw Exception('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      final params = <String, String>{
-        'user_id': _selectedUser!.id.toString(),
+      final params = <String, dynamic>{
+        'user_id': _selectedUser!.id,
         'range': _selectedRange,
         'status': _selectedStatus,
       };
 
       if (_selectedLayananId != null) {
-        params['layanan_id'] = _selectedLayananId.toString();
+        params['layanan_id'] = _selectedLayananId;
       }
 
-      final uri = Uri.parse(
-        '$apiBaseUrl/admin/fee/catatan-user',
-      ).replace(queryParameters: params);
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+      final jsonRes = await ApiClient.get(
+        ApiConstants.adminFeeCatatanUser,
+        queryParams: params,
       );
 
-      if (response.statusCode != 200) {
-        debugPrint('catatan-user status: ${response.statusCode}');
-        debugPrint('body: ${response.body}');
-        throw Exception(
-          'Gagal memuat catatan fee (code ${response.statusCode}).',
-        );
+      if (jsonRes is Map && jsonRes['success'] == true) {
+        final data = jsonRes['data'] ?? {};
+
+        _totalSemuaLayanan = (data['total_semua_layanan'] ?? 0).toDouble();
+
+        final byLayananRaw = (data['total_per_layanan'] ?? []) as List;
+        _byLayanan = byLayananRaw
+            .map((e) =>
+                FeeByLayanan.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+
+        final timelineRaw = (data['timeline'] ?? []) as List;
+        _timeline = timelineRaw
+            .map((e) => FeeTimelinePoint(
+                  date: DateTime.tryParse(e['tanggal']?.toString() ?? '') ??
+                      DateTime.now(),
+                  amount: (e['total_fee'] ?? 0).toDouble(),
+                ))
+            .toList();
+
+        final leaderboardRaw = (data['leaderboard'] ?? []) as List;
+        _leaderboard = leaderboardRaw
+            .map((e) =>
+                LeaderboardItem.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      } else if (jsonRes is Map && jsonRes.containsKey('message')) {
+        throw Exception(jsonRes['message']);
       }
-
-      final jsonRes = jsonDecode(response.body);
-      if (jsonRes is! Map || jsonRes['success'] != true) {
-        throw Exception(jsonRes['message'] ?? 'Response tidak valid.');
-      }
-
-      final data = jsonRes['data'] ?? {};
-
-      _totalSemuaLayanan = (data['total_semua_layanan'] ?? 0).toDouble();
-
-      final byLayananRaw = (data['total_per_layanan'] ?? []) as List;
-      _byLayanan =
-          byLayananRaw.map((e) {
-            return FeeByLayanan(
-              layananId: e['layanan_id'] ?? 0,
-              layananNama: e['layanan_nama'] ?? '-',
-              totalFee: (e['total_fee'] ?? 0).toDouble(),
-            );
-          }).toList();
-
-      final timelineRaw = (data['timeline'] ?? []) as List;
-      _timeline =
-          timelineRaw.map((e) {
-            final tanggalStr = e['tanggal'] ?? '';
-            DateTime date;
-            try {
-              date = DateTime.parse(tanggalStr);
-            } catch (_) {
-              date = DateTime.now();
-            }
-            return FeeTimelinePoint(
-              date: date,
-              amount: (e['total_fee'] ?? 0).toDouble(),
-            );
-          }).toList();
-
-      final leaderboardRaw = (data['leaderboard'] ?? []) as List;
-      _leaderboard =
-          leaderboardRaw.map((e) {
-            return LeaderboardItem(
-              userId: e['user_id'] ?? 0,
-              nama: e['nama'] ?? '-',
-              totalFee: (e['total_fee'] ?? 0).toDouble(),
-            );
-          }).toList();
     } catch (e) {
-      _errorMessage = e.toString();
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingData = false;
+        });
+      }
     }
-
-    setState(() {
-      _isLoadingData = false;
-    });
   }
 
   FeeByLayanan? get _selectedLayanan {

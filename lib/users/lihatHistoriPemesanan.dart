@@ -5,10 +5,11 @@ import 'package:home_care/users/LihatDetailDraftPemesananPage.dart';
 import 'package:home_care/users/lihatDetailHistoriPemesanan.dart';
 import 'package:home_care/users/payment_method_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+String get kBaseUrl => ApiConstants.apiBase;
 
 class HCColors {
   static const primary = Color(0xFF0BA5A7);

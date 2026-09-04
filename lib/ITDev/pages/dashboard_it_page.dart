@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import '../widgets/ui_components.dart';
 
 class DashboardITPage extends StatefulWidget {
@@ -24,8 +25,8 @@ class DashboardITPage extends StatefulWidget {
 }
 
 class _DashboardITPageState extends State<DashboardITPage> {
-  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
-  String get kApiBase => '$kBaseUrl/api';
+  String get kBaseUrl => ApiConstants.baseUrl;
+  String get kApiBase => ApiConstants.apiBase;
   Timer? _timer;
   Future<Map<String, dynamic>>? _metricsFuture;
 

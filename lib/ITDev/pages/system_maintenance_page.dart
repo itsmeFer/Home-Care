@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +22,7 @@ class SystemMaintenancePage extends StatefulWidget {
 
 class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
 
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/layananPage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
   Timer? _debounce;
 
   List<LayananSearchResult> _searchResults = [];
@@ -26,7 +28,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoadingRecentViewed = false;
   bool _hasSearched = false;
 
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   @override
   void initState() {

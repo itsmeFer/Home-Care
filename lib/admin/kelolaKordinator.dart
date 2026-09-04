@@ -6,7 +6,9 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/HomePage.dart';
+import 'package:home_care/utils/app_cached_image.dart';
 
 class CrudKordinatorPage extends StatefulWidget {
   const CrudKordinatorPage({super.key});
@@ -16,7 +18,7 @@ class CrudKordinatorPage extends StatefulWidget {
 }
 
 class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   bool _isLoading = true;
   bool _isError = false;
@@ -341,24 +343,25 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: HCColor.primary.withOpacity(.1),
-                            backgroundImage:
-                                (k.foto != null && k.foto!.isNotEmpty)
-                                    ? NetworkImage(k.foto!) as ImageProvider
-                                    : null,
-                            child:
-                                (k.foto == null || k.foto!.isEmpty)
-                                    ? Text(
-                                      (k.inisial ?? '?'),
-                                      style: TextStyle(
-                                        color: HCColor.primaryDark,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )
-                                    : null,
-                          ),
+                          (k.foto != null && k.foto!.isNotEmpty)
+                              ? AppCircleAvatar(
+                                imageUrl: k.foto,
+                                radius: 22,
+                                fallbackIcon: Icons.person,
+                                backgroundColor: HCColor.primary.withOpacity(.1),
+                                foregroundColor: HCColor.primaryDark,
+                              )
+                              : CircleAvatar(
+                                radius: 22,
+                                backgroundColor: HCColor.primary.withOpacity(.1),
+                                child: Text(
+                                  (k.inisial ?? '?'),
+                                  style: TextStyle(
+                                    color: HCColor.primaryDark,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -473,27 +476,7 @@ class Koordinator {
         profil?['foto_url'] ??
         profil?['foto'];
 
-    String? fullFoto;
-    if (fotoRaw != null) {
-      final path = fotoRaw.toString();
-      if (path.startsWith('http')) {
-        fullFoto = path;
-      } else {
-        const base =
-            'https://homecare.primamadanitalenta.my.id';
-
-        const storagePrefix = '/storage/';
-        String relative = path;
-
-        if (relative.startsWith(storagePrefix)) {
-          relative = relative.substring(
-            storagePrefix.length,
-          );
-        }
-
-        fullFoto = '$base/api/media/$relative';
-      }
-    }
+    final String? fullFoto = ApiConstants.resolveMediaUrl(fotoRaw);
 
     return Koordinator(
       id: json['id'] as int?,
@@ -576,7 +559,9 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
   Future<void> _pickImage() async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 70,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 75,
     );
     if (picked == null) return;
 
@@ -634,14 +619,10 @@ class _KoordinatorFormDialogState extends State<_KoordinatorFormDialog> {
 
     final existingFotoUrl = widget.koordinator?.foto;
     if (existingFotoUrl != null && existingFotoUrl.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(40),
-        child: Image.network(
-          existingFotoUrl,
-          width: 80,
-          height: 80,
-          fit: BoxFit.cover,
-        ),
+      return AppCircleAvatar(
+        imageUrl: existingFotoUrl,
+        radius: 40,
+        fallbackIcon: Icons.person,
       );
     }
 

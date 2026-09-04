@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/users/HomePage.dart';
@@ -25,7 +26,7 @@ class _VerifyPhoneOTPPageState extends State<VerifyPhoneOTPPage> {
   final _otpC = TextEditingController();
   bool _isLoading = false;
 
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   @override
   void dispose() {

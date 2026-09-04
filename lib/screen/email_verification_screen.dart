@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:home_care/screen/login.dart';
 import 'package:home_care/users/HomePage.dart';
@@ -22,7 +23,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Timer? _cooldownTimer;
   Timer? _pollingTimer;
 
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
   static const int cooldownDuration = 60;
 
   @override

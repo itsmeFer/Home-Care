@@ -7,10 +7,15 @@ import 'package:home_care/users/layananPage.dart';
 import 'package:home_care/users/payment_method_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/features/orders/domain/addon_model.dart';
+import 'package:home_care/features/orders/domain/order_pricing_calculator.dart';
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+export 'package:home_care/features/orders/domain/addon_model.dart';
+
+String get kBaseUrl => ApiConstants.apiBase;
 
 class HCColor {
   static const primary = Color(0xFF0BA5A7);
@@ -19,38 +24,6 @@ class HCColor {
   static const card = Colors.white;
   static const textMuted = Colors.black54;
   static const lightTeal = Color(0xFFE0F7F7);
-}
-
-class Addon {
-  final int id;
-  final String namaAddon;
-  final double hargaFix;
-  final bool isQtyEnabled;
-  int qty;
-
-  Addon({
-    required this.id,
-    required this.namaAddon,
-    required this.hargaFix,
-    required this.isQtyEnabled,
-    this.qty = 1,
-  });
-
-  factory Addon.fromJson(Map<String, dynamic> json) {
-    return Addon(
-      id: json['id'] as int,
-      namaAddon: json['nama_addon'] ?? '',
-      hargaFix: _parseDouble(json['harga_fix']),
-      isQtyEnabled:
-          json['is_qty_enabled'] == 1 || json['is_qty_enabled'] == true,
-    );
-  }
-
-  static double _parseDouble(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is num) return value.toDouble();
-    return double.tryParse(value.toString()) ?? 0.0;
-  }
 }
 
 class PesanLayananPage extends StatefulWidget {
@@ -308,12 +281,11 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
   }
 
   double _calculateTotal() {
-    final subtotal = widget.layanan.hargaFix * _qty;
-    final addonsTotal = _selectedAddons.fold<double>(
-      0,
-      (sum, addon) => sum + (addon.hargaFix * addon.qty),
+    return OrderPricingCalculator.calculateTotal(
+      basePrice: widget.layanan.hargaFix,
+      quantity: _qty,
+      selectedAddons: _selectedAddons,
     );
-    return subtotal + addonsTotal;
   }
 
   Future<void> _submitOrder() async {
@@ -1527,12 +1499,17 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
   }
 
   Widget _buildSummary() {
-    final subtotal = widget.layanan.hargaFix * _qty;
-    final addonsTotal = _selectedAddons.fold<double>(
-      0,
-      (sum, addon) => sum + (addon.hargaFix * addon.qty),
+    final subtotal = OrderPricingCalculator.calculateSubtotal(
+      basePrice: widget.layanan.hargaFix,
+      quantity: _qty,
     );
-    final total = subtotal + addonsTotal;
+    final addonsTotal =
+        OrderPricingCalculator.calculateAddonsTotal(_selectedAddons);
+    final total = OrderPricingCalculator.calculateTotal(
+      basePrice: widget.layanan.hargaFix,
+      quantity: _qty,
+      selectedAddons: _selectedAddons,
+    );
     final small = _isSmallScreen(context);
 
     return _buildCardSection(

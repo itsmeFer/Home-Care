@@ -69,7 +69,12 @@ class _BuatOrderDariChatPageState extends State<BuatOrderDariChatPage> {
 
   Future<void> _pickKondisiImage() async {
     final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.camera);
+    final file = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 80,
+    );
     if (file != null) {
       setState(() => _kondisiFile = file);
     }

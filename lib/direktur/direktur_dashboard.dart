@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:home_care/direktur/pages/lapor_it.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'pages/overview_page.dart';
@@ -127,7 +128,7 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
 
     try {
       final res = await http.get(
-        Uri.parse('https://homecare.primamadanitalenta.my.id/api/me'),
+        Uri.parse(ApiConstants.me),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',

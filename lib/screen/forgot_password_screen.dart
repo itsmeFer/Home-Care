@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -19,7 +19,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   int _cooldownSeconds = 0;
   Timer? _cooldownTimer;
 
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
   static const int cooldownDuration = 60;
 
   @override
@@ -77,29 +77,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse('$baseUrl/forgot-password');
-      final res = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': _emailController.text.trim()}),
+      final body = await ApiClient.post(
+        '/forgot-password',
+        body: {'email': _emailController.text.trim()},
       );
 
-      final body = json.decode(res.body);
-
       setState(() => _isLoading = false);
 
-      if (res.statusCode == 200) {
-        setState(() => _emailSent = true);
-        _showSuccess(
-          body['message'] ?? 'Link reset password telah dikirim ke email Anda',
-        );
-        _startCooldown();
-      } else {
-        _showError(body['message'] ?? 'Gagal mengirim link reset password');
-      }
+      setState(() => _emailSent = true);
+      _showSuccess(
+        body['message']?.toString() ??
+            'Link reset password telah dikirim ke email Anda',
+      );
+      _startCooldown();
     } catch (e) {
       setState(() => _isLoading = false);
-      _showError('Terjadi kesalahan: $e');
+      _showError(e.toString().replaceFirst('Exception: ', ''));
     }
   }
 

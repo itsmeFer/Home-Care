@@ -4,10 +4,8 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -151,18 +149,6 @@ class FirebaseNotificationService {
 
   Future<void> syncTokenToBackend() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final authToken = prefs.getString('auth_token');
-
-      debugPrint(
-        '🔑 Auth token available for FCM sync: ${authToken != null && authToken.isNotEmpty}',
-      );
-
-      if (authToken == null || authToken.isEmpty) {
-        debugPrint('⚠️ User belum login, skip kirim FCM token');
-        return;
-      }
-
       String? token = _fcmToken;
       token ??= await _firebaseMessaging.getToken();
 
@@ -172,28 +158,18 @@ class FirebaseNotificationService {
       }
 
       final deviceId = token.length >= 32 ? token.substring(0, 32) : token;
+      final deviceType =
+          kIsWeb ? 'web' : (Platform.isAndroid ? 'android' : 'ios');
 
-      final response = await http.post(
-        Uri.parse('$kBaseUrl/fcm/token'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
+      await ApiClient.post(
+        ApiConstants.fcmToken,
+        body: {
           'token': token,
           'device_id': deviceId,
-          'device_type': Platform.isAndroid ? 'android' : 'ios',
-        }),
+          'device_type': deviceType,
+        },
       );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        debugPrint('✅ FCM token sent to backend successfully');
-        debugPrint('Response: ${response.body}');
-      } else {
-        debugPrint('⚠️ Failed to send FCM token: ${response.statusCode}');
-        debugPrint('Response: ${response.body}');
-      }
+      debugPrint('✅ FCM token sent to backend successfully');
     } catch (e) {
       debugPrint('❌ Error sending FCM token to backend: $e');
     }
@@ -205,72 +181,67 @@ class FirebaseNotificationService {
       debugPrint('Title: ${message.notification?.title}');
       debugPrint('Body: ${message.notification?.body}');
       debugPrint('Data: ${message.data}');
+
       _showLocalNotification(message);
     });
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
-    final notification = message.notification;
+    const androidDetails = AndroidNotificationDetails(
+      'homecare_high_importance_channel',
+      'Home Care Notifications',
+      channelDescription: 'Pemberitahuan orderan dan chat Home Care',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
 
-    if (notification != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel',
-            'High Importance Notifications',
-            channelDescription:
-                'This channel is used for important notifications.',
-            importance: Importance.high,
-            priority: Priority.high,
-            playSound: true,
-            enableVibration: true,
-            icon: '@mipmap/launcher_icon',
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        payload: json.encode(message.data),
-      );
-    }
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      message.hashCode,
+      message.notification?.title ?? 'Notifikasi Baru',
+      message.notification?.body ?? '',
+      notificationDetails,
+      payload: jsonEncode(message.data),
+    );
   }
 
   void _setupMessageOpenedHandler() {
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
-        debugPrint('🔔 App opened from terminated state via notification');
-        _handleNotificationTap(json.encode(message.data));
-      }
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('📲 App opened from notification: ${message.messageId}');
+      debugPrint('Data: ${message.data}');
+      _handleNotificationNavigation(message.data);
     });
+  }
 
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      debugPrint('🔔 App opened from background via notification');
-      _handleNotificationTap(json.encode(message.data));
-    });
+  void _handleNotificationNavigation(Map<String, dynamic> data) {
+    debugPrint('🧭 Navigating based on notification payload: $data');
   }
 
   void _handleNotificationTap(String payload) {
     try {
       final data = json.decode(payload) as Map<String, dynamic>;
-      final type = data['type']?.toString() ?? '';
-      final screen = data['screen']?.toString() ?? '';
-
-      debugPrint('🔔 Notification tapped - Type: $type, Screen: $screen');
+      _handleNotificationNavigation(data);
     } catch (e) {
       debugPrint('❌ Error handling notification tap: $e');
     }
   }
 
   void _setupTokenRefreshListener() {
-    _firebaseMessaging.onTokenRefresh.listen((newToken) async {
-      debugPrint('🔄 FCM Token refreshed');
+    _firebaseMessaging.onTokenRefresh.listen((newToken) {
+      debugPrint('🔄 FCM Token refreshed: $newToken');
       _fcmToken = newToken;
-      await syncTokenToBackend();
+      syncTokenToBackend();
     });
   }
 
@@ -278,14 +249,6 @@ class FirebaseNotificationService {
 
   Future<void> deactivateToken() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final authToken = prefs.getString('auth_token');
-
-      if (authToken == null || authToken.isEmpty) {
-        debugPrint('⚠️ No auth token, skipping token deactivation');
-        return;
-      }
-
       final deviceId =
           (_fcmToken != null && _fcmToken!.isNotEmpty)
               ? (_fcmToken!.length >= 32
@@ -293,23 +256,11 @@ class FirebaseNotificationService {
                   : _fcmToken!)
               : '';
 
-      final response = await http.post(
-        Uri.parse('$kBaseUrl/fcm/token/deactivate'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({'device_id': deviceId}),
+      await ApiClient.post(
+        ApiConstants.fcmDeactivateToken,
+        body: {'device_id': deviceId},
       );
-
-      if (response.statusCode == 200) {
-        debugPrint('✅ FCM token deactivated successfully');
-        debugPrint('Response: ${response.body}');
-      } else {
-        debugPrint('⚠️ Failed to deactivate FCM token: ${response.statusCode}');
-        debugPrint('Response: ${response.body}');
-      }
+      debugPrint('✅ FCM token deactivated successfully');
     } catch (e) {
       debugPrint('❌ Error deactivating FCM token: $e');
     }

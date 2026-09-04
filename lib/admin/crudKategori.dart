@@ -3,10 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/HomePage.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/utils/app_cached_image.dart';
 
 class CrudKategoriPage extends StatefulWidget {
   const CrudKategoriPage({super.key});
@@ -16,7 +18,7 @@ class CrudKategoriPage extends StatefulWidget {
 }
 
 class _CrudKategoriPageState extends State<CrudKategoriPage> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   bool _isLoading = true;
   bool _isError = false;
@@ -503,7 +505,9 @@ class _CrudKategoriPageState extends State<CrudKategoriPage> {
       final picker = ImagePicker();
       final picked = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
       );
 
       if (picked == null) return;
@@ -743,14 +747,12 @@ class _CrudKategoriPageState extends State<CrudKategoriPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (item.gambarUrl != null && item.gambarUrl!.isNotEmpty)
-              ClipRRect(
+              AppCachedImage(
+                imageUrl: item.gambarUrl,
+                width: 72,
+                height: 72,
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  item.gambarUrl!,
-                  width: 72,
-                  height: 72,
-                  fit: BoxFit.cover,
-                ),
+                fit: BoxFit.cover,
               )
             else
               Container(
@@ -1071,7 +1073,9 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
       final picker = ImagePicker();
       final picked = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
       );
 
       if (picked == null) return;
@@ -1137,14 +1141,12 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
     }
 
     if (currentUrl != null && currentUrl.isNotEmpty) {
-      return ClipRRect(
+      return AppCachedImage(
+        imageUrl: currentUrl,
+        height: 130,
+        width: double.infinity,
         borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          currentUrl,
-          height: 130,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
+        fit: BoxFit.cover,
       );
     }
 

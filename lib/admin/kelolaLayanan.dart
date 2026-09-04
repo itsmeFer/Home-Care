@@ -5,7 +5,11 @@ import 'package:home_care/admin/detailLayanan.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/HomePage.dart';
+import 'package:home_care/utils/app_cached_image.dart';
+
+String? resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
 class KelolaLayananPage extends StatefulWidget {
   const KelolaLayananPage({super.key});
@@ -15,7 +19,7 @@ class KelolaLayananPage extends StatefulWidget {
 }
 
 class _KelolaLayananPageState extends State<KelolaLayananPage> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   bool _isLoading = true;
   bool _isError = false;
@@ -435,17 +439,15 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                     onTap: () async {
                       if (l.id == null) return;
 
-                      final changed = await Navigator.push(
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => DetailLayananPage(layananId: l.id!),
                         ),
                       );
 
-                      if (changed == true) {
-                        await _fetchKategori();
-                        await _fetchLayanan();
-                      }
+                      // Refresh list data when returning from detail
+                      await _fetchLayanan();
                     },
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -455,21 +457,12 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
+                            AppCircleAvatar(
+                              imageUrl: l.gambarUrl,
                               radius: 22,
+                              fallbackIcon: Icons.medical_services_outlined,
                               backgroundColor: HCColor.primary.withOpacity(.1),
-                              backgroundImage:
-                                  (l.gambarUrl != null &&
-                                          l.gambarUrl!.isNotEmpty)
-                                      ? NetworkImage(l.gambarUrl!)
-                                      : null,
-                              child:
-                                  (l.gambarUrl == null || l.gambarUrl!.isEmpty)
-                                      ? Icon(
-                                        Icons.medical_services_outlined,
-                                        color: HCColor.primaryDark,
-                                      )
-                                      : null,
+                              foregroundColor: HCColor.primaryDark,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -675,7 +668,9 @@ class Layanan {
                   ? json['aktif']
                   : json['aktif'].toString() == '1' ||
                       json['aktif'].toString().toLowerCase() == 'true'),
-      gambarUrl: json['gambar_url']?.toString(),
+      gambarUrl: resolveMediaUrl(
+        json['gambar_url']?.toString() ?? json['gambar']?.toString(),
+      ),
     );
   }
 

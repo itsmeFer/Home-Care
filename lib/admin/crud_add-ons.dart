@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:intl/intl.dart';
+import 'package:home_care/utils/app_cached_image.dart';
 
 class CrudAddOnsPage extends StatefulWidget {
   const CrudAddOnsPage({super.key});
@@ -18,7 +20,7 @@ class CrudAddOnsPage extends StatefulWidget {
 class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     with SingleTickerProviderStateMixin {
 
-  final String baseUrl = "https://homecare.primamadanitalenta.my.id/api";
+  String get baseUrl => ApiConstants.apiBase;
 
   late TabController _tab;
 
@@ -620,7 +622,9 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                               final picker = ImagePicker();
                               final file = await picker.pickImage(
                                 source: ImageSource.gallery,
-                                imageQuality: 85,
+                                maxWidth: 1024,
+                                maxHeight: 1024,
+                                imageQuality: 80,
                               );
                               if (file != null) {
                                 setM(() {
@@ -1156,14 +1160,15 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                         Icons.extension_outlined,
                         color: Colors.grey.shade500,
                       )
-                      : Image.network(
-                        _mediaUrl(gambar.toString()),
+                      : AppCachedImage(
+                        imageUrl: _mediaUrl(gambar.toString()),
+                        width: 68,
+                        height: 68,
                         fit: BoxFit.cover,
-                        errorBuilder:
-                            (_, __, ___) => Icon(
-                              Icons.broken_image_outlined,
-                              color: Colors.grey.shade500,
-                            ),
+                        errorWidget: Icon(
+                          Icons.broken_image_outlined,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
             ),
           ),

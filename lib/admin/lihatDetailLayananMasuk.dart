@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/utils/app_cached_image.dart';
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+String get kBaseUrl => ApiConstants.apiBase;
 
 class HCColor {
   static const primary = Color(0xFF0BA5A7);
@@ -184,54 +186,9 @@ class _DetailOrderLayananAdminPageState
                               child: InteractiveViewer(
                                 minScale: 0.5,
                                 maxScale: 4.0,
-                                child: Image.network(
-                                  url,
+                                child: AppCachedImage(
+                                  imageUrl: url,
                                   fit: BoxFit.contain,
-                                  loadingBuilder: (
-                                    context,
-                                    child,
-                                    loadingProgress,
-                                  ) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        value:
-                                            loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      padding: const EdgeInsets.all(20),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.error_outline,
-                                            size: 48,
-                                            color: HCColor.error,
-                                          ),
-                                          const SizedBox(height: 12),
-                                          const Text(
-                                            'Gagal memuat gambar',
-                                            style: TextStyle(fontSize: 14),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
                                 ),
                               ),
                             ),
@@ -264,60 +221,11 @@ class _DetailOrderLayananAdminPageState
                 borderRadius: BorderRadius.circular(12),
                 child: Stack(
                   children: [
-                    Image.network(
-                      url,
+                    AppCachedImage(
+                      imageUrl: url,
                       height: 200,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: HCColor.lightTeal.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: HCColor.primary,
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: HCColor.error.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: HCColor.error.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.broken_image,
-                                  size: 48,
-                                  color: HCColor.error,
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Gagal memuat gambar',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
                     ),
 
                     Positioned(

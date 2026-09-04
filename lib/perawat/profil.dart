@@ -1,6 +1,6 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,34 +11,10 @@ class PerawatProfilPage extends StatefulWidget {
   State<PerawatProfilPage> createState() => _PerawatProfilPageState();
 }
 
-const String kApiBase = 'https://homecare.primamadanitalenta.my.id/api';
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
+String get kApiBase => ApiConstants.apiBase;
+String get kBaseUrl => ApiConstants.baseUrl;
 
-String? resolveMediaUrl(String? raw) {
-  if (raw == null) return null;
-  var v = raw.trim();
-  if (v.isEmpty) return null;
-
-  if (v.contains('/api/media/')) {
-    if (!v.startsWith('http://') && !v.startsWith('https://')) {
-      return '$kBaseUrl$v';
-    }
-    return v;
-  }
-
-  if (v.startsWith('http://') || v.startsWith('https://')) {
-    final uri = Uri.parse(v);
-    v = uri.path;
-  }
-
-  if (v.startsWith('/')) v = v.substring(1);
-
-  if (v.startsWith('storage/')) {
-    v = v.substring('storage/'.length);
-  }
-
-  return '$kBaseUrl/api/media/$v';
-}
+String? resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
 class _PerawatProfilPageState extends State<PerawatProfilPage> {
   bool _isLoading = true;

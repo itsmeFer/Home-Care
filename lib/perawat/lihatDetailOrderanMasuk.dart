@@ -5,8 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/utils/app_cached_image.dart';
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+String get kBaseUrl => ApiConstants.apiBase;
 
 class HCColor {
   static const primary = Color(0xFF0BA5A7);
@@ -538,7 +540,12 @@ class _DetailOrderanMasukPerawatPageState
 
       if (source == null) return null;
 
-      return await _picker.pickImage(source: source, imageQuality: 85);
+      return await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
     } catch (e) {
       _showSnackBar('Gagal mengambil foto: $e', isError: true);
       return null;
@@ -1325,15 +1332,15 @@ class _DetailOrderanMasukPerawatPageState
                       (ctx) => Dialog(
                         backgroundColor: Colors.transparent,
                         child: InteractiveViewer(
-                          child: Image.network(url, fit: BoxFit.contain),
+                          child: AppCachedImage(imageUrl: url, fit: BoxFit.contain),
                         ),
                       ),
                 );
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  url,
+                child: AppCachedImage(
+                  imageUrl: url,
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:home_care/core/constants/api_constants.dart';
 import '../widgets/ui_components.dart';
 
 class AuditSistemPage extends StatefulWidget {
@@ -24,8 +25,8 @@ class AuditSistemPage extends StatefulWidget {
 }
 
 class _AuditSistemPageState extends State<AuditSistemPage> {
-  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
-  String get kApiBase => '$kBaseUrl/api';
+  String get kBaseUrl => ApiConstants.baseUrl;
+  String get kApiBase => ApiConstants.apiBase;
 
   String _risk = 'all';
   String _action = '';

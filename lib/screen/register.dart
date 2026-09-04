@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/screen/login.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -23,7 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+  static String get baseUrl => ApiConstants.apiBase;
 
   int _passwordStrength = 0;
 
@@ -67,55 +67,28 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse('$baseUrl/register');
-      final res = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
+      final body = await ApiClient.post(
+        '/register',
+        body: {
           'nama_lengkap': _namaC.text.trim(),
           'no_hp': _noHpC.text.trim(),
           'email': _emailC.text.trim(),
           'password': _passwordC.text,
           'password_confirmation': _password2C.text,
-        }),
+        },
       );
 
       if (!mounted) return;
 
-      final body = json.decode(res.body);
-
-      if (res.statusCode == 200 || res.statusCode == 201) {
-        if (body['success'] == true) {
-          _showVerificationDialog();
-          return;
-        }
+      if (body['success'] == true) {
+        _showVerificationDialog();
+        return;
       }
 
-      String errorMessage = 'Registrasi gagal';
-
-      if (body['message'] != null) {
-        errorMessage = body['message'];
-      }
-
-      if (body['errors'] != null && body['errors'] is Map) {
-        final errors = body['errors'] as Map<String, dynamic>;
-
-        List<String> errorMessages = [];
-        errors.forEach((field, messages) {
-          if (messages is List && messages.isNotEmpty) {
-            errorMessages.add(messages.first.toString());
-          }
-        });
-
-        if (errorMessages.isNotEmpty) {
-          errorMessage = errorMessages.join('\n');
-        }
-      }
-
-      _showError(errorMessage);
+      _showError(body['message']?.toString() ?? 'Registrasi gagal');
     } catch (e) {
       if (!mounted) return;
-      _showError('Terjadi kesalahan koneksi: ${e.toString()}');
+      _showError(e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

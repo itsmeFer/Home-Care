@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,8 +23,8 @@ class KelolaPerawatPage extends StatefulWidget {
 }
 
 class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
-  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
-  String get kApiBase => '$kBaseUrl/api';
+  String get kBaseUrl => ApiConstants.baseUrl;
+  String get kApiBase => ApiConstants.apiBase;
 
   String get _perawatUrl => '$kApiBase/manager/perawat';
   String get _koordinatorUrl => '$kApiBase/manager/koordinator';

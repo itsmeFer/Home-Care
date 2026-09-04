@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,7 +23,7 @@ class FirebaseMessagingService {
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  static const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id';
+  static String get kBaseUrl => ApiConstants.baseUrl;
 
   static const String _channelId = 'high_importance_channel';
   static const String _channelName = 'High Importance Notifications';

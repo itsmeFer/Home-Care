@@ -7,6 +7,7 @@ import 'package:home_care/perawat/lapor_it.dart';
 import 'package:home_care/perawat/lihatOrderanMasuk.dart';
 import 'package:home_care/perawat/profil.dart';
 import 'package:home_care/screen/login.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,8 +27,7 @@ class PerawatDashboard extends StatefulWidget {
 }
 
 class _PerawatDashboardState extends State<PerawatDashboard> {
-  static const String kBaseUrl =
-      'https://homecare.primamadanitalenta.my.id/api';
+  static String get kBaseUrl => ApiConstants.apiBase;
 
   int _chatUnreadCount = 0;
   int _orderUnreadCount = 0;

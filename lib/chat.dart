@@ -9,10 +9,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:home_care/core/constants/api_constants.dart';
 import 'chat/chat_models.dart';
 import 'users/buat_order_dari_chat_page.dart';
 
-const String kBaseUrl = 'https://homecare.primamadanitalenta.my.id/api';
+String get kBaseUrl => ApiConstants.apiBase;
 
 class ChatRoomPage extends StatefulWidget {
   final int roomId;
@@ -32,7 +33,8 @@ class ChatRoomPage extends StatefulWidget {
   State<ChatRoomPage> createState() => _ChatRoomPageState();
 }
 
-class _ChatRoomPageState extends State<ChatRoomPage> {
+class _ChatRoomPageState extends State<ChatRoomPage>
+    with WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _tawarHargaController = TextEditingController();
   final TextEditingController _tawarCatatanController = TextEditingController();
@@ -63,16 +65,17 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   List<Map<String, dynamic>> _etalaseLayanan = [];
 
   DateTime? _lastSendAt;
-  String _lastSentText = '';
+  String? _lastSentText;
 
   String get _apiPrefixForRole {
     switch (widget.role) {
-      case 'koordinator':
-        return '/koordinator/chat-rooms';
       case 'perawat':
-        return '/perawat/chat-rooms';
+        return '/perawat/chats';
+      case 'koordinator':
+        return '/koordinator/chats';
+      case 'pasien':
       default:
-        return '/pasien/chat-rooms';
+        return '/pasien/chats';
     }
   }
 
@@ -122,11 +125,13 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _init();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _isDisposed = true;
     _pollTimer?.cancel();
     _messageController.dispose();
@@ -134,6 +139,19 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     _tawarCatatanController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _pollTimer?.cancel();
+    } else if (state == AppLifecycleState.resumed) {
+      if (!_isDisposed) {
+        _startPolling();
+        _loadMessages(fromPolling: true);
+      }
+    }
   }
 
   Future<void> _init() async {

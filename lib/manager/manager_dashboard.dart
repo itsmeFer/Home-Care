@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/manager/pages/audit_page.dart';
 import 'package:home_care/manager/pages/kelola_perawat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -130,7 +131,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
 
     try {
       final res = await http.get(
-        Uri.parse('https://homecare.primamadanitalenta.my.id/api/me'),
+        Uri.parse(ApiConstants.me),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',

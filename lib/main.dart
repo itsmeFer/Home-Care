@@ -1,11 +1,13 @@
-import 'dart:convert';
-
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/ITDev/dashboard_it_page.dart';
 import 'package:home_care/admin/dashboard.dart';
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/widgets/app_error_boundary.dart';
 import 'package:home_care/direktur/direktur_dashboard.dart';
 import 'package:home_care/kordinator/dashboard.dart';
 import 'package:home_care/manager/manager_dashboard.dart';
@@ -14,9 +16,7 @@ import 'package:home_care/screen/SplashScreen.dart';
 import 'package:home_care/screen/login.dart';
 import 'package:home_care/services/firebase_notification_service.dart';
 import 'package:home_care/users/HomePage.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options.dart';
 
@@ -54,11 +54,55 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
-      builder: DevicePreview.appBuilder,
+      builder: (context, child) {
+        Widget current = DevicePreview.appBuilder(context, child);
+        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+          return AppErrorBoundary(errorDetails: errorDetails);
+        };
+        return current;
+      },
       navigatorKey: navigatorKey,
       theme: ThemeData(
+        useMaterial3: true,
         fontFamily: 'Poppins',
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: AppColors.background,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: AppColors.primaryDark,
+          surface: AppColors.card,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.textPrimary,
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: IconThemeData(color: AppColors.textPrimary),
+          titleTextStyle: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: AppColors.card,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.border),
+          ),
+        ),
       ),
       home: const SplashScreen(),
     );
@@ -73,8 +117,6 @@ class RootAuthGate extends StatefulWidget {
 }
 
 class _RootAuthGateState extends State<RootAuthGate> {
-  static const String baseUrl = 'https://homecare.primamadanitalenta.my.id/api';
-
   @override
   void initState() {
     super.initState();
@@ -86,8 +128,7 @@ class _RootAuthGateState extends State<RootAuthGate> {
   }
 
   Future<void> _decideStartPage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = await StorageService.getToken();
 
     if (!mounted) return;
 
@@ -100,30 +141,16 @@ class _RootAuthGateState extends State<RootAuthGate> {
       return;
     }
 
+    final prefs = await StorageService.instance;
+
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/me'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final body = await ApiClient.get('/me');
 
       if (!mounted) return;
 
-      if (res.statusCode != 200) {
-        debugPrint('⚠️ Token invalid / expired. Status: ${res.statusCode}');
-        await prefs.remove('auth_token');
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-        );
-        return;
-      }
-
-      final body = jsonDecode(res.body);
-      final data = body['data'] as Map<String, dynamic>? ?? {};
+      final data = (body is Map && body['data'] is Map)
+          ? body['data'] as Map<String, dynamic>
+          : (body is Map ? Map<String, dynamic>.from(body) : <String, dynamic>{});
 
       await prefs.setInt('user_id', (data['user_id'] ?? 0) as int);
       await prefs.setInt('pasien_id', (data['pasien_id'] ?? 0) as int);
@@ -148,7 +175,7 @@ class _RootAuthGateState extends State<RootAuthGate> {
           data['user']?['role']?.toString().toLowerCase() ??
           '';
 
-      await prefs.setString('role', roleData);
+      await StorageService.saveRole(roleData);
 
       if (!kIsWeb) {
         try {
@@ -187,7 +214,7 @@ class _RootAuthGateState extends State<RootAuthGate> {
           break;
         default:
           debugPrint('⚠️ Role tidak dikenali: $roleData');
-          await prefs.remove('auth_token');
+          await StorageService.clearAuth();
           nextPage = const LoginPage();
       }
 
@@ -199,7 +226,7 @@ class _RootAuthGateState extends State<RootAuthGate> {
       );
     } catch (e) {
       debugPrint('❌ Error checking auth: $e');
-      await prefs.remove('auth_token');
+      await StorageService.clearAuth();
 
       if (!mounted) return;
       Navigator.pushReplacement(
