@@ -14,7 +14,7 @@ import 'package:universal_html/html.dart' as html;
 import 'package:home_care/core/constants/api_constants.dart';
 
 import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/direktur/widgets/ui_components.dart';
+import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 class DashboardAuditScreen extends StatefulWidget {
   final bool isDesktop;

@@ -1,3 +1,4 @@
+﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -56,10 +57,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
     });
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();

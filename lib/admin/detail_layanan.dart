@@ -1,3 +1,4 @@
+﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -46,10 +47,7 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
     _fetchDetail();
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   String _extractValidationMessage(String rawBody, String defaultMsg) {
     try {

@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/direktur/widgets/ui_components.dart';
+import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 class DashboardPasienScreen extends StatefulWidget {
   final String role;
@@ -76,11 +77,7 @@ class _DashboardPasienScreenState extends State<DashboardPasienScreen>
     super.dispose();
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-        .trim();
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<Map<String, dynamic>> _fetch() async {
     final token = await _getToken();

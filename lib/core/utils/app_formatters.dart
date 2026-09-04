@@ -21,6 +21,13 @@ class AppFormatters {
     return 'Rp $amount';
   }
 
+  static String currency(dynamic amount) => formatRupiah(amount);
+  static String date(dynamic date, {String pattern = 'dd MMM yyyy'}) =>
+      formatDate(date, pattern: pattern);
+  static String dateTime(dynamic date, {String pattern = 'dd MMM yyyy HH:mm'}) =>
+      formatDateTime(date, pattern: pattern);
+  static String time(dynamic time) => formatTime(time);
+
   static String formatDate(dynamic date, {String pattern = 'dd MMM yyyy'}) {
     if (date == null) return '-';
     DateTime? dt;
@@ -37,8 +44,8 @@ class AppFormatters {
     }
   }
 
-  static String formatDateTime(dynamic date) {
-    return formatDate(date, pattern: 'dd MMM yyyy, HH:mm');
+  static String formatDateTime(dynamic date, {String pattern = 'dd MMM yyyy HH:mm'}) {
+    return formatDate(date, pattern: pattern);
   }
 
   static String formatTime(dynamic time) {

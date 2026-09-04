@@ -1,3 +1,4 @@
+﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/crud_kategori.dart';
@@ -41,10 +42,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _fetchStatistics();
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _logout(BuildContext context) async {
     final confirm = await showDialog<bool>(

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/direktur/widgets/ui_components.dart';
+import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 class DashboardOverviewScreen extends StatefulWidget {
   final bool isDesktop;

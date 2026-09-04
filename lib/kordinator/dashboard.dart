@@ -8,6 +8,7 @@ import 'package:home_care/kordinator/lapor_it.dart';
 import 'package:home_care/kordinator/lihat_orderan_masuk.dart';
 import 'package:home_care/screen/login.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -56,10 +57,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
     });
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token') ?? prefs.getString('token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();

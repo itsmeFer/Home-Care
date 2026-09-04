@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
@@ -375,14 +376,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
 
   String _mediaUrl(String path) => "$baseUrl/media/$path";
 
-  String _rupiah(num v) {
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(v);
-  }
+  String _rupiah(num v) => AppFormatters.currency(v);
 
   String _formatRupiahInput(dynamic value) {
     final num val = num.tryParse(value.toString()) ?? 0;

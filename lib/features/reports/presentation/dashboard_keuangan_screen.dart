@@ -14,7 +14,8 @@ import 'package:universal_io/io.dart' as uio;
 import 'package:universal_html/html.dart' as html;
 
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/direktur/widgets/ui_components.dart';
+import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 enum KeuanganChartMode { lineRevenue, pieFee, barProfitLayanan }
 
@@ -112,18 +113,7 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     );
   }
 
-  Future<String> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final t1 = (prefs.getString('auth_token') ?? '').trim();
-    final t2 = (prefs.getString('token') ?? '').trim();
-    final token = t1.isNotEmpty ? t1 : t2;
-
-    if (token.isNotEmpty) {
-      await prefs.setString('auth_token', token);
-      await prefs.setString('token', token);
-    }
-    return token;
-  }
+  Future<String> _getToken() async => (await StorageService.getToken()) ?? '';
 
   Future<Map<String, dynamic>> _fetch() async {
     final token = await _getToken();

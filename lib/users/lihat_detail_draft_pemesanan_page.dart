@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
@@ -132,15 +133,7 @@ class _LihatDetailDraftPemesananPageState
     }
   }
 
-  String _formatRupiah(num? n) {
-    if (n == null) return 'Rp 0';
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(n);
-  }
+  String _formatRupiah(num? n) => AppFormatters.currency(n);
 
   num _getAddonsTotal() {
     final backendTotal =

@@ -1,3 +1,4 @@
+﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -32,10 +33,7 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     _fetchKoordinator();
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _fetchKoordinator() async {
     setState(() {

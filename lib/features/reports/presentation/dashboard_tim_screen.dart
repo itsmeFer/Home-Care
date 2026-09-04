@@ -14,7 +14,8 @@ import 'package:universal_io/io.dart' as uio;
 import 'package:universal_html/html.dart' as html;
 
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/direktur/widgets/ui_components.dart';
+import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 enum TimChartMode { lineOrders, barTopNurse, pieComplaints }
 
@@ -113,11 +114,7 @@ class _DashboardTimScreenState extends State<DashboardTimScreen>
     );
   }
 
-  Future<String> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    return prefs.getString('auth_token') ?? prefs.getString('token') ?? '';
-  }
+  Future<String> _getToken() async => (await StorageService.getToken()) ?? '';
 
   Future<Map<String, dynamic>> _fetch() async {
     final token = await _getToken();

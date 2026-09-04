@@ -1,3 +1,4 @@
+﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
@@ -188,10 +189,7 @@ class _ChatRoomPageState extends State<ChatRoomPage>
     }
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   bool _isDuplicateSend(String text) {
     final now = DateTime.now();

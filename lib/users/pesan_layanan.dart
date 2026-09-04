@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/features/orders/domain/addon_model.dart';
@@ -450,14 +451,7 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
     }
   }
 
-  String _formatRupiah(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(amount);
-  }
+  String _formatRupiah(double amount) => AppFormatters.currency(amount);
 
   InputDecoration _inputDecoration({
     required String labelText,

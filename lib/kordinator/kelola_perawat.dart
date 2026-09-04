@@ -1,4 +1,5 @@
-﻿import 'dart:convert';
+﻿import 'package:home_care/core/services/storage_service.dart';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -32,10 +33,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     _fetchPerawat();
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _fetchPerawat() async {
     setState(() {

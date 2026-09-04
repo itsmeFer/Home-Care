@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
@@ -685,46 +686,10 @@ class _LihatDetailHistoriPemesananPageState
     }
   }
 
-  String _formatTanggal(String? raw) {
-    if (raw == null || raw.isEmpty) return '-';
-    try {
-      final d = DateTime.parse(raw);
-      return DateFormat('dd MMM yyyy', 'id_ID').format(d);
-    } catch (_) {
-      return raw;
-    }
-  }
-
-  String _formatJam(String? raw) {
-    if (raw == null || raw.isEmpty) return '-';
-    try {
-      if (raw.length == 5) return raw;
-      final t = DateFormat('HH:mm:ss').parse(raw);
-      return DateFormat('HH:mm').format(t);
-    } catch (_) {
-      return raw;
-    }
-  }
-
-  String _formatDateTime(String? raw) {
-    if (raw == null || raw.isEmpty) return '-';
-    try {
-      final d = DateTime.parse(raw);
-      return DateFormat('dd MMM yyyy HH:mm', 'id_ID').format(d);
-    } catch (_) {
-      return raw;
-    }
-  }
-
-  String _formatRupiah(num? n) {
-    if (n == null) return 'Rp 0';
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(n);
-  }
+  String _formatTanggal(String? raw) => AppFormatters.date(raw);
+  String _formatJam(String? raw) => AppFormatters.time(raw);
+  String _formatDateTime(String? raw) => AppFormatters.dateTime(raw);
+  String _formatRupiah(num? n) => AppFormatters.currency(n);
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {

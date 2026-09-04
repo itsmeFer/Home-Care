@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -716,14 +717,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     }
   }
 
-  String _formatRupiah(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(amount);
-  }
+  String _formatRupiah(double amount) => AppFormatters.currency(amount);
 
   @override
   Widget build(BuildContext context) {

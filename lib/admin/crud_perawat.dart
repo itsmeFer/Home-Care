@@ -1,3 +1,4 @@
+﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -39,10 +40,7 @@ class _CrudPerawatPageState extends State<CrudPerawatPage> {
     super.dispose();
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Uri _buildUri(String path, [Map<String, String>? qp]) {
     return Uri.parse('$baseUrl$path').replace(queryParameters: qp);

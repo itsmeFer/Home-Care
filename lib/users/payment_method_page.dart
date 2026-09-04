@@ -1,10 +1,11 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/users/lihat_detail_histori_pemesanan.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,27 +66,9 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     );
   }
 
-  String _money(int v) => NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp ',
-    decimalDigits: 0,
-  ).format(v);
-
-  String _formatDate(String? raw) {
-    if (raw == null || raw.isEmpty) return '-';
-    try {
-      final date = DateTime.parse(raw);
-      return DateFormat('dd MMM yyyy', 'id_ID').format(date);
-    } catch (_) {
-      return raw;
-    }
-  }
-
-  String _formatTime(String? raw) {
-    if (raw == null || raw.isEmpty) return '-';
-    if (raw.length >= 5) return raw.substring(0, 5);
-    return raw;
-  }
+  String _money(int v) => AppFormatters.currency(v);
+  String _formatDate(String? raw) => AppFormatters.date(raw);
+  String _formatTime(String? raw) => AppFormatters.time(raw);
 
   int? _parseOrderId(dynamic rawOrderId) {
     if (rawOrderId == null) return null;

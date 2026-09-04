@@ -6,7 +6,9 @@ import 'package:home_care/users/lihat_detail_histori_pemesanan.dart';
 import 'package:home_care/users/payment_method_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -210,10 +212,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     super.dispose();
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _fetchHistory() async {
     setState(() {
@@ -374,30 +373,9 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     }
   }
 
-  String _formatTanggal(String? iso) {
-    if (iso == null || iso.isEmpty) return '-';
-    try {
-      final date = DateTime.parse(iso);
-      return DateFormat('dd MMM yyyy', 'id_ID').format(date);
-    } catch (_) {
-      return iso;
-    }
-  }
-
-  String _formatJam(String? jam) {
-    if (jam == null || jam.isEmpty) return '-';
-    if (jam.length >= 5) return jam.substring(0, 5);
-    return jam;
-  }
-
-  String _formatRupiah(double nilai) {
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(nilai);
-  }
+  String _formatTanggal(String? iso) => AppFormatters.date(iso);
+  String _formatJam(String? jam) => AppFormatters.time(jam);
+  String _formatRupiah(double nilai) => AppFormatters.currency(nilai);
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {

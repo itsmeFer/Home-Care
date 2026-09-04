@@ -3,10 +3,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../widgets/ui_components.dart';
+import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 class KelolaPerawatPage extends StatefulWidget {
   final bool isDesktop;
@@ -83,11 +84,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     super.dispose();
   }
 
-  Future<String> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-        .trim();
-  }
+  Future<String> _getToken() async => (await StorageService.getToken()) ?? '';
 
   Map<String, dynamic> _map(dynamic v) =>
       (v is Map) ? Map<String, dynamic>.from(v) : <String, dynamic>{};

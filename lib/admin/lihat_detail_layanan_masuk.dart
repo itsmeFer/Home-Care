@@ -5,7 +5,9 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
@@ -254,10 +256,7 @@ class _DetailOrderLayananAdminPageState
     );
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _fetchDetail({bool internalCall = false}) async {
     if (!internalCall) {
@@ -518,21 +517,7 @@ class _DetailOrderLayananAdminPageState
     return jam;
   }
 
-  String _fmtUang(dynamic val) {
-    if (val == null) return 'Rp 0';
-    double d;
-    if (val is num) {
-      d = val.toDouble();
-    } else {
-      d = double.tryParse(val.toString()) ?? 0;
-    }
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(d);
-  }
+  String _fmtUang(dynamic val) => AppFormatters.currency(val);
 
   String _getNama(Map<String, dynamic>? obj) {
     if (obj == null) return '-';

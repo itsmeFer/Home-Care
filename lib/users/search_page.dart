@@ -1,4 +1,5 @@
-﻿import 'dart:async';
+﻿import 'package:home_care/core/services/storage_service.dart';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -69,10 +70,7 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _performSearch(String keyword) async {
     setState(() {
