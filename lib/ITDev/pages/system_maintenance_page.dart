@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -37,8 +38,7 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
   }
 
   Future<void> _loadToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token') ?? prefs.getString('token');
+    _token = await StorageService.getToken();
 
     if (_token != null && _token!.isNotEmpty) {
       await _loadStatus();

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -132,10 +133,7 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
   }
 
   Future<Map<String, dynamic>> _fetch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token =
-        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-            .trim();
+    final token = ((await StorageService.getToken()) ?? '').trim();
 
     if (token.isEmpty) {
       throw Exception('Token kosong. Silakan login ulang.');

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/utils/app_cached_image.dart';
@@ -78,10 +79,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   }
 
   Future<Map<String, String>> _authHeaders({bool jsonContent = true}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("auth_token");
-
-    debugPrint("TOKEN DARI PREFS: $token");
+    final token = await StorageService.getToken();
 
     if (token == null || token.trim().isEmpty) {
       throw Exception("Token login tidak ditemukan. Silakan login ulang.");

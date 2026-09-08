@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -106,8 +108,7 @@ class _BuatOrderDariChatPageState extends State<BuatOrderDariChatPage> {
   setState(() => _isSubmitting = true);
 
   try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = await StorageService.getToken();
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -186,7 +187,7 @@ final request = http.MultipartRequest('POST', uri)
         "Rp ${widget.kesepakatanHarga.toString()}";
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Konfirmasi Order Layanan')),
+      appBar: const PatientAppBar(title: 'Konfirmasi Order Layanan'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

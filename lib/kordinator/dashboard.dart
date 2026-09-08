@@ -60,14 +60,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.remove('token');
-    await prefs.remove('auth_token');
-    await prefs.remove('user_id');
-    await prefs.remove('koordinator_id');
-    await prefs.remove('nama_lengkap');
-    await prefs.remove('role');
+    await StorageService.clearAuth();
 
     if (!mounted) return;
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
@@ -164,11 +165,7 @@ class _LaporITScreenState extends State<LaporITScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final token =
-          (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-              .trim();
+      final token = ((await StorageService.getToken()) ?? '').trim();
       if (token.isEmpty) {
         throw Exception('Token kosong. Silakan login ulang.');
       }
@@ -913,10 +910,7 @@ class _RiwayatLaporanITScreenState extends State<RiwayatLaporanITScreen> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token =
-          (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-              .trim();
+      final token = ((await StorageService.getToken()) ?? '').trim();
 
       if (token.isEmpty) {
         throw Exception('Token kosong. Silakan login ulang.');

@@ -1,4 +1,4 @@
-﻿import 'package:device_preview/device_preview.dart';
+import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +42,21 @@ void main() async {
 
   await initializeDateFormatting('id_ID', null);
 
-  runApp(DevicePreview(enabled: false, builder: (context) => const MyApp()));
+  ApiClient.onUnauthorized = () async {
+    debugPrint('⚠️ Sesi berakhir (401). Mengarahkan ke LoginPage.');
+    await StorageService.clearAuth();
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  };
+
+  runApp(
+    DevicePreview(
+      enabled: true,
+      builder: (context) => const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -52,7 +66,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
       builder: (context, child) {
         Widget current = DevicePreview.appBuilder(context, child);

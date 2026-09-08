@@ -1,107 +1,22 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/users/pesan_layanan.dart';
 import 'package:home_care/users/profile.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
+
+export 'package:home_care/features/services_catalog/domain/service_model.dart';
+
 String get kBaseUrl => ApiConstants.apiBase;
 
-class Layanan {
-  final int id;
-  final String kodeLayanan;
-  final String namaLayanan;
-  final String? deskripsi;
-  final String? kategori;
-  final String tipeLayanan;
-  final int? jumlahVisit;
-  final double hargaFix;
-  final int? durasiMenit;
-  final String? syaratPerawat;
-  final String? lokasiTersedia;
-  final bool aktif;
-  final String? gambarUrl;
-
-  Layanan({
-    required this.id,
-    required this.kodeLayanan,
-    required this.namaLayanan,
-    this.deskripsi,
-    this.kategori,
-    required this.tipeLayanan,
-    this.jumlahVisit,
-    required this.hargaFix,
-    this.durasiMenit,
-    this.syaratPerawat,
-    this.lokasiTersedia,
-    required this.aktif,
-    this.gambarUrl,
-  });
-
-  factory Layanan.fromJson(Map<String, dynamic> json) {
-    return Layanan(
-      id: json['id'] as int,
-      kodeLayanan: json['kode_layanan'] ?? '',
-      namaLayanan: json['nama_layanan'] ?? '',
-      deskripsi: json['deskripsi'],
-      kategori: json['kategori'],
-      tipeLayanan: json['tipe_layanan'] ?? 'single',
-      jumlahVisit: json['jumlah_visit'],
-      hargaFix: _parseHarga(json['harga_fix'] ?? json['harga_dasar']),
-      durasiMenit: json['durasi_menit'],
-      syaratPerawat: json['syarat_perawat'],
-      lokasiTersedia: json['lokasi_tersedia'],
-      aktif: (json['aktif'] == 1 || json['aktif'] == true),
-      gambarUrl: json['gambar_url'],
-    );
-  }
-
-  static double _parseHarga(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is int || value is double) return (value as num).toDouble();
-    return double.tryParse(value.toString()) ?? 0.0;
-  }
-}
-
-class KategoriLayananItem {
-  final int id;
-  final String namaKategori;
-  final String slug;
-  final String? warna;
-  final String? icon;
-  final String? gambarUrl;
-
-  KategoriLayananItem({
-    required this.id,
-    required this.namaKategori,
-    required this.slug,
-    this.warna,
-    this.icon,
-    this.gambarUrl,
-  });
-
-  factory KategoriLayananItem.fromJson(Map<String, dynamic> json) {
-    int parseInt(dynamic value) {
-      if (value == null) return 0;
-      if (value is int) return value;
-      return int.tryParse(value.toString()) ?? 0;
-    }
-
-    return KategoriLayananItem(
-      id: parseInt(json['id']),
-      namaKategori: (json['nama_kategori'] ?? '').toString(),
-      slug: (json['slug'] ?? '').toString(),
-      warna: json['warna']?.toString(),
-      icon: json['icon']?.toString(),
-      gambarUrl: json['gambar_url']?.toString(),
-    );
-  }
-}
 
 class PilihLayananPage extends StatefulWidget {
   final String? kategori;
@@ -224,9 +139,9 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
 
   Widget _buildBodyAnimated() {
     if (_isLoading) {
-      return const Center(
+      return const ServiceCatalogSkeleton(
         key: ValueKey('loading'),
-        child: CircularProgressIndicator(),
+        showCategoryChips: false,
       );
     }
 
@@ -337,8 +252,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
 
   Future<void> _fetchProfileData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) return;
 
@@ -646,8 +560,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) {
         setState(() {
@@ -723,21 +636,8 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColor.bg,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Pilih Layanan',
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
-        ),
+      appBar: const PatientAppBar(
+        title: 'Pilih Layanan',
       ),
       body: Column(
         children: [
@@ -781,7 +681,26 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
             ),
           ),
 
-          if (!_isLoadingKategori)
+          if (_isLoadingKategori)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.only(bottom: 12),
+              child: SizedBox(
+                height: 42,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 5,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, index) => AppSkeleton(
+                    width: index == 0 ? 70 : 100,
+                    height: 36,
+                    borderRadius: 20,
+                  ),
+                ),
+              ),
+            )
+          else
             Container(
               color: Colors.white,
               padding: const EdgeInsets.only(bottom: 12),
@@ -882,84 +801,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
             fontSize: 13,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red, fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _fetchLayanan,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Coba Lagi'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HCColor.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_filteredList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.search_off, size: 80, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              _searchController.text.isNotEmpty
-                  ? 'Tidak ada layanan yang cocok'
-                  : 'Belum ada layanan tersedia',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _fetchLayanan,
-      color: HCColor.primary,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _filteredList.length,
-        itemBuilder: (context, index) {
-          final layanan = _filteredList[index];
-          return _buildLayananCard(layanan);
-        },
       ),
     );
   }
@@ -1228,22 +1069,16 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
           if (loadingProgress == null) return child;
           return Container(
             height: 180,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: const BorderRadius.only(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
             ),
-            child: Center(
-              child: CircularProgressIndicator(
-                value:
-                    loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                color: HCColor.primary,
-              ),
+            child: const AppSkeleton(
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: 16,
             ),
           );
         },

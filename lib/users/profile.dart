@@ -1,4 +1,7 @@
 import 'package:home_care/features/profile/presentation/widgets/profile_ui_components.dart';
+import 'package:home_care/features/profile/presentation/widgets/profile_avatar_header.dart';
+import 'package:home_care/features/profile/presentation/widgets/profile_security_section.dart';
+import 'package:home_care/features/profile/presentation/widgets/profile_wilayah_dropdowns.dart';
 import 'package:home_care/core/services/wilayah_service.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -7,13 +10,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/screen/login.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -260,8 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
   Future<void> _checkAuthAndFetchProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = await StorageService.getToken();
 
     if (token == null || token.isEmpty) {
       if (!mounted) return;
@@ -425,8 +426,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = await StorageService.getToken();
 
     if (token == null) {
       if (!mounted) return;
@@ -865,8 +865,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isSaving = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) {
         if (!mounted) return;
@@ -973,58 +972,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Widget _buildProfileAvatar(String nama) {
-    final String initial = (nama.isNotEmpty ? nama[0] : '?').toUpperCase();
-
-    if (!kIsWeb && _localFotoFile != null) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundColor: _primary,
-        backgroundImage: FileImage(_localFotoFile!),
-      );
-    }
-
-    if (_fotoProfilUrl != null && _fotoProfilUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundColor: _primary,
-        child: ClipOval(
-          child: Image.network(
-            _fotoProfilUrl!,
-            width: 56,
-            height: 56,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: Text(
-                  initial,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    }
-
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: _primary,
-      child: Text(
-        initial,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1049,19 +996,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: _bg,
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'Profil Saya',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        backgroundColor: _primary,
-        foregroundColor: Colors.white,
+      appBar: PatientAppBar(
+        title: 'Profil Saya',
         actions: [
           if (!_isLoading && _pasien != null)
             IconButton(
-              icon: Icon(_isEditing ? Icons.close_rounded : Icons.edit_rounded),
+              icon: Icon(_isEditing ? Icons.close_rounded : Icons.edit_rounded, color: Colors.white),
               tooltip: _isEditing ? 'Batal' : 'Edit Profil',
               onPressed: _isEditing ? _cancelEdit : _startEdit,
             ),
@@ -1171,54 +1111,13 @@ class _ProfilePageState extends State<ProfilePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [_primary, _primaryDark],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                  color: _primary.withOpacity(0.22),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                _buildProfileAvatar(nama),
-                const SizedBox(height: 14),
-                Text(
-                  nama,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 21,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'No. Rekam Medis: $noRm',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  email,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13.5),
-                ),
-              ],
-            ),
+          ProfileAvatarHeader(
+            nama: nama,
+            noRm: noRm,
+            email: email,
+            fotoProfilUrl: _fotoProfilUrl,
+            localFotoFile: _localFotoFile,
+            isEditMode: false,
           ),
           const SizedBox(height: 16),
           _SectionCard(
@@ -1265,98 +1164,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           const SizedBox(height: 14),
-          _SectionCard(
-            title: 'Pengaturan & Keamanan',
-            icon: Icons.settings_outlined,
-            children: [
-              ListTile(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFF0BA5A7)),
-                title: const Text('Kebijakan Privasi (Privacy Policy)', style: TextStyle(fontFamily: 'Poppins', fontSize: 13.8, fontWeight: FontWeight.w500, color: Color(0xFF1F2937))),
-                trailing: const Icon(Icons.open_in_new, size: 16, color: Colors.black54),
-                onTap: () async {
-                  final url = Uri.parse('https://royal-klinik.cloud/privacy-homecare.html');
-                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Tidak dapat membuka link Kebijakan Privasi')),
-                      );
-                    }
-                  }
-                },
-              ),
-              const Divider(height: 1, color: Color(0xFFE5E7EB)),
-              ListTile(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                leading: const Icon(Icons.delete_forever_outlined, color: Colors.redAccent),
-                title: const Text('Hapus Akun', style: TextStyle(fontFamily: 'Poppins', fontSize: 13.8, fontWeight: FontWeight.w600, color: Colors.redAccent)),
-                trailing: const Icon(Icons.chevron_right, size: 16, color: Colors.black54),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Hapus Akun', style: TextStyle(fontWeight: FontWeight.bold)),
-                      content: const Text(
-                        'Apakah Anda yakin ingin menghapus akun secara permanen? Semua data medis, riwayat pemesanan, dan profil Anda akan dihapus dan tidak dapat dipulihkan kembali.',
-                      ),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: const Text('Batal', style: TextStyle(color: Colors.black54)),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            Navigator.pop(ctx);
-                            final Uri url = Uri.parse('${ApiConstants.baseUrl}/delete-account');
-                            if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Tidak dapat membuka halaman penghapusan akun')),
-                                );
-                              }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Ya, Hapus'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.logout_rounded, color: Color(0xFFE53935)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFEBEE),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              onPressed: _logout,
-              label: const Text(
-                'Logout',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700, 
-                  fontSize: 16, 
-                  color: Color(0xFFE53935),
-                ),
-              ),
-            ),
-          ),
+          ProfileSecuritySection(onLogout: _logout),
         ],
       ),
     );
@@ -1373,102 +1181,14 @@ class _ProfilePageState extends State<ProfilePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [_primary, _primaryDark],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                  color: _primary.withOpacity(0.22),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Stack(
-                  children: [
-                    _buildProfileAvatar(nama),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: InkWell(
-                        onTap: _isUploadingFoto ? null : _pickAndUploadPhoto,
-                        child: Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                                color: Colors.black.withOpacity(0.12),
-                              ),
-                            ],
-                          ),
-                          child:
-                              _isUploadingFoto
-                                  ? const SizedBox(
-                                    width: 15,
-                                    height: 15,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                  : const Icon(
-                                    Icons.camera_alt_rounded,
-                                    size: 16,
-                                    color: _primary,
-                                  ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        nama,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'No. Rekam Medis: $noRm',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13.5,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Lengkapi data profil Anda dengan informasi terbaru.',
-                        style: TextStyle(color: Colors.white70, fontSize: 12.8),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Gunakan foto JPG/PNG dengan ukuran maksimal 2 MB.',
-                        style: TextStyle(color: Colors.white70, fontSize: 11.8),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          ProfileAvatarHeader(
+            nama: nama,
+            noRm: noRm,
+            fotoProfilUrl: _fotoProfilUrl,
+            localFotoFile: _localFotoFile,
+            isEditMode: true,
+            isUploadingFoto: _isUploadingFoto,
+            onPickPhoto: _isUploadingFoto ? null : _pickAndUploadPhoto,
           ),
           const SizedBox(height: 16),
           Container(
@@ -1536,50 +1256,92 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 12),
                   _buildAlamatField(),
                   const SizedBox(height: 12),
-                  if (twoColumn)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _buildProvinsiField()),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildKotaField()),
-                      ],
-                    )
-                  else ...[
-                    _buildProvinsiField(),
-                    const SizedBox(height: 12),
-                    _buildKotaField(),
-                  ],
+                  ProfileWilayahDropdowns(
+                    provinsiList: _provinsiList,
+                    kotaList: _kotaList,
+                    kecamatanList: _kecamatanList,
+                    kelurahanList: _kelurahanList,
+                    selectedProvinsiId: _selectedProvinsiId,
+                    selectedKotaId: _selectedKotaId,
+                    selectedKecamatanId: _selectedKecamatanId,
+                    selectedKelurahanId: _selectedKelurahanId,
+                    selectedKodePos: _kodePosC.text,
+                    isLoadingProvinsi: _isLoadingProvinsi,
+                    isLoadingKota: _isLoadingKota,
+                    isLoadingKecamatan: _isLoadingKecamatan,
+                    isLoadingKelurahan: _isLoadingKelurahan,
+                    twoColumn: twoColumn,
+                    inputDecoration: _inputDecoration,
+                    buildFieldLoading: _buildFieldLoading,
+                    onProvinsiChanged: (val) {
+                      if (val == null) return;
+                      final prov = _provinsiList.firstWhere(
+                        (e) => e['id']?.toString() == val,
+                        orElse: () => {'id': '', 'name': ''},
+                      );
+                      setState(() {
+                        _selectedProvinsiId = val;
+                        _selectedProvinsiNama = prov['name']?.toString();
+                        _kotaList = [];
+                        _kecamatanList = [];
+                        _kelurahanList = [];
+                        _selectedKotaId = null;
+                        _selectedKecamatanId = null;
+                        _selectedKelurahanId = null;
+                        _selectedKotaNama = null;
+                        _selectedKecamatanNama = null;
+                        _selectedKelurahanNama = null;
+                      });
+                      _loadKota(val);
+                    },
+                    onKotaChanged: (val) {
+                      if (val == null) return;
+                      final kota = _kotaList.firstWhere(
+                        (e) => e['id']?.toString() == val,
+                        orElse: () => {'id': '', 'name': ''},
+                      );
+                      setState(() {
+                        _selectedKotaId = val;
+                        _selectedKotaNama = kota['name']?.toString();
+                        _kecamatanList = [];
+                        _kelurahanList = [];
+                        _selectedKecamatanId = null;
+                        _selectedKelurahanId = null;
+                        _selectedKecamatanNama = null;
+                        _selectedKelurahanNama = null;
+                      });
+                      _loadKecamatan(val);
+                    },
+                    onKecamatanChanged: (val) {
+                      if (val == null) return;
+                      final kec = _kecamatanList.firstWhere(
+                        (e) => e['id']?.toString() == val,
+                        orElse: () => {'id': '', 'name': ''},
+                      );
+                      setState(() {
+                        _selectedKecamatanId = val;
+                        _selectedKecamatanNama = kec['name']?.toString();
+                        _kelurahanList = [];
+                        _selectedKelurahanId = null;
+                        _selectedKelurahanNama = null;
+                      });
+                      _loadKelurahan(val);
+                    },
+                    onKelurahanChanged: (val) {
+                      if (val == null) return;
+                      final kel = _kelurahanList.firstWhere(
+                        (e) => e['id']?.toString() == val,
+                        orElse: () => {'id': '', 'name': '', 'kode_pos': ''},
+                      );
+                      setState(() {
+                        _selectedKelurahanId = val;
+                        _selectedKelurahanNama = kel['name']?.toString();
+                        _kodePosC.text = kel['kode_pos']?.toString() ?? '';
+                      });
+                    },
+                  ),
                   const SizedBox(height: 12),
-                  if (twoColumn)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _buildKecamatanField()),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildKelurahanField()),
-                      ],
-                    )
-                  else ...[
-                    _buildKecamatanField(),
-                    const SizedBox(height: 12),
-                    _buildKelurahanField(),
-                  ],
-                  const SizedBox(height: 12),
-                  if (twoColumn)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _buildKodePosField()),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildGolonganDarahField()),
-                      ],
-                    )
-                  else ...[
-                    _buildKodePosField(),
-                    const SizedBox(height: 12),
-                    _buildGolonganDarahField(),
-                  ],
+                  _buildGolonganDarahField(),
                   const SizedBox(height: 12),
                   _buildAlergiField(),
                   const SizedBox(height: 12),
@@ -1742,224 +1504,6 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: _inputDecoration(label: 'Alamat'),
       validator: (v) {
         if (v == null || v.trim().isEmpty) return 'Alamat wajib diisi';
-        return null;
-      },
-    );
-  }
-
-  Widget _buildProvinsiField() {
-    return DropdownButtonFormField<String>(
-      isExpanded: true,
-      value:
-          _provinsiList.any((e) => e['id'] == _selectedProvinsiId)
-              ? _selectedProvinsiId
-              : null,
-      decoration: _inputDecoration(
-        label: 'Provinsi',
-        suffixIcon: _isLoadingProvinsi ? _buildFieldLoading() : null,
-      ),
-      items:
-          _provinsiList
-              .map(
-                (e) => DropdownMenuItem<String>(
-                  value: e['id'],
-                  child: Text(
-                    e['name'] ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-      onChanged: (val) {
-        if (val == null) return;
-
-        final prov = _provinsiList.firstWhere(
-          (e) => e['id'] == val,
-          orElse: () => {'id': '', 'name': ''},
-        );
-
-        setState(() {
-          _selectedProvinsiId = val;
-          _selectedProvinsiNama = prov['name'];
-          _kotaList = [];
-          _kecamatanList = [];
-          _kelurahanList = [];
-          _selectedKotaId = null;
-          _selectedKecamatanId = null;
-          _selectedKelurahanId = null;
-          _selectedKotaNama = null;
-          _selectedKecamatanNama = null;
-          _selectedKelurahanNama = null;
-        });
-
-        _loadKota(val);
-      },
-      validator: (v) => v == null ? 'Pilih provinsi' : null,
-    );
-  }
-
-  Widget _buildKotaField() {
-    return DropdownButtonFormField<String>(
-      isExpanded: true,
-      value:
-          _kotaList.any((e) => e['id'] == _selectedKotaId)
-              ? _selectedKotaId
-              : null,
-      decoration: _inputDecoration(
-        label: 'Kota/Kabupaten',
-        suffixIcon: _isLoadingKota ? _buildFieldLoading() : null,
-      ),
-      items:
-          _kotaList
-              .map(
-                (e) => DropdownMenuItem<String>(
-                  value: e['id'],
-                  child: Text(
-                    e['name'] ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-      onChanged:
-          _kotaList.isEmpty
-              ? null
-              : (val) {
-                if (val == null) return;
-
-                final kota = _kotaList.firstWhere(
-                  (e) => e['id'] == val,
-                  orElse: () => {'id': '', 'name': ''},
-                );
-
-                setState(() {
-                  _selectedKotaId = val;
-                  _selectedKotaNama = kota['name'];
-                  _kecamatanList = [];
-                  _kelurahanList = [];
-                  _selectedKecamatanId = null;
-                  _selectedKelurahanId = null;
-                  _selectedKecamatanNama = null;
-                  _selectedKelurahanNama = null;
-                });
-
-                _loadKecamatan(val);
-              },
-      validator: (v) => v == null ? 'Pilih kota' : null,
-    );
-  }
-
-  Widget _buildKecamatanField() {
-    return DropdownButtonFormField<String>(
-      isExpanded: true,
-      value:
-          _kecamatanList.any((e) => e['id'] == _selectedKecamatanId)
-              ? _selectedKecamatanId
-              : null,
-      decoration: _inputDecoration(
-        label: 'Kecamatan',
-        suffixIcon: _isLoadingKecamatan ? _buildFieldLoading() : null,
-      ),
-      items:
-          _kecamatanList
-              .map(
-                (e) => DropdownMenuItem<String>(
-                  value: e['id'],
-                  child: Text(
-                    e['name'] ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-      onChanged:
-          _kecamatanList.isEmpty
-              ? null
-              : (val) {
-                if (val == null) return;
-
-                final kec = _kecamatanList.firstWhere(
-                  (e) => e['id'] == val,
-                  orElse: () => {'id': '', 'name': ''},
-                );
-
-                setState(() {
-                  _selectedKecamatanId = val;
-                  _selectedKecamatanNama = kec['name'];
-                  _kelurahanList = [];
-                  _selectedKelurahanId = null;
-                  _selectedKelurahanNama = null;
-                });
-
-                _loadKelurahan(val);
-              },
-      validator: (v) => v == null ? 'Pilih kecamatan' : null,
-    );
-  }
-
-  Widget _buildKelurahanField() {
-    return DropdownButtonFormField<String>(
-      isExpanded: true,
-      value:
-          _kelurahanList.any((e) => e['id'] == _selectedKelurahanId)
-              ? _selectedKelurahanId
-              : null,
-      decoration: _inputDecoration(
-        label: 'Kelurahan/Desa (opsional)',
-        suffixIcon: _isLoadingKelurahan ? _buildFieldLoading() : null,
-      ),
-      items:
-          _kelurahanList
-              .map(
-                (e) => DropdownMenuItem<String>(
-                  value: e['id'],
-                  child: Text(
-                    e['name'] ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-      onChanged:
-          _kelurahanList.isEmpty
-              ? null
-              : (val) {
-                if (val == null) {
-                  setState(() {
-                    _selectedKelurahanId = null;
-                    _selectedKelurahanNama = null;
-                  });
-                  return;
-                }
-
-                final kel = _kelurahanList.firstWhere(
-                  (e) => e['id'] == val,
-                  orElse: () => {'id': '', 'name': ''},
-                );
-
-                setState(() {
-                  _selectedKelurahanId = val;
-                  _selectedKelurahanNama = kel['name'];
-                });
-              },
-    );
-  }
-
-  Widget _buildKodePosField() {
-    return TextFormField(
-      controller: _kodePosC,
-      keyboardType: TextInputType.number,
-      decoration: _inputDecoration(
-        label: 'Kode Pos',
-        hint: 'Masukkan kode pos',
-      ),
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'Kode pos wajib diisi';
-        if (v.trim().length < 5) return 'Kode pos minimal 5 digit';
         return null;
       },
     );

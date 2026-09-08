@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/users/payment_method_page.dart';
@@ -8,6 +9,7 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -41,8 +43,7 @@ class _LihatDetailDraftPemesananPageState
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null || token.isEmpty) {
         setState(() {
@@ -171,9 +172,7 @@ class _LihatDetailDraftPemesananPageState
       backgroundColor: HCColors.bg,
       body:
           _isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: HCColors.primary),
-              )
+              ? const OrderDetailSkeleton()
               : _error != null
               ? _buildErrorState()
               : _draft == null

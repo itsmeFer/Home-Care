@@ -1,12 +1,13 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'notifikasi_model.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -372,18 +373,8 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: const Color(0xFFF8FAFC),
-        title: const Text(
-          'Notifikasi',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF0F172A),
-          ),
-        ),
-        centerTitle: false,
+      appBar: PatientAppBar(
+        title: 'Notifikasi',
         actions: [
           if (!_isLoading && _items.isNotEmpty)
             Padding(
@@ -394,8 +385,8 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 style: TextButton.styleFrom(
                   backgroundColor:
                       hasUnread
-                          ? const Color(0xFF0F172A)
-                          : Colors.grey.shade300,
+                          ? Colors.white.withValues(alpha: 0.22)
+                          : Colors.white.withValues(alpha: 0.1),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
@@ -427,7 +418,9 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
         onRefresh: _fetchNotifications,
         child:
             _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const SingleChildScrollView(
+                    child: NotificationListSkeleton(),
+                  )
                 : _error != null
                 ? ListView(
                   padding: const EdgeInsets.all(24),

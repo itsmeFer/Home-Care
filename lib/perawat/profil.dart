@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
@@ -34,8 +35,7 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) {
         setState(() {

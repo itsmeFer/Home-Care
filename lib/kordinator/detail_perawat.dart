@@ -1,6 +1,7 @@
 ﻿import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -64,8 +65,7 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
     setState(() => _isSavingPassword = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) {
         _showSnack('Token tidak ditemukan. Silakan login ulang.', error: true);

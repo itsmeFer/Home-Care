@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:home_care/chat/pasien_chat_list_page.dart';
 import 'package:home_care/users/menu_page.dart';
 import 'package:home_care/users/layanan_page.dart';
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/notifikasi_page.dart';
 import 'package:home_care/users/profile.dart';
 import 'package:home_care/users/search_page.dart';
@@ -79,50 +80,6 @@ class BannerItem {
           json['layanan'] is Map<String, dynamic>
               ? json['layanan'] as Map<String, dynamic>
               : null,
-    );
-  }
-}
-
-class LayananCategory {
-  final int id;
-  final String namaKategori;
-  final String slug;
-  final String? deskripsi;
-  final String? gambarUrl;
-  final String? iconName;
-  final String? warna;
-  final int urutan;
-  final int jumlahLayanan;
-
-  LayananCategory({
-    required this.id,
-    required this.namaKategori,
-    required this.slug,
-    required this.deskripsi,
-    required this.gambarUrl,
-    required this.iconName,
-    required this.warna,
-    required this.urutan,
-    required this.jumlahLayanan,
-  });
-
-  factory LayananCategory.fromJson(Map<String, dynamic> json) {
-    int parseInt(dynamic value) {
-      if (value == null) return 0;
-      if (value is int) return value;
-      return int.tryParse(value.toString()) ?? 0;
-    }
-
-    return LayananCategory(
-      id: parseInt(json['id']),
-      namaKategori: (json['nama_kategori'] ?? '').toString(),
-      slug: (json['slug'] ?? '').toString(),
-      deskripsi: json['deskripsi']?.toString(),
-      gambarUrl: json['gambar_url']?.toString(),
-      iconName: json['icon']?.toString(),
-      warna: json['warna']?.toString(),
-      urutan: parseInt(json['urutan']),
-      jumlahLayanan: parseInt(json['jumlah_layanan']),
     );
   }
 }

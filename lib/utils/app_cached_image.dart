@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 
 /// Reusable optimized image widget that combines disk caching,
 /// memory decoding constraints, and clean loading/error states.
@@ -97,20 +98,9 @@ class AppCachedImage extends StatelessWidget {
   }
 
   Widget _buildPlaceholder() {
-    return Container(
+    return AppSkeleton(
       width: width,
       height: height,
-      color: backgroundColor ?? const Color(0xFFF2F4F7),
-      child: const Center(
-        child: SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0BA5A7)),
-          ),
-        ),
-      ),
     );
   }
 
@@ -169,21 +159,7 @@ class AppCircleAvatar extends StatelessWidget {
           fit: BoxFit.cover,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
-            return Container(
-              width: size,
-              height: size,
-              color: effectiveBg,
-              child: Center(
-                child: SizedBox(
-                  width: radius * 0.7,
-                  height: radius * 0.7,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 1.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(effectiveFg),
-                  ),
-                ),
-              ),
-            );
+            return AppSkeleton.circle(size: size);
           },
           errorBuilder: (context, error, stackTrace) => Container(
             width: size,
@@ -200,21 +176,7 @@ class AppCircleAvatar extends StatelessWidget {
           fit: BoxFit.cover,
           memCacheWidth: cachePx,
           memCacheHeight: cachePx,
-          placeholder: (context, url) => Container(
-            width: size,
-            height: size,
-            color: effectiveBg,
-            child: Center(
-              child: SizedBox(
-                width: radius * 0.7,
-                height: radius * 0.7,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(effectiveFg),
-                ),
-              ),
-            ),
-          ),
+          placeholder: (context, url) => AppSkeleton.circle(size: size),
           errorWidget: (context, url, error) => Container(
             width: size,
             height: size,

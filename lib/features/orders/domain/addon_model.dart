@@ -40,3 +40,6 @@ class Addon {
     return double.tryParse(value.toString()) ?? 0.0;
   }
 }
+
+typedef AddonModel = Addon;
+

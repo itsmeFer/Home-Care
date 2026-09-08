@@ -1,4 +1,4 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
 String? resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
@@ -546,170 +547,6 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                 },
               ),
     );
-  }
-}
-
-class KategoriLayananItem {
-  final int id;
-  final String namaKategori;
-  final String slug;
-  final String? deskripsi;
-  final String? gambarUrl;
-  final String? icon;
-  final String? warna;
-  final int? urutan;
-  final bool? aktif;
-  final int? jumlahLayanan;
-
-  KategoriLayananItem({
-    required this.id,
-    required this.namaKategori,
-    required this.slug,
-    this.deskripsi,
-    this.gambarUrl,
-    this.icon,
-    this.warna,
-    this.urutan,
-    this.aktif,
-    this.jumlahLayanan,
-  });
-
-  factory KategoriLayananItem.fromJson(Map<String, dynamic> json) {
-    int? toInt(dynamic v) => v == null ? null : int.tryParse(v.toString());
-
-    bool? toBool(dynamic v) {
-      if (v == null) return null;
-      if (v is bool) return v;
-      return v.toString() == '1' || v.toString().toLowerCase() == 'true';
-    }
-
-    return KategoriLayananItem(
-      id: toInt(json['id']) ?? 0,
-      namaKategori: json['nama_kategori']?.toString() ?? '',
-      slug: json['slug']?.toString() ?? '',
-      deskripsi: json['deskripsi']?.toString(),
-      gambarUrl: json['gambar_url']?.toString(),
-      icon: json['icon']?.toString(),
-      warna: json['warna']?.toString(),
-      urutan: toInt(json['urutan']),
-      aktif: toBool(json['aktif']),
-      jumlahLayanan: toInt(json['jumlah_layanan']),
-    );
-  }
-}
-
-class Layanan {
-  final int? id;
-  final String? kodeLayanan;
-  final String? namaLayanan;
-  final String? deskripsi;
-  final String? kategori;
-  final String? tipeLayanan;
-  final int? jumlahVisit;
-  final double? hargaDasar;
-  final int? durasiMenit;
-  final String? syaratPerawat;
-  final String? lokasiTersedia;
-  final bool? aktif;
-  final String? gambarUrl;
-
-  Layanan({
-    this.id,
-    this.kodeLayanan,
-    this.namaLayanan,
-    this.deskripsi,
-    this.kategori,
-    this.tipeLayanan,
-    this.jumlahVisit,
-    this.hargaDasar,
-    this.durasiMenit,
-    this.syaratPerawat,
-    this.lokasiTersedia,
-    this.aktif,
-    this.gambarUrl,
-  });
-
-  factory Layanan.fromJson(Map<String, dynamic> json) {
-    num? harga;
-    final rawHarga = json['harga_fix'] ?? json['harga_dasar'];
-
-    if (rawHarga != null) {
-      if (rawHarga is num) {
-        harga = rawHarga;
-      } else {
-        harga = num.tryParse(rawHarga.toString());
-      }
-    }
-
-    return Layanan(
-      id: json['id'] as int?,
-      kodeLayanan: json['kode_layanan']?.toString(),
-      namaLayanan: json['nama_layanan']?.toString(),
-      deskripsi: json['deskripsi']?.toString(),
-      kategori: json['kategori']?.toString(),
-      tipeLayanan: json['tipe_layanan']?.toString(),
-      jumlahVisit:
-          json['jumlah_visit'] != null
-              ? int.tryParse(json['jumlah_visit'].toString())
-              : null,
-      hargaDasar: harga?.toDouble(),
-      durasiMenit:
-          json['durasi_menit'] != null
-              ? int.tryParse(json['durasi_menit'].toString())
-              : null,
-      syaratPerawat: json['syarat_perawat']?.toString(),
-      lokasiTersedia: json['lokasi_tersedia']?.toString(),
-      aktif:
-          json['aktif'] == null
-              ? null
-              : (json['aktif'] is bool
-                  ? json['aktif']
-                  : json['aktif'].toString() == '1' ||
-                      json['aktif'].toString().toLowerCase() == 'true'),
-      gambarUrl: resolveMediaUrl(
-        json['gambar_url']?.toString() ?? json['gambar']?.toString(),
-      ),
-    );
-  }
-
-  String get tipeLayananLabel {
-    switch (tipeLayanan) {
-      case 'paket':
-        return 'Paket';
-      case 'single':
-      default:
-        return 'Single';
-    }
-  }
-
-  String get syaratPerawatLabel {
-    switch (syaratPerawat) {
-      case 'icu':
-        return 'ICU';
-      case 'luka':
-        return 'Perawat Luka';
-      case 'fisio':
-        return 'Fisioterapi';
-      case 'anak':
-        return 'Perawat Anak';
-      case 'lainnya':
-        return 'Lainnya';
-      case 'umum':
-      default:
-        return 'Umum';
-    }
-  }
-
-  String get lokasiLabel {
-    switch (lokasiTersedia) {
-      case 'rumah':
-        return 'Rumah';
-      case 'rumah_sakit':
-        return 'Rumah Sakit';
-      case 'keduanya':
-      default:
-        return 'Rumah & RS';
-    }
   }
 }
 

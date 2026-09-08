@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/ITDev/pages/system_maintenance_page.dart';
 import 'package:http/http.dart' as http;
@@ -78,10 +79,7 @@ class _DashboardITPageState extends State<DashboardITPage> {
   }
 
   Future<Map<String, dynamic>> _fetch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token =
-        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-            .trim();
+    final token = ((await StorageService.getToken()) ?? '').trim();
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
 
     final res = await http.get(
@@ -108,10 +106,7 @@ class _DashboardITPageState extends State<DashboardITPage> {
   }
 
   Future<Map<String, dynamic>> _fetchMetrics() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token =
-        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-            .trim();
+    final token = ((await StorageService.getToken()) ?? '').trim();
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
 
     final res = await http.get(

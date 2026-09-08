@@ -73,9 +73,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
     if (confirm != true) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    await prefs.clear();
+    await StorageService.clearAuth();
 
     if (!context.mounted) return;
 

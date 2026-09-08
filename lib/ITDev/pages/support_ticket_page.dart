@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -109,10 +110,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   }
 
   Future<String> _token() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token =
-        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-            .trim();
+    final token = ((await StorageService.getToken()) ?? '').trim();
     if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
     return token;
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
 
 class SkeletonBox extends StatelessWidget {
   final double height;
@@ -6,6 +7,7 @@ class SkeletonBox extends StatelessWidget {
   final double radius;
 
   const SkeletonBox({
+    super.key,
     required this.height,
     required this.width,
     this.radius = 12,
@@ -13,19 +15,16 @@ class SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppSkeleton(
       height: height,
       width: width,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE9EEF5),
-        borderRadius: BorderRadius.circular(radius),
-      ),
+      borderRadius: radius,
     );
   }
 }
 
 class ProfilePageSkeleton extends StatelessWidget {
-  const ProfilePageSkeleton();
+  const ProfilePageSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {

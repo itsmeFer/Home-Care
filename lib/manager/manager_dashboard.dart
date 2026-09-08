@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
@@ -96,13 +97,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
 
     if (ok != true) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    await prefs.remove('token');
-    await prefs.remove('role');
-    await prefs.remove('role_slug');
-    await prefs.remove('user_role');
-    await prefs.remove('name');
+    await StorageService.clearAuth();
 
     if (!mounted) return;
 
@@ -114,10 +109,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
   }
 
   Future<void> _loadMe() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token =
-        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-            .trim();
+    final token = (await StorageService.getToken()) ?? '';
+    final prefs = await StorageService.instance;
 
     final localName = (prefs.getString('name') ?? '').trim();
     if (mounted && localName.isNotEmpty) setState(() => _userName = localName);

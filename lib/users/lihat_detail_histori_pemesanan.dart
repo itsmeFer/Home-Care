@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,7 +7,11 @@ import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/features/orders/presentation/widgets/order_cancel_dialog.dart';
+import 'package:home_care/features/orders/presentation/widgets/order_rating_section.dart';
+import 'package:home_care/features/orders/presentation/widgets/order_timeline_tracker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -85,8 +90,7 @@ class _LihatDetailHistoriPemesananPageState
     );
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null || token.isEmpty) {
         if (!mounted) return;
@@ -207,174 +211,10 @@ class _LihatDetailHistoriPemesananPageState
   }
 
   Future<void> _showCancelDialog() async {
-    final controller = TextEditingController();
-
-    await showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 24,
-          ),
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.8,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: HCColors.danger.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.warning_amber_rounded,
-                      color: HCColors.danger,
-                      size: 30,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Batalkan Pesanan',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: HCColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Pesanan hanya bisa dibatalkan sebelum perawat berangkat. Tuliskan alasan pembatalan agar pesanan dapat diproses dengan benar.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: HCColors.textMuted,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: HCColors.bg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: HCColors.danger.withOpacity(0.25),
-                      ),
-                    ),
-                    child: TextField(
-                      controller: controller,
-                      maxLines: 5,
-                      minLines: 3,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: HCColors.textDark,
-                        height: 1.5,
-                      ),
-                      decoration: InputDecoration(
-                        hintText:
-                            'Contoh: Jadwal berubah, pasien sudah membaik, atau tidak jadi menggunakan layanan.',
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          color: HCColors.textMuted.withOpacity(0.8),
-                          height: 1.5,
-                        ),
-                        contentPadding: const EdgeInsets.all(16),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: HCColors.textMuted.withOpacity(0.25),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: const Text(
-                            'Tutup',
-                            style: TextStyle(
-                              color: HCColors.textDark,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: HCColors.danger,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          onPressed: () async {
-                            final alasan = controller.text.trim();
-
-                            if (alasan.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Alasan pembatalan wajib diisi',
-                                  ),
-                                ),
-                              );
-                              return;
-                            }
-
-                            Navigator.pop(context);
-                            await _cancelOrder(alasan);
-                          },
-                          child: const Text(
-                            'Batalkan Pesanan',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+    await OrderCancelDialog.show(
+      context,
+      orderId: widget.orderId,
+      onConfirm: _cancelOrder,
     );
   }
 
@@ -415,8 +255,7 @@ class _LihatDetailHistoriPemesananPageState
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null || token.isEmpty) {
         setState(() {
@@ -487,8 +326,7 @@ class _LihatDetailHistoriPemesananPageState
     setState(() => _isLoadingRating = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null || token.isEmpty) return;
 
@@ -558,8 +396,7 @@ class _LihatDetailHistoriPemesananPageState
     setState(() => _isSubmittingRating = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null || token.isEmpty) {
         if (!mounted) return;
@@ -789,9 +626,7 @@ class _LihatDetailHistoriPemesananPageState
       backgroundColor: HCColors.bg,
       body:
           _isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: HCColors.primary),
-              )
+              ? const OrderDetailSkeleton()
               : _error != null
               ? _buildErrorState()
               : _order == null
@@ -1035,463 +870,17 @@ class _LihatDetailHistoriPemesananPageState
   }
 
   Widget _buildRatingCard() {
-    if (_isLoadingRating) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: HCColors.card,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Center(
-          child: CircularProgressIndicator(color: HCColors.primary),
-        ),
-      );
-    }
-
-    final avgData = _ratingData?['avg'] ?? {};
-    final avgLayanan = avgData['layanan'];
-    final avgPerawat = avgData['perawat'];
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: HCColors.card,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                _hasRating ? Icons.check_circle_rounded : Icons.star_rounded,
-                color: _hasRating ? HCColors.success : HCColors.primary,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _hasRating ? 'Rating Anda' : 'Beri Rating & Ulasan',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: HCColors.textDark,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          if (_hasRating) ...[
-
-            _buildSubmittedRatingDisplay(),
-
-            if (avgLayanan != null || avgPerawat != null) ...[
-              const Divider(height: 24),
-              const Text(
-                'Rating Rata-rata',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: HCColors.textMuted,
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (avgLayanan != null)
-                _buildAverageRatingRow(
-                  icon: Icons.medical_services_rounded,
-                  label: 'Layanan',
-                  average: avgLayanan,
-                ),
-              if (avgLayanan != null && avgPerawat != null)
-                const SizedBox(height: 8),
-              if (avgPerawat != null)
-                _buildAverageRatingRow(
-                  icon: Icons.person_rounded,
-                  label: 'Perawat',
-                  average: avgPerawat,
-                ),
-            ],
-          ] else ...[
-
-            const Text(
-              'Bagaimana pengalaman Anda dengan layanan kami?',
-              style: TextStyle(fontSize: 14, color: HCColors.textMuted),
-            ),
-            const SizedBox(height: 20),
-
-            _buildRatingSection(
-              icon: Icons.medical_services_rounded,
-              label: 'Rating Layanan',
-              required: true,
-              rating: _ratingLayanan,
-              onRatingChanged: (rating) {
-                setState(() => _ratingLayanan = rating);
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            _buildRatingSection(
-              icon: Icons.person_rounded,
-              label: 'Rating Perawat',
-              required: false,
-              rating: _ratingPerawat,
-              onRatingChanged: (rating) {
-                setState(() => _ratingPerawat = rating);
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            const Row(
-              children: [
-                Icon(
-                  Icons.comment_rounded,
-                  size: 16,
-                  color: HCColors.textMuted,
-                ),
-                SizedBox(width: 6),
-                Text(
-                  'Komentar (Opsional)',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: HCColors.textDark,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: HCColors.bg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: HCColors.primary.withOpacity(0.2)),
-              ),
-              child: TextField(
-                controller: _komentarController,
-                maxLines: 3,
-                maxLength: 500,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: HCColors.textDark,
-                  height: 1.4,
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Ceritakan pengalaman Anda...',
-                  hintStyle: TextStyle(fontSize: 13, color: HCColors.textMuted),
-                  contentPadding: EdgeInsets.all(12),
-                  border: InputBorder.none,
-                  counterText: '',
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isSubmittingRating ? null : _submitRating,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HCColors.primary,
-                  disabledBackgroundColor: HCColors.textMuted,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child:
-                    _isSubmittingRating
-                        ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                        : const Text(
-                          'Kirim Rating',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
-                        ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubmittedRatingDisplay() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: HCColors.success.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HCColors.success.withOpacity(0.15)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.medical_services_rounded,
-                size: 16,
-                color: HCColors.textMuted,
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                'Rating Layanan',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: HCColors.textMuted,
-                ),
-              ),
-              const Spacer(),
-              _buildStarDisplay(_ratingLayanan),
-            ],
-          ),
-          if (_ratingPerawat > 0) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(
-                  Icons.person_rounded,
-                  size: 16,
-                  color: HCColors.textMuted,
-                ),
-                const SizedBox(width: 6),
-                const Text(
-                  'Rating Perawat',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: HCColors.textMuted,
-                  ),
-                ),
-                const Spacer(),
-                _buildStarDisplay(_ratingPerawat),
-              ],
-            ),
-          ],
-          if (_komentarController.text.trim().isNotEmpty) ...[
-            const Divider(height: 20),
-            const Text(
-              'Komentar',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: HCColors.textMuted,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _komentarController.text.trim(),
-              style: const TextStyle(
-                fontSize: 13,
-                color: HCColors.textDark,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStarDisplay(int rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        return Icon(
-          index < rating ? Icons.star_rounded : Icons.star_outline_rounded,
-          color: Colors.amber,
-          size: 16,
-        );
-      }),
-    );
-  }
-
-  Widget _buildRatingSection({
-    required IconData icon,
-    required String label,
-    required bool required,
-    required int rating,
-    required ValueChanged<int> onRatingChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 16, color: HCColors.textMuted),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: HCColors.textDark,
-              ),
-            ),
-            if (required) ...[
-              const SizedBox(width: 2),
-              const Text(
-                '*',
-                style: TextStyle(fontSize: 13, color: HCColors.danger),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(5, (index) {
-            final starValue = index + 1;
-            return GestureDetector(
-              onTap: () => onRatingChanged(starValue),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: Icon(
-                  rating >= starValue
-                      ? Icons.star_rounded
-                      : Icons.star_outline_rounded,
-                  color:
-                      rating >= starValue ? Colors.amber : HCColors.textMuted,
-                  size: 32,
-                ),
-              ),
-            );
-          }),
-        ),
-        if (rating > 0) ...[
-          const SizedBox(height: 6),
-          Center(
-            child: Text(
-              _getRatingLabel(rating),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _getRatingColor(rating),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  String _getRatingLabel(int rating) {
-    switch (rating) {
-      case 1:
-        return 'Sangat Buruk';
-      case 2:
-        return 'Buruk';
-      case 3:
-        return 'Cukup';
-      case 4:
-        return 'Baik';
-      case 5:
-        return 'Sangat Baik';
-      default:
-        return '';
-    }
-  }
-
-  Color _getRatingColor(int rating) {
-    if (rating <= 2) return HCColors.danger;
-    if (rating == 3) return HCColors.warning;
-    return HCColors.success;
-  }
-
-  Widget _buildAverageRatingRow({
-    required IconData icon,
-    required String label,
-    required dynamic average,
-  }) {
-    final avgDouble = double.tryParse(average.toString()) ?? 0.0;
-    final fullStars = avgDouble.floor();
-    final hasHalfStar = (avgDouble - fullStars) >= 0.5;
-
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: HCColors.textMuted),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: HCColors.textDark,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  ...List.generate(5, (index) {
-                    if (index < fullStars) {
-                      return const Icon(
-                        Icons.star_rounded,
-                        color: Colors.amber,
-                        size: 14,
-                      );
-                    } else if (index == fullStars && hasHalfStar) {
-                      return const Icon(
-                        Icons.star_half_rounded,
-                        color: Colors.amber,
-                        size: 14,
-                      );
-                    } else {
-                      return const Icon(
-                        Icons.star_outline_rounded,
-                        color: Colors.amber,
-                        size: 14,
-                      );
-                    }
-                  }),
-                  const SizedBox(width: 6),
-                  Text(
-                    avgDouble.toStringAsFixed(1),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: HCColors.textDark,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
+    return OrderRatingSection(
+      hasRating: _hasRating,
+      isLoadingRating: _isLoadingRating,
+      ratingData: _ratingData,
+      ratingLayanan: _ratingLayanan,
+      ratingPerawat: _ratingPerawat,
+      komentarController: _komentarController,
+      isSubmittingRating: _isSubmittingRating,
+      onRatingLayananChanged: (r) => setState(() => _ratingLayanan = r),
+      onRatingPerawatChanged: (r) => setState(() => _ratingPerawat = r),
+      onSubmit: _submitRating,
     );
   }
 
@@ -1550,63 +939,12 @@ class _LihatDetailHistoriPemesananPageState
   }
 
   Widget _buildStatusCard(String status, String statusPayment) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: HCColors.card,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _statusColor(status).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              status == 'selesai'
-                  ? Icons.check_circle_rounded
-                  : status == 'dibatalkan'
-                  ? Icons.cancel_rounded
-                  : Icons.hourglass_empty_rounded,
-              color: _statusColor(status),
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _statusLabel(status),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: _statusColor(status),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Pembayaran: ${_paymentStatusLabel(statusPayment)}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: HCColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        OrderStatusHeaderCard(status: status, statusPayment: statusPayment),
+        const SizedBox(height: 16),
+        OrderTimelineTracker(statusOrder: status),
+      ],
     );
   }
 

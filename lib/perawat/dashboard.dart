@@ -60,13 +60,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
   Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.remove('auth_token');
-    await prefs.remove('user_id');
-    await prefs.remove('perawat_id');
-    await prefs.remove('nama_lengkap');
-    await prefs.remove('role');
+    await StorageService.clearAuth();
 
     if (!mounted) return;
 

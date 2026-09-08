@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,50 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/admin/lihat_detail_layanan_masuk.dart';
+import 'package:home_care/features/orders/domain/order_models.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
-
-class OrderLayananAdmin {
-  final int id;
-  final String kodeOrder;
-  final String statusOrder;
-  final String namaLayanan;
-
-  final String? tanggalMulai;
-  final String? jamMulai;
-
-  final Map<String, dynamic>? pasien;
-  final Map<String, dynamic>? koordinator;
-  final Map<String, dynamic>? perawat;
-
-  OrderLayananAdmin({
-    required this.id,
-    required this.kodeOrder,
-    required this.statusOrder,
-    required this.namaLayanan,
-    this.tanggalMulai,
-    this.jamMulai,
-    this.pasien,
-    this.koordinator,
-    this.perawat,
-  });
-
-  factory OrderLayananAdmin.fromJson(Map<String, dynamic> json) {
-    return OrderLayananAdmin(
-      id: json['id'] as int,
-      kodeOrder: json['kode_order']?.toString() ?? '-',
-      statusOrder: json['status_order']?.toString() ?? 'pending',
-      namaLayanan:
-          json['nama_layanan']?.toString() ??
-          (json['layanan']?['nama_layanan']?.toString() ?? '-'),
-      tanggalMulai: json['tanggal_mulai']?.toString(),
-      jamMulai: json['jam_mulai']?.toString(),
-      pasien: json['pasien'] as Map<String, dynamic>?,
-      koordinator: json['koordinator'] as Map<String, dynamic>?,
-      perawat: json['perawat'] as Map<String, dynamic>?,
-    );
-  }
-}
 
 class LihatLayananMasukPage extends StatefulWidget {
   const LihatLayananMasukPage({Key? key}) : super(key: key);
@@ -90,8 +50,7 @@ class _LihatLayananMasukPageState extends State<LihatLayananMasukPage> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) {
         setState(() {

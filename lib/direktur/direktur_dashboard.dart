@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:home_care/direktur/pages/lapor_it.dart';
@@ -91,13 +92,7 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
 
     if (ok != true) return;
 
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.remove('auth_token');
-    await prefs.remove('token');
-    await prefs.remove('role');
-    await prefs.remove('role_slug');
-    await prefs.remove('user_role');
+    await StorageService.clearAuth();
 
     if (!mounted) return;
 
@@ -116,10 +111,7 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
   }
 
   Future<void> _loadMe() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token =
-        (prefs.getString('auth_token') ?? prefs.getString('token') ?? '')
-            .trim();
+    final token = (await StorageService.getToken()) ?? '';
 
     if (token.isEmpty) {
       if (mounted) setState(() => _userName = 'Direktur');

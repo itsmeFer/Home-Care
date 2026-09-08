@@ -3,11 +3,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/users/lihat_detail_histori_pemesanan.dart';
-import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 String get kBaseUrl => ApiConstants.baseUrl;
 String get kApiBase => ApiConstants.apiBase;
@@ -49,10 +50,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   static const successColor = Color(0xFF00B894);
   static const dividerColor = Color(0xFFE5E5EA);
 
-  Future<String?> _token() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
+  Future<String?> _token() => StorageService.getToken();
 
   void _toast(String msg) {
     if (!mounted) return;
@@ -155,10 +153,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
         });
         return;
       }
-
-      debugPrint(
-        '🔵 [FETCH] Token: ${t.substring(0, t.length > 20 ? 20 : t.length)}...',
-      );
 
       final uri = Uri.parse('$kApiBase/pasien/order-draft/${widget.draftId}');
       debugPrint('🔵 [FETCH] URI: $uri');
@@ -637,10 +631,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     if (_isLoadingDraft) {
       return Scaffold(
         backgroundColor: backgroundColor,
-        body: const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-          ),
+        body: const SafeArea(
+          child: OrderDetailSkeleton(),
         ),
       );
     }
@@ -648,23 +640,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     if (_draftError != null) {
       return Scaffold(
         backgroundColor: backgroundColor,
-        appBar: AppBar(
-          backgroundColor: cardColor,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
-            color: primaryColor,
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            'Pembayaran',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: textPrimary,
-            ),
-          ),
-          centerTitle: true,
+        appBar: const PatientAppBar(
+          title: 'Pembayaran',
         ),
         body: Center(
           child: Padding(
@@ -769,28 +746,13 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: cardColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          color: primaryColor,
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Pembayaran',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
-          ),
-        ),
-        centerTitle: true,
+      appBar: PatientAppBar(
+        title: 'Pembayaran',
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, size: 22),
-            color: primaryColor,
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: _fetchDraftData,
+            tooltip: 'Refresh',
           ),
         ],
       ),

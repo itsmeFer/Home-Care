@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
@@ -37,8 +38,7 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) {
         setState(() {

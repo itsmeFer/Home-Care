@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -7,7 +8,7 @@ class MenuPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Semua Menu'), centerTitle: true),
+      appBar: const PatientAppBar(title: 'Semua Menu'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

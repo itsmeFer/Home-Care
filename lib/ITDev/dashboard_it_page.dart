@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:home_care/core/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -100,13 +101,7 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
     );
     if (ok != true) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    await prefs.remove('token');
-    await prefs.remove('role');
-    await prefs.remove('role_slug');
-    await prefs.remove('user_role');
-    await prefs.remove('name');
+    await StorageService.clearAuth();
 
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(

@@ -1,12 +1,14 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/layanan_page.dart';
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -327,17 +329,8 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0BA5A7),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Cari Layanan',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
+      appBar: const PatientAppBar(
+        title: 'Cari Layanan',
       ),
       body: Column(
         children: [
@@ -383,9 +376,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF0BA5A7)),
-      );
+      return const SearchResultSkeleton();
     }
 
     if (!_hasSearched) {
@@ -401,9 +392,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildInitialState() {
     if (_isLoadingHistory || _isLoadingRecentViewed) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF0BA5A7)),
-      );
+      return const SearchResultSkeleton(itemCount: 4);
     }
 
     if (_searchHistory.isEmpty && _recentViewedLayanan.isEmpty) {
@@ -541,41 +530,6 @@ class _SearchPageState extends State<SearchPage> {
           },
         );
       },
-    );
-  }
-}
-
-class LayananSearchResult {
-  final int id;
-  final String kodeLayanan;
-  final String namaLayanan;
-  final String? deskripsi;
-  final String? kategori;
-  final String? tipeLayanan;
-  final double hargaFix;
-  final String? gambarUrl;
-
-  LayananSearchResult({
-    required this.id,
-    required this.kodeLayanan,
-    required this.namaLayanan,
-    this.deskripsi,
-    this.kategori,
-    this.tipeLayanan,
-    required this.hargaFix,
-    this.gambarUrl,
-  });
-
-  factory LayananSearchResult.fromJson(Map<String, dynamic> json) {
-    return LayananSearchResult(
-      id: json['id'] ?? 0,
-      kodeLayanan: json['kode_layanan']?.toString() ?? '',
-      namaLayanan: json['nama_layanan']?.toString() ?? '',
-      deskripsi: json['deskripsi']?.toString(),
-      kategori: json['kategori']?.toString(),
-      tipeLayanan: json['tipe_layanan']?.toString(),
-      hargaFix: double.tryParse(json['harga_fix']?.toString() ?? '0') ?? 0,
-      gambarUrl: json['gambar_url']?.toString(),
     );
   }
 }

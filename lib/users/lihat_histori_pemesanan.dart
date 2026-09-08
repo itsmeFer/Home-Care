@@ -6,94 +6,17 @@ import 'package:home_care/users/lihat_detail_histori_pemesanan.dart';
 import 'package:home_care/users/payment_method_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/features/orders/domain/order_models.dart';
+export 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
-
-class OrderHistory {
-  final int id;
-  final String kodeOrder;
-  final String statusOrder;
-  final String statusPembayaran;
-  final String? tanggalMulai;
-  final String? jamMulai;
-  final String namaLayanan;
-  final String? tipeLayanan;
-  final double totalBayar;
-  final String? metodePembayaran;
-  final int? qty;
-  final String? gambarLayanan;
-  final bool isDraft;
-  final int? draftId;
-  final bool hasRating;
-  final String? expiredAt;
-
-  OrderHistory({
-    required this.id,
-    required this.kodeOrder,
-    required this.statusOrder,
-    required this.statusPembayaran,
-    required this.namaLayanan,
-    required this.totalBayar,
-    this.tanggalMulai,
-    this.jamMulai,
-    this.tipeLayanan,
-    this.metodePembayaran,
-    this.qty,
-    this.gambarLayanan,
-    this.isDraft = false,
-    this.draftId,
-    this.hasRating = false,
-    this.expiredAt,
-  });
-
-  factory OrderHistory.fromJson(Map<String, dynamic> json) {
-    double parseTotal(dynamic v) {
-      if (v == null) return 0;
-      if (v is num) return v.toDouble();
-      return double.tryParse(v.toString()) ?? 0;
-    }
-
-    String? gambar;
-    if (json['layanan'] != null && json['layanan'] is Map) {
-      gambar = json['layanan']['gambar_url']?.toString();
-    }
-
-    final isDraft = json['is_draft'] == true;
-    final draftId =
-        json['draft_id'] != null
-            ? int.tryParse(json['draft_id'].toString())
-            : null;
-
-    bool hasRating = false;
-    if (json.containsKey('has_rating') && json['has_rating'] != null) {
-      hasRating = json['has_rating'] == true || json['has_rating'] == 1;
-    }
-
-    return OrderHistory(
-      id: json['id'] as int,
-      kodeOrder: json['kode_order']?.toString() ?? '-',
-      statusOrder: json['status_order']?.toString() ?? 'pending',
-      statusPembayaran: json['status_pembayaran']?.toString() ?? 'belum_bayar',
-      namaLayanan: json['nama_layanan']?.toString() ?? '-',
-      totalBayar: parseTotal(json['total_bayar']),
-      tanggalMulai: json['tanggal_mulai']?.toString(),
-      jamMulai: json['jam_mulai']?.toString(),
-      tipeLayanan: json['tipe_layanan']?.toString(),
-      metodePembayaran: json['metode_pembayaran']?.toString(),
-      qty: json['qty'] != null ? int.tryParse(json['qty'].toString()) : 1,
-      gambarLayanan: gambar,
-      isDraft: isDraft,
-      draftId: draftId,
-      hasRating: hasRating,
-      expiredAt: json['expired_at']?.toString(),
-    );
-  }
-}
 
 class LihatHistoriPemesananPage extends StatefulWidget {
   const LihatHistoriPemesananPage({Key? key}) : super(key: key);
@@ -636,8 +559,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     );
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await StorageService.getToken();
 
       if (token == null) {
         if (!mounted) return;
@@ -716,17 +638,9 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColors.bg,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: HCColors.primary,
-        title: const Text(
-          'Pesanan Saya',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
-        ),
+      appBar: PatientAppBar.withTabs(
+        title: 'Pesanan Saya',
+        tabController: _tabController,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Colors.white),
@@ -736,85 +650,19 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
             tooltip: 'Refresh',
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            indicatorWeight: 3,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
-            tabAlignment: TabAlignment.center,
-            tabs: [
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Belum Bayar'),
-                    if (_unpaidOrders.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HCColors.danger,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${_unpaidOrders.length}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Aktif'),
-                    if (_activeOrders.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${_activeOrders.length}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const Tab(text: 'Riwayat'),
-            ],
+        tabs: [
+          PatientTabBar.buildTab(
+            label: 'Belum Bayar',
+            count: _unpaidOrders.length,
+            countColor: HCColors.danger,
           ),
-        ),
+          PatientTabBar.buildTab(
+            label: 'Aktif',
+            count: _activeOrders.length,
+            countColor: Colors.white.withValues(alpha: 0.3),
+          ),
+          const Tab(text: 'Riwayat'),
+        ],
       ),
       body: _buildBody(),
     );
@@ -822,8 +670,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: HCColors.primary),
+      return const SingleChildScrollView(
+        child: OrderListSkeleton(),
       );
     }
 
