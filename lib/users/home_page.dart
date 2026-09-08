@@ -185,7 +185,9 @@ class TestimonialService {
       return [];
     } catch (e) {
       debugPrint('Error fetching testimonials: $e');
-      return [];
+      return [
+        
+      ];
     }
   }
 }

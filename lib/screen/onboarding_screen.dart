@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/screen/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,18 +20,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'image': 'assets/splash/ob1.webp',
       'title': 'Selamat Datang di\nPRIMA HomeCare',
-      'subtitle': 'Melayani dengan sepenuh hati di rumah Anda',
+      'subtitle':
+          'Melayani kebutuhan medis dan perawatan keluarga dengan sepenuh hati langsung di rumah Anda.',
     },
     {
       'image': 'assets/splash/ob2.webp',
-      'title': 'Perawatan\nTerbaik',
+      'title': 'Perawatan Terbaik\nUntuk Keluarga',
       'subtitle':
-          'Tenaga medis profesional dan berpengalaman siap membantu Anda',
+          'Tenaga medis profesional dan bersertifikasi siap mendampingi proses pemulihan Anda.',
     },
     {
       'image': 'assets/splash/ob3.webp',
-      'title': 'Layanan\nTerpercaya',
-      'subtitle': 'Keamanan dan kenyamanan Anda adalah prioritas utama kami',
+      'title': 'Layanan Terpercaya\n& Berkualitas',
+      'subtitle':
+          'Kenyamanan, keamanan, dan kesehatan pasien selalu menjadi prioritas utama kami.',
     },
   ];
 
@@ -40,18 +43,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _startTimer();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-cache semua gambar onboarding agar tidak ada lag/hitch saat transisi
+    for (final page in _pages) {
+      precacheImage(AssetImage(page['image']!), context);
+    }
+  }
+
   void _startTimer() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted) return;
+      if (!_pageController.hasClients) return;
+
       if (_currentPage < _pages.length - 1) {
         _pageController.nextPage(
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeInOut,
+          duration: const Duration(milliseconds: 650),
+          curve: Curves.easeInOutCubic,
         );
       } else {
-        _pageController.jumpToPage(0);
+        // Transisi halus kembali ke slide 1 tanpa patah/black screen
+        _pageController.animateToPage(
+          0,
+          duration: const Duration(milliseconds: 850),
+          curve: Curves.easeInOutCubic,
+        );
       }
     });
+  }
+
+  Future<void> _finishOnboarding() async {
+    _timer?.cancel();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_onboarding', true);
+
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
   }
 
   @override
@@ -63,170 +96,246 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-
-    final double paddingHorizontal = (size.width * 0.08).clamp(30.0, 48.0);
-    final double paddingVertical = (size.height * 0.05).clamp(32.0, 64.0);
-    final double logoSize = (size.width * 0.12).clamp(48.0, 60.0);
-    final double titleFontSize = (size.width * 0.12).clamp(40.0, 48.0);
-    final double subtitleFontSize = (size.width * 0.04).clamp(14.0, 16.0);
-    final double buttonHeight = (size.height * 0.08).clamp(60.0, 68.0);
-    final double buttonFontSize = (size.width * 0.045).clamp(16.0, 18.0);
+    final isLastPage = _currentPage == _pages.length - 1;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0F172A),
       body: Stack(
         children: [
-          PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-              _startTimer();
+          // 1. Full-screen PageView slider
+          NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollStartNotification) {
+                if (notification.dragDetails != null) {
+                  _timer?.cancel();
+                }
+              } else if (notification is ScrollEndNotification) {
+                _startTimer();
+              }
+              return false;
             },
-            itemCount: _pages.length,
-            itemBuilder: (context, index) {
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(_pages[index]['image']!, fit: BoxFit.cover),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.black.withOpacity(0.0),
-                          Colors.black.withOpacity(0.4),
-                          Colors.black.withOpacity(0.85),
-                          Colors.black.withOpacity(1.0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [0.4, 0.6, 0.8, 1.0],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+                _startTimer();
+              },
+              itemCount: _pages.length,
+              itemBuilder: (context, index) {
+                return Image.asset(
+                  _pages[index]['image']!,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  filterQuality: FilterQuality.medium,
+                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded) return child;
+                    return AnimatedOpacity(
+                      opacity: frame == null ? 0 : 1,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                      child: child,
+                    );
+                  },
+                );
+              },
+            ),
           ),
+
+          // 2. Cinematic Gradient Overlay (clear in center, dark at bottom for text contrast)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withValues(alpha: 0.40),
+                      Colors.transparent,
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.60),
+                      Colors.black.withValues(alpha: 0.92),
+                      Colors.black,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.18, 0.45, 0.70, 0.88, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Top Header (Logo + Lewati Button)
           SafeArea(
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: paddingHorizontal,
-                vertical: paddingVertical,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Image.asset(
                     'assets/images/home_nobg.png',
-                    width: logoSize,
-                    height: logoSize,
-                    color: Colors.white,
+                    height: 28,
+                    color: Colors.white.withValues(alpha: 0.85),
                   ),
-                  SizedBox(height: size.height * 0.02),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    child: Text(
-                      _pages[_currentPage]['title']!,
-                      key: ValueKey<int>(_currentPage),
-                      textAlign: TextAlign.center,
+                  TextButton(
+                    onPressed: _finishOnboarding,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white.withValues(alpha: 0.85),
+                      backgroundColor: Colors.black.withValues(alpha: 0.3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Lewati',
                       style: TextStyle(
                         fontFamily: 'Poppins',
-                        color: Colors.white,
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -1.0,
-                        height: 1.1,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: size.height * 0.015),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    child: Text(
-                      _pages[_currentPage]['subtitle']!,
-                      key: ValueKey<String>('sub_$_currentPage'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: subtitleFontSize,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.0,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: size.height * 0.03),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _pages.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                        width: _currentPage == index ? 24.0 : 8.0,
-                        height: 8.0,
-                        decoration: BoxDecoration(
-                          color:
-                              _currentPage == index
-                                  ? const Color(0xFF0F9D94)
-                                  : Colors.white.withOpacity(
-                                    0.3,
-                                  ),
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: size.height * 0.03),
-                  SizedBox(
-                    width: double.infinity,
-                    height: buttonHeight,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (_currentPage == _pages.length - 1) {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setBool('has_seen_onboarding', true);
-
-                          if (!context.mounted) return;
-
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginPage(),
-                            ),
-                          );
-                        } else {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F9D94),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(19),
-                        ),
-                      ),
-                      child: Text(
-                        _currentPage == _pages.length - 1
-                            ? 'Get Started'
-                            : 'Next',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: buttonFontSize,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+
+          // 4. Bottom Content (Left-aligned, elegant typography, matching Foto 2)
+          SafeArea(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title: Left-aligned, refined size (24px)
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      child: Text(
+                        _pages[_currentPage]['title']!,
+                        key: ValueKey<int>(_currentPage),
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
+                          height: 1.25,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Subtitle & Action Button in an elegant Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Left: Subtitle description + Dots Indicator
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 350),
+                                child: Text(
+                                  _pages[_currentPage]['subtitle']!,
+                                  key: ValueKey<String>('sub_$_currentPage'),
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.white.withValues(alpha: 0.75),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w400,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              // Page Indicators
+                              Row(
+                                children: List.generate(
+                                  _pages.length,
+                                  (index) => AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    margin: const EdgeInsets.only(right: 6.0),
+                                    width: _currentPage == index ? 22.0 : 6.0,
+                                    height: 6.0,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          _currentPage == index
+                                              ? AppColors.primary
+                                              : Colors.white.withValues(
+                                                alpha: 0.35,
+                                              ),
+                                      borderRadius: BorderRadius.circular(3.0),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        // Right: Compact Rounded Pill Action Button
+                        ElevatedButton(
+                          onPressed: () {
+                            if (isLastPage) {
+                              _finishOnboarding();
+                            } else {
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 22,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                isLastPage ? 'Mulai' : 'Lanjut',
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
