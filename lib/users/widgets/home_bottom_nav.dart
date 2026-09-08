@@ -1,7 +1,9 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/chat/pasien_chat_list_page.dart';
 import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:home_care/users/layanan_page.dart';
 import 'package:home_care/users/lihat_histori_pemesanan.dart';
@@ -16,8 +18,8 @@ class HCBottomNav extends StatefulWidget {
 }
 
 class _HCBottomNavState extends State<HCBottomNav> {
-  static const Color activeColor = Color(0xFF0BA5A7);
-  static const Color inactiveColor = Colors.black54;
+  static const Color activeColor = AppColors.primary;
+  static const Color inactiveColor = Color(0xFF94A3B8);
 
   int _chatUnreadCount = 0;
   Timer? _badgeTimer;
@@ -126,40 +128,48 @@ class _HCBottomNavState extends State<HCBottomNav> {
               clipBehavior: Clip.none,
               children: [
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeInOut,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
+                    horizontal: 14,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
                     color:
-                        isActive ? const Color(0x150BA5A7) : Colors.transparent,
+                        isActive
+                            ? activeColor.withValues(alpha: 0.12)
+                            : Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
+                    duration: const Duration(milliseconds: 220),
                     transitionBuilder: (
                       Widget child,
                       Animation<double> animation,
                     ) {
-                      return ScaleTransition(scale: animation, child: child);
+                      return ScaleTransition(
+                        scale: Tween<double>(
+                          begin: 0.85,
+                          end: 1.0,
+                        ).animate(animation),
+                        child: child,
+                      );
                     },
                     child: Icon(
                       isActive ? activeIcon : icon,
                       key: ValueKey<bool>(isActive),
-                      color:
-                          isActive ? const Color(0xFF0BA5A7) : Colors.grey[400],
-                      size: isActive ? 26 : 24,
+                      color: isActive ? activeColor : inactiveColor,
+                      size: 24,
                     ),
                   ),
                 ),
                 if (badgeCount > 0)
                   Positioned(
-                    right: 6,
-                    top: 2,
+                    right: 4,
+                    top: 0,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
+                        horizontal: 5,
                         vertical: 2,
                       ),
                       constraints: const BoxConstraints(
@@ -167,17 +177,25 @@ class _HCBottomNavState extends State<HCBottomNav> {
                         minHeight: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent,
+                        color: const Color(0xFFFF4757),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF4757).withValues(alpha: 0.35),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Text(
                         badgeCount > 99 ? '99+' : '$badgeCount',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
+                          fontFamily: 'Poppins',
                           color: Colors.white,
                           fontSize: 9,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           height: 1.0,
                         ),
                       ),
@@ -185,13 +203,15 @@ class _HCBottomNavState extends State<HCBottomNav> {
                   ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                color: isActive ? const Color(0xFF0BA5A7) : Colors.grey[500],
-                fontSize: isActive ? 11 : 10,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                fontFamily: 'Poppins',
+                color: isActive ? activeColor : inactiveColor,
+                fontSize: isActive ? 11 : 10.5,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                letterSpacing: -0.1,
               ),
               child: Text(label),
             ),
@@ -208,53 +228,59 @@ class _HCBottomNavState extends State<HCBottomNav> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
+        border: const Border(
+          top: BorderSide(
+            color: Color(0xFFF1F5F9),
+            width: 1.0,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, -5),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
       child: SizedBox(
-        height: 72,
+        height: 68,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildNavItem(
               0,
-              Icons.home_outlined,
-              Icons.home,
+              IconlyLight.home,
+              IconlyBold.home,
               'Beranda',
               currentIndex == 0,
             ),
             _buildNavItem(
               1,
-              Icons.medical_services_outlined,
-              Icons.medical_services,
+              IconlyLight.category,
+              IconlyBold.category,
               'Layanan',
               currentIndex == 1,
             ),
             _buildNavItem(
               2,
-              Icons.chat_bubble_outline,
-              Icons.chat_bubble_rounded,
+              IconlyLight.chat,
+              IconlyBold.chat,
               'Chat',
               currentIndex == 2,
               badgeCount: _chatUnreadCount,
             ),
             _buildNavItem(
               3,
-              Icons.history_outlined,
-              Icons.history,
+              IconlyLight.document,
+              IconlyBold.document,
               'Riwayat',
               currentIndex == 3,
             ),
             _buildNavItem(
               4,
-              Icons.person_outline,
-              Icons.person,
+              IconlyLight.profile,
+              IconlyBold.profile,
               'Profil',
               currentIndex == 4,
             ),

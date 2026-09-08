@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/orders/domain/order_models.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 /// Kartu status ringkas untuk bagian atas detail order.
 class OrderStatusHeaderCard extends StatelessWidget {
@@ -42,10 +43,10 @@ class OrderStatusHeaderCard extends StatelessWidget {
             ),
             child: Icon(
               status == 'selesai'
-                  ? Icons.check_circle_rounded
+                  ? IconlyBold.shieldDone
                   : status == 'dibatalkan'
-                      ? Icons.cancel_rounded
-                      : Icons.hourglass_empty_rounded,
+                      ? IconlyBold.danger
+                      : IconlyLight.timeCircle,
               color: statusColor,
               size: 28,
             ),
@@ -117,7 +118,7 @@ class OrderTimelineTracker extends StatelessWidget {
           const Row(
             children: [
               Icon(
-                Icons.timeline_rounded,
+                IconlyLight.activity,
                 color: HCColors.primary,
                 size: 20,
               ),

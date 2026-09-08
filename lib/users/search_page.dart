@@ -3,15 +3,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/users/layanan_page.dart';
-import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -103,8 +103,6 @@ class _SearchPageState extends State<SearchPage> {
                 data.map((e) => LayananSearchResult.fromJson(e)).toList();
             _isLoading = false;
           });
-
-          await _loadSearchHistory();
         } else {
           setState(() {
             _searchResults = [];
@@ -126,10 +124,12 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  Future<void> _loadSearchHistory() async {
-    setState(() {
-      _isLoadingHistory = true;
-    });
+  Future<void> _loadSearchHistory({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _isLoadingHistory = true;
+      });
+    }
 
     try {
       final token = await _getToken();
@@ -158,7 +158,7 @@ class _SearchPageState extends State<SearchPage> {
 
           setState(() {
             _searchHistory =
-                data.map((e) => SearchHistoryItem.fromJson(e)).toList();
+                data.map((e) => SearchHistoryItem.fromJson(e)).take(5).toList();
             _isLoadingHistory = false;
           });
         } else {
@@ -179,6 +179,30 @@ class _SearchPageState extends State<SearchPage> {
         _searchHistory = [];
         _isLoadingHistory = false;
       });
+    }
+  }
+
+  Future<void> _saveSearchHistory(String keyword) async {
+    final clean = keyword.trim();
+    if (clean.length < 2) return;
+
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) return;
+
+      http.post(
+        Uri.parse('$baseUrl/pasien/search-history'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'keyword': clean}),
+      ).then((res) {
+        _loadSearchHistory(silent: true);
+      }).catchError((_) {});
+    } catch (e) {
+      debugPrint('Error saving search history: $e');
     }
   }
 
@@ -312,6 +336,7 @@ class _SearchPageState extends State<SearchPage> {
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: keyword.length),
     );
+    _saveSearchHistory(keyword);
     _performSearch(keyword);
   }
 
@@ -328,7 +353,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: const PatientAppBar(
         title: 'Cari Layanan',
       ),
@@ -344,18 +369,28 @@ class _SearchPageState extends State<SearchPage> {
               ),
               child: TextField(
                 controller: _searchController,
+                focusNode: _searchFocus,
                 autofocus: true,
+                textInputAction: TextInputAction.search,
                 onChanged: _onSearchChanged,
+                onSubmitted: (value) {
+                  final kw = value.trim();
+                  if (kw.isNotEmpty) {
+                    _debounce?.cancel();
+                    _saveSearchHistory(kw);
+                    _performSearch(kw);
+                  }
+                },
                 decoration: InputDecoration(
                   hintText: 'Cari layanan kesehatan...',
                   prefixIcon: const Icon(
-                    Icons.search,
+                    IconlyLight.search,
                     color: Color(0xFF0BA5A7),
                   ),
                   suffixIcon:
                       _searchController.text.isNotEmpty
                           ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(IconlyLight.closeSquare),
                             onPressed: _clearSearch,
                           )
                           : null,
@@ -400,7 +435,7 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search, size: 80, color: Colors.grey.shade300),
+            Icon(IconlyLight.search, size: 72, color: Colors.grey.shade300),
             const SizedBox(height: 16),
             Text(
               'Cari layanan kesehatan',
@@ -448,7 +483,7 @@ class _SearchPageState extends State<SearchPage> {
             ],
           ),
           const SizedBox(height: 8),
-          ..._searchHistory.map(
+          ..._searchHistory.take(5).map(
             (item) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: _SearchHistoryTile(
@@ -486,7 +521,7 @@ class _SearchPageState extends State<SearchPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 80, color: Colors.grey.shade300),
+          Icon(IconlyLight.search, size: 72, color: Colors.grey.shade300),
           const SizedBox(height: 16),
           Text(
             'Tidak ada hasil',
@@ -516,13 +551,17 @@ class _SearchPageState extends State<SearchPage> {
         return _LayananSearchCard(
           layanan: item,
           onTap: () async {
+            final query = _searchController.text.trim();
+            if (query.length >= 2) {
+              _saveSearchHistory(query);
+            }
+            final nav = Navigator.of(context);
             await _saveRecentViewedLayanan(item.id);
             await _loadRecentViewedLayanan();
 
             if (!mounted) return;
 
-            Navigator.push(
-              context,
+            nav.push(
               MaterialPageRoute(
                 builder: (_) => PilihLayananPage(kategori: item.kategori),
               ),
@@ -621,7 +660,7 @@ class _SearchHistoryTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
             children: [
-              Icon(Icons.history, color: Colors.grey.shade600, size: 20),
+              Icon(IconlyLight.timeCircle, color: Colors.grey.shade600, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -636,7 +675,7 @@ class _SearchHistoryTile extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, size: 18),
+                icon: const Icon(IconlyLight.closeSquare, size: 18),
                 color: Colors.grey,
                 onPressed: onDelete,
               ),
@@ -704,7 +743,7 @@ class _RecentViewedLayananTile extends StatelessWidget {
                                 height: 60,
                                 color: Colors.grey.shade200,
                                 child: const Icon(
-                                  Icons.medical_services,
+                                  IconlyLight.activity,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -714,7 +753,7 @@ class _RecentViewedLayananTile extends StatelessWidget {
                           height: 60,
                           color: Colors.grey.shade200,
                           child: const Icon(
-                            Icons.medical_services,
+                            IconlyLight.activity,
                             color: Colors.grey,
                           ),
                         ),
@@ -756,7 +795,7 @@ class _RecentViewedLayananTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+              const Icon(IconlyLight.arrowRight2, size: 18, color: Colors.grey),
             ],
           ),
         ),
@@ -798,7 +837,7 @@ class _LayananSearchCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 4,
             offset: const Offset(0, 2),
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
           ),
         ],
       ),
@@ -836,7 +875,7 @@ class _LayananSearchCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0BA5A7).withOpacity(0.1),
+                          color: const Color(0xFF0BA5A7).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -866,7 +905,7 @@ class _LayananSearchCard extends StatelessWidget {
                         layanan.deskripsi!,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -884,7 +923,7 @@ class _LayananSearchCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+              const Icon(IconlyLight.arrowRight2, size: 18, color: Colors.grey),
             ],
           ),
         ),
@@ -897,7 +936,7 @@ class _LayananSearchCard extends StatelessWidget {
       width: 80,
       height: 80,
       color: Colors.grey.shade200,
-      child: const Icon(Icons.medical_services, color: Colors.grey, size: 32),
+      child: const Icon(IconlyLight.activity, color: Colors.grey, size: 30),
     );
   }
 }

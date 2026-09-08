@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -125,7 +126,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         IconButton(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(
-                            Icons.arrow_back,
+                            IconlyLight.arrowLeft2,
                             color: Colors.white,
                             size: 28,
                           ),
@@ -164,8 +165,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               child: Center(
                                 child: Icon(
                                   _emailSent
-                                      ? Icons.mark_email_read
-                                      : Icons.lock_reset,
+                                      ? IconlyBold.message
+                                      : IconlyBold.lock,
                                   size: 50,
                                   color: const Color(0xFF1E3A8A),
                                 ),
@@ -228,7 +229,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       fontSize: 16,
                                     ),
                                     prefixIcon: const Icon(
-                                      Icons.email_outlined,
+                                      IconlyLight.message,
                                       color: Color(0xFF1E3A8A),
                                       size: 24,
                                     ),
@@ -344,7 +345,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       child: Row(
                                         children: const [
                                           Icon(
-                                            Icons.timer,
+                                            IconlyLight.timeCircle,
                                             color: Colors.amber,
                                             size: 20,
                                           ),
@@ -386,8 +387,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   onPressed: canSend ? _sendResetLink : null,
                                   icon: Icon(
                                     _cooldownSeconds > 0
-                                        ? Icons.timer
-                                        : Icons.refresh,
+                                        ? IconlyLight.timeCircle
+                                        : IconlyLight.send,
                                     size: 24,
                                   ),
                                   label: Text(

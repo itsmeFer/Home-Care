@@ -10,6 +10,7 @@ import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -189,7 +190,7 @@ class _LihatDetailDraftPemesananPageState
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.error_outline_rounded,
+              IconlyLight.dangerCircle,
               size: 64,
               color: HCColors.danger.withOpacity(0.5),
             ),
@@ -202,7 +203,7 @@ class _LihatDetailDraftPemesananPageState
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _fetchDraftDetail,
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(IconlyLight.swap),
               label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: HCColors.primary,
@@ -257,7 +258,7 @@ class _LihatDetailDraftPemesananPageState
                   ),
                   child: IconButton(
                     icon: const Icon(
-                      Icons.arrow_back_rounded,
+                      IconlyLight.arrowLeft2,
                       color: Colors.white,
                       size: 24,
                     ),
@@ -293,7 +294,7 @@ class _LihatDetailDraftPemesananPageState
                                 ),
                                 child: const Center(
                                   child: Icon(
-                                    Icons.medical_services_rounded,
+                                    IconlyLight.activity,
                                     size: 64,
                                     color: Colors.white54,
                                   ),
@@ -311,7 +312,7 @@ class _LihatDetailDraftPemesananPageState
                           ),
                           child: const Center(
                             child: Icon(
-                              Icons.medical_services_rounded,
+                              IconlyLight.activity,
                               size: 64,
                               color: Colors.white54,
                             ),
@@ -418,7 +419,7 @@ class _LihatDetailDraftPemesananPageState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.payment, color: Colors.white, size: 20),
+                const Icon(IconlyLight.wallet, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Bayar Sekarang - ${_formatRupiah(totalBayar)}',
@@ -459,7 +460,7 @@ class _LihatDetailDraftPemesananPageState
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.hourglass_empty_rounded,
+              IconlyLight.timeCircle,
               color: HCColors.warning,
               size: 28,
             ),
@@ -510,7 +511,7 @@ class _LihatDetailDraftPemesananPageState
           const Row(
             children: [
               Icon(
-                Icons.medical_services_rounded,
+                IconlyLight.activity,
                 color: HCColors.primary,
                 size: 20,
               ),
@@ -541,19 +542,19 @@ class _LihatDetailDraftPemesananPageState
             children: [
               _buildInfoChip(
                 'Tipe: ${_draft!['tipe_layanan'] ?? '-'}',
-                Icons.inventory_2_rounded,
+                IconlyLight.bag2,
               ),
               _buildInfoChip(
                 'Durasi: ${_draft!['durasi_menit'] ?? '-'} menit',
-                Icons.timer_rounded,
+                IconlyLight.timeCircle,
               ),
               _buildInfoChip(
                 'Qty: ${_draft!['qty'] ?? 1}',
-                Icons.shopping_cart_rounded,
+                IconlyLight.buy,
               ),
               _buildInfoChip(
                 'Visit: ${_draft!['jumlah_visit'] ?? '-'}x',
-                Icons.repeat_rounded,
+                IconlyLight.swap,
               ),
             ],
           ),
@@ -587,7 +588,7 @@ class _LihatDetailDraftPemesananPageState
         children: [
           const Row(
             children: [
-              Icon(Icons.add_box_rounded, color: HCColors.primary, size: 20),
+              Icon(IconlyLight.plus, color: HCColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 'Add-ons',
@@ -746,7 +747,7 @@ class _LihatDetailDraftPemesananPageState
         children: [
           const Row(
             children: [
-              Icon(Icons.schedule_rounded, color: HCColors.primary, size: 20),
+              Icon(IconlyLight.calendar, color: HCColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 'Jadwal & Lokasi',
@@ -760,19 +761,19 @@ class _LihatDetailDraftPemesananPageState
           ),
           const SizedBox(height: 16),
           _buildDetailRow(
-            Icons.today_outlined,
+            IconlyLight.calendar,
             'Tanggal',
             _formatTanggal(_draft!['tanggal_mulai']?.toString()),
           ),
           const SizedBox(height: 12),
           _buildDetailRow(
-            Icons.access_time_rounded,
+            IconlyLight.timeCircle,
             'Jam',
             _formatJam(_draft!['jam_mulai']?.toString()),
           ),
           const Divider(height: 24),
           _buildDetailRow(
-            Icons.location_on_rounded,
+            IconlyLight.location,
             'Alamat',
             _draft!['alamat_lengkap']?.toString() ?? '-',
           ),
@@ -808,7 +809,7 @@ class _LihatDetailDraftPemesananPageState
         children: [
           const Row(
             children: [
-              Icon(Icons.note_rounded, color: HCColors.primary, size: 20),
+              Icon(IconlyLight.document, color: HCColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 'Catatan Pasien',
@@ -853,7 +854,7 @@ class _LihatDetailDraftPemesananPageState
         children: [
           const Row(
             children: [
-              Icon(Icons.payments_rounded, color: HCColors.primary, size: 20),
+              Icon(IconlyLight.wallet, color: HCColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 'Rincian Pembayaran',

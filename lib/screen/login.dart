@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +16,7 @@ import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/screen/register.dart';
 import 'package:home_care/services/firebase_notification_service.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -201,7 +202,6 @@ class _LoginPageState extends State<LoginPage> {
                 child: IntrinsicHeight(
                   child: Column(
                     children: [
-
                       Expanded(
                         child: Center(
                           child: Padding(
@@ -380,9 +380,8 @@ class _LoginPageState extends State<LoginPage> {
                                           child: IconButton(
                                             icon: Icon(
                                               _obscure
-                                                  ? Icons
-                                                      .visibility_off_outlined
-                                                  : Icons.visibility_outlined,
+                                                  ? IconlyLight.hide
+                                                  : IconlyLight.show,
                                               color: Colors.grey[600],
                                               size: 22,
                                             ),

@@ -42,18 +42,7 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
         }
 
         if (snapshot.hasError) {
-          return Container(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-            padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
-            child: const Text(
-              'Kategori layanan belum bisa ditampilkan saat ini',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.redAccent,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          );
+          return const SizedBox.shrink();
         }
 
         final categories = snapshot.data ?? [];
@@ -64,7 +53,7 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
         final displayedCategories = categories.take(8).toList();
 
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
           padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -36,7 +36,7 @@ const kCard = Colors.white;
     const kBorder = Color(0xFFE2E8F0);
     const kText = Color(0xFF0F172A);
     const kMuted = Color(0xFF64748B);
-    const kBg = Color(0xFFF8FAFC);
+    const kBg = Color(0xFFFFFFFF);
 
     const kInfo = Color(0xFF0284C7);
     const kDanger = Color(0xFFDC2626);

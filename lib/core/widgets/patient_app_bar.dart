@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 
 /// Komponen AppBar & TabBar konsisten untuk seluruh halaman Pasien (User)
@@ -88,7 +89,7 @@ class PatientAppBar extends StatelessWidget implements PreferredSizeWidget {
             borderRadius: BorderRadius.circular(20),
             onTap: onBackPressed ?? () => Navigator.maybePop(context),
             child: const Icon(
-              Icons.arrow_back_rounded,
+              IconlyLight.arrowLeft2,
               color: Colors.white,
               size: 20,
             ),

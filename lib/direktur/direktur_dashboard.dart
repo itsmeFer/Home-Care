@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -22,7 +23,7 @@ class DirekturDashboard extends StatefulWidget {
 
 class _DirekturDashboardState extends State<DirekturDashboard> {
 
-  static const Color kBg = Color(0xFFF8FAFC);
+  static const Color kBg = Color(0xFFFFFFFF);
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
   static const Color kText = Color(0xFF0F172A);
@@ -522,37 +523,43 @@ class _Sidebar extends StatelessWidget {
           const Divider(height: 1, color: kBorder),
           const SizedBox(height: 10),
           _NavItem(
-            icon: Icons.dashboard_outlined,
+            icon: IconlyLight.category,
+            activeIcon: IconlyBold.category,
             label: 'Overview',
             selected: selectedIndex == 0,
             onTap: () => onSelect(0),
           ),
           _NavItem(
-            icon: Icons.account_balance_outlined,
+            icon: IconlyLight.wallet,
+            activeIcon: IconlyBold.wallet,
             label: 'Keuangan',
             selected: selectedIndex == 1,
             onTap: () => onSelect(1),
           ),
           _NavItem(
-            icon: Icons.groups_outlined,
+            icon: IconlyLight.user3,
+            activeIcon: IconlyBold.user3,
             label: 'Kinerja Tim',
             selected: selectedIndex == 2,
             onTap: () => onSelect(2),
           ),
           _NavItem(
-            icon: Icons.people_alt_outlined,
+            icon: IconlyLight.heart,
+            activeIcon: IconlyBold.heart,
             label: 'Pasien & Insight',
             selected: selectedIndex == 3,
             onTap: () => onSelect(3),
           ),
           _NavItem(
-            icon: Icons.security_outlined,
+            icon: IconlyLight.shieldDone,
+            activeIcon: IconlyBold.shieldDone,
             label: 'Audit & Control',
             selected: selectedIndex == 4,
             onTap: () => onSelect(4),
           ),
           _NavItem(
-            icon: Icons.support_agent_outlined,
+            icon: IconlyLight.ticket,
+            activeIcon: IconlyBold.ticket,
             label: 'Hubungi IT',
             selected: false,
             onTap:
@@ -576,9 +583,9 @@ class _Sidebar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                   color: const Color(0xFFFEF2F2),
                 ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.logout_rounded, color: kDanger),
+                child: const Row(
+                  children: [
+                    Icon(IconlyLight.logout, color: kDanger),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -590,7 +597,7 @@ class _Sidebar extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Icon(Icons.chevron_right_rounded, color: Color(0xFFEF4444)),
+                    Icon(IconlyLight.arrowRight2, color: Color(0xFFEF4444), size: 18),
                   ],
                 ),
               ),
@@ -658,12 +665,14 @@ class _BrandHeader extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   final IconData icon;
+  final IconData? activeIcon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
   const _NavItem({
     required this.icon,
+    this.activeIcon,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -691,7 +700,7 @@ class _NavItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: selected ? kPrimary : kMuted),
+              Icon(selected ? (activeIcon ?? icon) : icon, color: selected ? kPrimary : kMuted, size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -757,23 +766,28 @@ class _BottomNav extends StatelessWidget {
         unselectedFontSize: 10,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined, size: 22),
+            icon: Icon(IconlyLight.category, size: 22),
+            activeIcon: Icon(IconlyBold.category, size: 22),
             label: 'Overview',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_outlined, size: 22),
+            icon: Icon(IconlyLight.wallet, size: 22),
+            activeIcon: Icon(IconlyBold.wallet, size: 22),
             label: 'Keuangan',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.groups_outlined, size: 22),
+            icon: Icon(IconlyLight.user3, size: 22),
+            activeIcon: Icon(IconlyBold.user3, size: 22),
             label: 'Tim',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_outlined, size: 22),
+            icon: Icon(IconlyLight.heart, size: 22),
+            activeIcon: Icon(IconlyBold.heart, size: 22),
             label: 'Pasien',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.security_outlined, size: 22),
+            icon: Icon(IconlyLight.shieldDone, size: 22),
+            activeIcon: Icon(IconlyBold.shieldDone, size: 22),
             label: 'Audit',
           ),
         ],
@@ -835,24 +849,27 @@ class _MobileMenu extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _menuItem(context, 0, Icons.dashboard_outlined, 'Overview'),
+                _menuItem(context, 0, IconlyLight.category, IconlyBold.category, 'Overview'),
                 _menuItem(
                   context,
                   1,
-                  Icons.account_balance_outlined,
+                  IconlyLight.wallet,
+                  IconlyBold.wallet,
                   'Keuangan',
                 ),
-                _menuItem(context, 2, Icons.groups_outlined, 'Kinerja Tim'),
+                _menuItem(context, 2, IconlyLight.user3, IconlyBold.user3, 'Kinerja Tim'),
                 _menuItem(
                   context,
                   3,
-                  Icons.people_alt_outlined,
+                  IconlyLight.heart,
+                  IconlyBold.heart,
                   'Pasien & Insight',
                 ),
                 _menuItem(
                   context,
                   4,
-                  Icons.security_outlined,
+                  IconlyLight.shieldDone,
+                  IconlyBold.shieldDone,
                   'Audit & Control',
                 ),
                 const SizedBox(height: 8),
@@ -872,9 +889,9 @@ class _MobileMenu extends StatelessWidget {
                       border: Border.all(color: const Color(0xFFFECACA)),
                       color: const Color(0xFFFEF2F2),
                     ),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.logout_rounded, color: kDanger),
+                    child: const Row(
+                      children: [
+                        Icon(IconlyLight.logout, color: kDanger),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -886,8 +903,9 @@ class _MobileMenu extends StatelessWidget {
                           ),
                         ),
                         Icon(
-                          Icons.chevron_right_rounded,
+                          IconlyLight.arrowRight2,
                           color: Color(0xFFEF4444),
+                          size: 18,
                         ),
                       ],
                     ),
@@ -901,7 +919,7 @@ class _MobileMenu extends StatelessWidget {
     );
   }
 
-  Widget _menuItem(BuildContext context, int i, IconData icon, String label) {
+  Widget _menuItem(BuildContext context, int i, IconData icon, IconData activeIcon, String label) {
     final bool selected = selectedIndex == i;
     return InkWell(
       onTap: () => onSelect(i),
@@ -919,9 +937,10 @@ class _MobileMenu extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              icon,
+              selected ? activeIcon : icon,
               color:
                   selected ? const Color(0xFF0EA5E9) : const Color(0xFF64748B),
+              size: 20,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -936,7 +955,7 @@ class _MobileMenu extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+            const Icon(IconlyLight.arrowRight2, color: Color(0xFF94A3B8), size: 18),
           ],
         ),
       ),

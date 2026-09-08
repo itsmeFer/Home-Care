@@ -1,23 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:home_care/users/layanan_page.dart';
-import 'package:home_care/users/notifikasi_page.dart';
-import 'package:home_care/users/profile.dart';
-import 'package:home_care/users/search_page.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
 class SquareBannerSection extends StatefulWidget {
-  const SquareBannerSection();
+  const SquareBannerSection({super.key});
 
   @override
   State<SquareBannerSection> createState() => _SquareBannerSectionState();
@@ -63,46 +54,62 @@ class _SquareBannerSectionState extends State<SquareBannerSection> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Pilihan favorit untuk Anda',
-                              style: TextStyle(
-                                fontSize: screenWidth > 600 ? 22 : 20,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Layanan yang paling sering dipilih untuk perawatan yang nyaman dan terpercaya.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.black.withOpacity(0.6),
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          'Pilihan favorit untuk Anda',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: screenWidth > 600
+                                ? 20
+                                : (screenWidth < 360 ? 15.5 : 17.0),
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                            letterSpacing: -0.3,
+                          ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const PilihLayananPage(),
+                      const SizedBox(width: 8),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PilihLayananPage(),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
                             ),
-                          );
-                        },
-                        child: const Text(
-                          'Lihat semua',
-                          style: TextStyle(
-                            color: Color(0xFF0BA5A7),
-                            fontWeight: FontWeight.w600,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Lihat semua',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: const Color(0xFF0BA5A7),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: screenWidth < 360 ? 11.8 : 12.8,
+                                  ),
+                                ),
+                                const SizedBox(width: 3),
+                                const Icon(
+                                  IconlyLight.arrowRight2,
+                                  size: 13,
+                                  color: Color(0xFF0BA5A7),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -357,7 +364,7 @@ class _SquareBannerCard extends StatelessWidget {
     return Container(
       color: Colors.grey.shade200,
       alignment: Alignment.center,
-      child: const Icon(Icons.image_outlined, size: 34, color: Colors.grey),
+      child: const Icon(IconlyLight.image, size: 34, color: Colors.grey),
     );
   }
 }
@@ -372,23 +379,17 @@ class _SquareBannerLoading extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Pilihan favorit untuk Anda',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Layanan yang paling sering dipilih untuk perawatan yang nyaman dan terpercaya.',
-                style: TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-            ],
+          child: Text(
+            'Pilihan favorit untuk Anda',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A),
+              letterSpacing: -0.3,
+            ),
           ),
         ),
         const SizedBox(height: 16),

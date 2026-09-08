@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class ProfileWilayahDropdowns extends StatelessWidget {
   final List<dynamic> provinsiList;
@@ -161,7 +162,7 @@ class ProfileWilayahDropdowns extends StatelessWidget {
       readOnly: true,
       decoration: inputDecoration(
         label: 'Kode Pos',
-        suffixIcon: const Icon(Icons.markunread_mailbox_outlined, size: 20),
+        suffixIcon: const Icon(IconlyLight.location, size: 20),
       ),
     );
   }

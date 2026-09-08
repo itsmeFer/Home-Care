@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 /// Dialog konfirmasi pembatalan pesanan oleh pasien.
 class OrderCancelDialog extends StatefulWidget {
@@ -74,7 +75,7 @@ class _OrderCancelDialogState extends State<OrderCancelDialog> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.warning_amber_rounded,
+                  IconlyBold.danger,
                   color: HCColors.danger,
                   size: 30,
                 ),

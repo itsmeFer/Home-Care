@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 
 class BookingStepIndicator extends StatelessWidget {
@@ -9,73 +10,102 @@ class BookingStepIndicator extends StatelessWidget {
   const BookingStepIndicator({
     super.key,
     required this.currentStep,
-    this.steps = const ['Jadwal', 'Lokasi', 'Detail', 'Add-ons', 'Ringkasan'],
+    this.steps = const ['Jadwal', 'Lokasi', 'Pasien', 'Add-ons', 'Review'],
     this.horizontalPadding = 16,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 0),
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEF2F6)),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: List.generate(steps.length, (index) {
-            final isActive = index == currentStep;
-            final isDone = index < currentStep;
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(steps.length, (index) {
+          final isActive = index == currentStep;
+          final isDone = index < currentStep;
 
-            return Padding(
-              padding: EdgeInsets.only(
-                right: index == steps.length - 1 ? 0 : 14,
-              ),
-              child: Column(
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    width: isActive ? 34 : 28,
+                    height: isActive ? 34 : 28,
                     decoration: BoxDecoration(
                       color: isDone
                           ? HCColor.primary
-                          : (isActive ? HCColor.lightTeal : Colors.grey[200]),
+                          : (isActive ? HCColor.primary : Colors.white),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isActive ? HCColor.primary : Colors.transparent,
+                        color: isDone || isActive
+                            ? HCColor.primary
+                            : Colors.grey.shade300,
                         width: 2,
                       ),
+                      boxShadow: isActive
+                          ? [
+                              BoxShadow(
+                                color: HCColor.primary.withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : null,
                     ),
                     child: Center(
                       child: isDone
-                          ? const Icon(Icons.check, color: Colors.white, size: 18)
+                          ? const Icon(
+                              IconlyBold.tickSquare,
+                              color: Colors.white,
+                              size: 14,
+                            )
                           : Text(
                               '${index + 1}',
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: isActive ? HCColor.primary : Colors.grey,
+                                fontSize: isActive ? 13 : 11,
+                                fontWeight: FontWeight.w800,
+                                color: isActive ? Colors.white : Colors.grey.shade500,
                               ),
                             ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     steps[index],
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                      color: isActive ? HCColor.primary : Colors.grey,
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                      color: isActive
+                          ? HCColor.primary
+                          : (isDone ? Colors.black87 : Colors.grey.shade400),
                     ),
                   ),
                 ],
               ),
-            );
-          }),
-        ),
+              if (index < steps.length - 1)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: Container(
+                    width: 14,
+                    height: 2,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    color: index < currentStep
+                        ? HCColor.primary
+                        : Colors.grey.shade300,
+                  ),
+                ),
+            ],
+          );
+        }),
       ),
     );
   }

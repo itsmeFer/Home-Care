@@ -78,15 +78,17 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Poppins',
-        scaffoldBackgroundColor: AppColors.background,
+        scaffoldBackgroundColor: Colors.white,
+        canvasColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           primary: AppColors.primary,
           secondary: AppColors.primaryDark,
-          surface: AppColors.card,
+          surface: Colors.white,
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
           foregroundColor: AppColors.textPrimary,
           elevation: 0,
           centerTitle: true,
@@ -110,11 +112,20 @@ class MyApp extends StatelessWidget {
         ),
         cardTheme: CardThemeData(
           color: AppColors.card,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: const BorderSide(color: AppColors.border),
           ),
+        ),
+        dialogTheme: const DialogThemeData(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
         ),
       ),
       home: const SplashScreen(),

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 
 /// Reusable optimized image widget that combines disk caching,
@@ -111,7 +112,7 @@ class AppCachedImage extends StatelessWidget {
       color: backgroundColor ?? const Color(0xFFF2F4F7),
       alignment: Alignment.center,
       child: const Icon(
-        Icons.image_not_supported_outlined,
+        IconlyLight.image,
         color: Colors.black26,
         size: 28,
       ),
@@ -132,7 +133,7 @@ class AppCircleAvatar extends StatelessWidget {
     super.key,
     required this.imageUrl,
     this.radius = 24.0,
-    this.fallbackIcon = Icons.person,
+    this.fallbackIcon = IconlyLight.profile,
     this.backgroundColor,
     this.foregroundColor,
     this.onTap,

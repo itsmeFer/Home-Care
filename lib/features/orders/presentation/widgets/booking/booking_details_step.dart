@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class BookingDetailsStep extends StatelessWidget {
   final TextEditingController catatanController;
@@ -52,75 +53,96 @@ class BookingDetailsStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Quantity',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            'Jumlah Pasien / Sesi',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              IconButton(
-                onPressed: qty > 1 ? onDecrementQty : null,
-                icon: const Icon(Icons.remove_circle_outline),
-                color: HCColor.primary,
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: HCColor.lightTeal,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '$qty',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: HCColor.primary,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: onIncrementQty,
-                icon: const Icon(Icons.add_circle_outline),
-                color: HCColor.primary,
-              ),
-            ],
-          ),
+          _buildStepper(),
         ],
       );
     }
 
     return Row(
       children: [
-        const Text(
-          'Quantity',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Jumlah Pasien / Sesi',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'Kelipatan tindakan per sesi',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ],
         ),
         const Spacer(),
-        IconButton(
-          onPressed: qty > 1 ? onDecrementQty : null,
-          icon: const Icon(Icons.remove_circle_outline),
-          color: HCColor.primary,
+        _buildStepper(),
+      ],
+    );
+  }
+
+  Widget _buildStepper() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          onTap: qty > 1 ? onDecrementQty : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: qty > 1
+                    ? HCColor.primary.withValues(alpha: 0.5)
+                    : Colors.grey.shade300,
+              ),
+              color: Colors.white,
+            ),
+            child: Center(
+              child: Icon(
+                Icons.remove,
+                size: 16,
+                color: qty > 1 ? HCColor.primary : Colors.grey.shade400,
+              ),
+            ),
+          ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: HCColor.lightTeal,
-            borderRadius: BorderRadius.circular(8),
-          ),
+          constraints: const BoxConstraints(minWidth: 44),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             '$qty',
             style: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: HCColor.primary,
+              fontWeight: FontWeight.w800,
+              color: Colors.black87,
             ),
           ),
         ),
-        IconButton(
-          onPressed: onIncrementQty,
-          icon: const Icon(Icons.add_circle_outline),
-          color: HCColor.primary,
+        InkWell(
+          onTap: onIncrementQty,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: HCColor.primary,
+            ),
+            child: const Center(
+              child: Icon(
+                IconlyLight.plus,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -180,7 +202,7 @@ class BookingDetailsStep extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, size: 16, color: Colors.blue[700]),
+                Icon(IconlyLight.infoSquare, size: 16, color: Colors.blue[700]),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -220,7 +242,7 @@ class BookingDetailsStep extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.add_a_photo,
+                            IconlyLight.camera,
                             size: 50,
                             color: HCColor.primary.withValues(alpha: 0.7),
                           ),
@@ -276,7 +298,7 @@ class BookingDetailsStep extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.check_circle,
+                                    IconlyBold.shieldDone,
                                     color: Colors.white,
                                     size: 14,
                                   ),
@@ -312,7 +334,7 @@ class BookingDetailsStep extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        Icons.edit,
+                                        IconlyLight.edit,
                                         size: 16,
                                         color: HCColor.primary,
                                       ),
@@ -341,7 +363,7 @@ class BookingDetailsStep extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.warning_rounded, size: 14, color: Colors.red[700]),
+                  Icon(IconlyLight.dangerCircle, size: 14, color: Colors.red[700]),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(

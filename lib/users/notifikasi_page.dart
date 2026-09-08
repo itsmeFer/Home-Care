@@ -8,6 +8,7 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'notifikasi_model.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -225,22 +226,22 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   IconData _iconForType(String type) {
     switch (type) {
       case 'chat_message':
-        return Icons.chat_bubble_rounded;
+        return IconlyLight.chat;
       case 'new_order':
       case 'assigned_to_order':
       case 'order_created':
-        return Icons.assignment_rounded;
+        return IconlyLight.document;
       case 'payment_success':
-        return Icons.payments_rounded;
+        return IconlyLight.wallet;
       case 'payment_failed':
       case 'payment_expired':
       case 'order_cancelled':
-        return Icons.error_rounded;
+        return IconlyLight.dangerCircle;
       case 'perawat_assigned':
       case 'koordinator_assigned':
-        return Icons.person_rounded;
+        return IconlyLight.profile;
       default:
-        return Icons.notifications_active_rounded;
+        return IconlyLight.notification;
     }
   }
 
@@ -372,7 +373,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
     final hasUnread = _unreadCount > 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Colors.white,
       appBar: PatientAppBar(
         title: 'Notifikasi',
         actions: [
@@ -418,9 +419,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
         onRefresh: _fetchNotifications,
         child:
             _isLoading
-                ? const SingleChildScrollView(
-                    child: NotificationListSkeleton(),
-                  )
+                ? const SingleChildScrollView(child: NotificationListSkeleton())
                 : _error != null
                 ? ListView(
                   padding: const EdgeInsets.all(24),
@@ -442,7 +441,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                       child: Column(
                         children: [
                           const Icon(
-                            Icons.error_outline_rounded,
+                            IconlyLight.dangerCircle,
                             size: 48,
                             color: Colors.redAccent,
                           ),
@@ -493,7 +492,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                       child: const Column(
                         children: [
                           Icon(
-                            Icons.notifications_off_rounded,
+                            IconlyLight.notification,
                             size: 56,
                             color: Color(0xFF94A3B8),
                           ),
@@ -580,10 +579,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
               color: Colors.white.withOpacity(0.12),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(
-              Icons.notifications_active_rounded,
-              color: Colors.white,
-            ),
+            child: const Icon(IconlyLight.notification, color: Colors.white),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -745,11 +741,11 @@ class _NotificationCard extends StatelessWidget {
                               runSpacing: 8,
                               children: [
                                 _InfoChip(
-                                  icon: Icons.schedule_rounded,
+                                  icon: IconlyLight.timeCircle,
                                   label: timeAgo,
                                 ),
                                 _InfoChip(
-                                  icon: Icons.calendar_today_outlined,
+                                  icon: IconlyLight.calendar,
                                   label: fullDate,
                                 ),
                               ],
@@ -759,7 +755,7 @@ class _NotificationCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       const Icon(
-                        Icons.chevron_right_rounded,
+                        IconlyLight.arrowRight2,
                         color: Color(0xFF94A3B8),
                       ),
                     ],

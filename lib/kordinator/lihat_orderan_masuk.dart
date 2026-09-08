@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
@@ -245,7 +245,7 @@ class _LihatOrderanMasukKoordinatorPageState
     final horizontalPadding = size.width >= 900 ? 28.0 : 16.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Order Masuk'),
         backgroundColor: Colors.white,

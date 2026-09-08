@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,13 +21,7 @@ class ITDevDashboard extends StatefulWidget {
 }
 
 class _ITDevDashboardState extends State<ITDevDashboard> {
-
-  static const Color kBg = Color(0xFFF8FAFC);
-  static const Color kCard = Colors.white;
-  static const Color kBorder = Color(0xFFE2E8F0);
-  static const Color kText = Color(0xFF0F172A);
-  static const Color kMuted = Color(0xFF64748B);
-  static const Color kPrimary = Color(0xFF0EA5E9);
+  static const Color kBg = Color(0xFFFFFFFF);
 
   int _tabIndex = 0;
 
@@ -130,29 +125,49 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
     }
   }
 
-  Widget _buildTabPage(int i,
-      {required String range,
-      required bool isDesktop,
-      required bool isTablet}) {
+  Widget _buildTabPage(
+    int i, {
+    required String range,
+    required bool isDesktop,
+    required bool isTablet,
+  }) {
     switch (i) {
       case 0:
         return DashboardITPage(
-            isDesktop: isDesktop, isTablet: isTablet, range: range);
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
       case 1:
         return AuditSistemPage(
-            isDesktop: isDesktop, isTablet: isTablet, range: range);
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
       case 2:
         return UserMonitorPage(
-            isDesktop: isDesktop, isTablet: isTablet, range: range);
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
       case 3:
         return SupportTicketPage(
-            isDesktop: isDesktop, isTablet: isTablet, range: range);
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
       case 4:
         return SystemMaintenancePage(
-            isDesktop: isDesktop, isTablet: isTablet, range: range);
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
       case 5:
         return SessionTokenPage(
-            isDesktop: isDesktop, isTablet: isTablet, range: range);
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -180,7 +195,6 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
             Expanded(
               child: Column(
                 children: [
-
                   _TopBar(
                     title: _titleForTab(_tabIndex),
                     rangeValue: _range,
@@ -189,9 +203,8 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
                     userName: _userName,
                     isMobile: isMobile,
                     onLogout: _logout,
-                    onOpenMenu: isDesktop
-                        ? null
-                        : () => _showMobileMenu(context),
+                    onOpenMenu:
+                        isDesktop ? null : () => _showMobileMenu(context),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -245,9 +258,8 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
           ],
         ),
       ),
-      bottomNavigationBar: isDesktop
-          ? null
-          : _BottomNav(index: _tabIndex, onChanged: _setTab),
+      bottomNavigationBar:
+          isDesktop ? null : _BottomNav(index: _tabIndex, onChanged: _setTab),
     );
   }
 
@@ -256,18 +268,19 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _MobileMenu(
-        selectedIndex: _tabIndex,
-        userName: _userName,
-        onSelect: (i) {
-          _setTab(i);
-          Navigator.pop(context);
-        },
-        onLogout: () {
-          Navigator.pop(context);
-          _logout();
-        },
-      ),
+      builder:
+          (_) => _MobileMenu(
+            selectedIndex: _tabIndex,
+            userName: _userName,
+            onSelect: (i) {
+              _setTab(i);
+              Navigator.pop(context);
+            },
+            onLogout: () {
+              Navigator.pop(context);
+              _logout();
+            },
+          ),
     );
   }
 }
@@ -301,7 +314,6 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isMobile) {
-
       return Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
@@ -310,7 +322,6 @@ class _TopBar extends StatelessWidget {
         ),
         child: Column(
           children: [
-
             Row(
               children: [
                 if (onOpenMenu != null)
@@ -369,7 +380,7 @@ class _TopBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: kCard.withOpacity(.92),
+        color: kCard.withValues(alpha: 0.92),
         border: const Border(bottom: BorderSide(color: kBorder)),
       ),
       child: Row(
@@ -422,7 +433,7 @@ class _TopBar extends StatelessWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.logout_rounded, size: 18, color: Color(0xFF334155)),
+                  Icon(IconlyLight.logout, size: 18, color: Color(0xFF334155)),
                   SizedBox(width: 8),
                   Text(
                     'Keluar',
@@ -467,36 +478,37 @@ class _MobileRangeSelector extends StatelessWidget {
         border: Border.all(color: kBorder),
       ),
       child: Row(
-        children: items.map((item) {
-          final isSelected = item == value;
-          final isFirst = item == items.first;
-          final isLast = item == items.last;
+        children:
+            items.map((item) {
+              final isSelected = item == value;
+              final isFirst = item == items.first;
+              final isLast = item == items.last;
 
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(item),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isSelected ? kPrimary : Colors.transparent,
-                  borderRadius: BorderRadius.horizontal(
-                    left: isFirst ? const Radius.circular(11) : Radius.zero,
-                    right: isLast ? const Radius.circular(11) : Radius.zero,
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onChanged(item),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? kPrimary : Colors.transparent,
+                      borderRadius: BorderRadius.horizontal(
+                        left: isFirst ? const Radius.circular(11) : Radius.zero,
+                        right: isLast ? const Radius.circular(11) : Radius.zero,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      item,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : kMuted,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
-                alignment: Alignment.center,
-                child: Text(
-                  item,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : kMuted,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 11,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
@@ -517,9 +529,6 @@ class _Sidebar extends StatelessWidget {
 
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
-  static const Color kText = Color(0xFF0F172A);
-  static const Color kMuted = Color(0xFF64748B);
-  static const Color kPrimary = Color(0xFF0EA5E9);
   static const Color kDanger = Color(0xFFEF4444);
 
   @override
@@ -541,37 +550,43 @@ class _Sidebar extends StatelessWidget {
           const Divider(height: 1, color: kBorder),
           const SizedBox(height: 10),
           _NavItem(
-            icon: Icons.monitor_heart_outlined,
+            icon: IconlyLight.activity,
+            activeIcon: IconlyBold.activity,
             label: 'Dashboard IT',
             selected: selectedIndex == 0,
             onTap: () => onSelect(0),
           ),
           _NavItem(
-            icon: Icons.policy_outlined,
+            icon: IconlyLight.shieldDone,
+            activeIcon: IconlyBold.shieldDone,
             label: 'Audit Sistem',
             selected: selectedIndex == 1,
             onTap: () => onSelect(1),
           ),
           _NavItem(
-            icon: Icons.manage_accounts_outlined,
+            icon: IconlyLight.user3,
+            activeIcon: IconlyBold.user3,
             label: 'User Monitor',
             selected: selectedIndex == 2,
             onTap: () => onSelect(2),
           ),
           _NavItem(
-            icon: Icons.support_agent_outlined,
+            icon: IconlyLight.ticket,
+            activeIcon: IconlyBold.ticket,
             label: 'Support Ticket',
             selected: selectedIndex == 3,
             onTap: () => onSelect(3),
           ),
           _NavItem(
-            icon: Icons.build_circle_outlined,
+            icon: IconlyLight.setting,
+            activeIcon: IconlyBold.setting,
             label: 'Maintenance',
             selected: selectedIndex == 4,
             onTap: () => onSelect(4),
           ),
           _NavItem(
-            icon: Icons.vpn_key_outlined,
+            icon: IconlyLight.lock,
+            activeIcon: IconlyBold.lock,
             label: 'Session & Token',
             selected: selectedIndex == 5,
             onTap: () => onSelect(5),
@@ -591,7 +606,7 @@ class _Sidebar extends StatelessWidget {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.logout_rounded, color: kDanger),
+                    Icon(IconlyLight.logout, color: kDanger),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -603,7 +618,11 @@ class _Sidebar extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Icon(Icons.chevron_right_rounded, color: Color(0xFFEF4444)),
+                    Icon(
+                      IconlyLight.arrowRight2,
+                      color: Color(0xFFEF4444),
+                      size: 18,
+                    ),
                   ],
                 ),
               ),
@@ -667,12 +686,14 @@ class _BrandHeader extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   final IconData icon;
+  final IconData? activeIcon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
   const _NavItem({
     required this.icon,
+    this.activeIcon,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -700,7 +721,11 @@ class _NavItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: selected ? kPrimary : kMuted),
+              Icon(
+                selected ? (activeIcon ?? icon) : icon,
+                color: selected ? kPrimary : kMuted,
+                size: 22,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -749,21 +774,31 @@ class _BottomNav extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Color(0x0F000000),
-            blurRadius: 8,
+            blurRadius: 10,
             offset: Offset(0, -2),
           ),
         ],
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 60,
+          height: 62,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.monitor_heart_outlined, 'Health'),
-              _buildNavItem(1, Icons.policy_outlined, 'Audit'),
-              _buildNavItem(2, Icons.manage_accounts_outlined, 'Users'),
-              _buildNavItem(3, Icons.support_agent_outlined, 'Ticket'),
+              _buildNavItem(
+                0,
+                IconlyLight.activity,
+                IconlyBold.activity,
+                'Health',
+              ),
+              _buildNavItem(
+                1,
+                IconlyLight.shieldDone,
+                IconlyBold.shieldDone,
+                'Audit',
+              ),
+              _buildNavItem(2, IconlyLight.user3, IconlyBold.user3, 'Users'),
+              _buildNavItem(3, IconlyLight.ticket, IconlyBold.ticket, 'Ticket'),
             ],
           ),
         ),
@@ -771,29 +806,48 @@ class _BottomNav extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(int idx, IconData icon, String label) {
+  Widget _buildNavItem(
+    int idx,
+    IconData icon,
+    IconData activeIcon,
+    String label,
+  ) {
     final isSelected = index == idx;
 
     return Expanded(
       child: InkWell(
         onTap: () => onChanged(idx),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                color: isSelected ? kPrimary : kMuted,
-                size: 24,
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      isSelected
+                          ? kPrimary.withValues(alpha: 0.12)
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  isSelected ? activeIcon : icon,
+                  color: isSelected ? kPrimary : kMuted,
+                  size: 22,
+                ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
                   color: isSelected ? kPrimary : kMuted,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  fontSize: 11,
+                  fontSize: 10.5,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -831,13 +885,12 @@ class _MobileMenu extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          color: kCard.withOpacity(.98),
+          color: kCard.withValues(alpha: 0.98),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
           child: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 Container(
                   height: 5,
                   width: 46,
@@ -866,7 +919,7 @@ class _MobileMenu extends StatelessWidget {
                           border: Border.all(color: const Color(0xFFBAE6FD)),
                         ),
                         child: const Icon(
-                          Icons.shield_outlined,
+                          IconlyBold.shieldDone,
                           color: Color(0xFF0284C7),
                           size: 26,
                         ),
@@ -902,19 +955,55 @@ class _MobileMenu extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                _menuItem(context, 0, Icons.monitor_heart_outlined, 'Dashboard IT'),
-                _menuItem(context, 1, Icons.policy_outlined, 'Audit Sistem'),
-                _menuItem(context, 2, Icons.manage_accounts_outlined, 'User Monitor'),
-                _menuItem(context, 3, Icons.support_agent_outlined, 'Support Ticket'),
-                _menuItem(context, 4, Icons.build_circle_outlined, 'Maintenance'),
-                _menuItem(context, 5, Icons.vpn_key_outlined, 'Session & Token'),
+                _menuItem(
+                  context,
+                  0,
+                  IconlyLight.activity,
+                  IconlyBold.activity,
+                  'Dashboard IT',
+                ),
+                _menuItem(
+                  context,
+                  1,
+                  IconlyLight.shieldDone,
+                  IconlyBold.shieldDone,
+                  'Audit Sistem',
+                ),
+                _menuItem(
+                  context,
+                  2,
+                  IconlyLight.user3,
+                  IconlyBold.user3,
+                  'User Monitor',
+                ),
+                _menuItem(
+                  context,
+                  3,
+                  IconlyLight.ticket,
+                  IconlyBold.ticket,
+                  'Support Ticket',
+                ),
+                _menuItem(
+                  context,
+                  4,
+                  IconlyLight.setting,
+                  IconlyBold.setting,
+                  'Maintenance',
+                ),
+                _menuItem(
+                  context,
+                  5,
+                  IconlyLight.lock,
+                  IconlyBold.lock,
+                  'Session & Token',
+                ),
 
                 const SizedBox(height: 12),
                 const Divider(height: 1, color: kBorder),
                 const SizedBox(height: 12),
 
                 _actionItem(
-                  icon: Icons.logout_rounded,
+                  icon: IconlyLight.logout,
                   label: 'Logout',
                   color: const Color(0xFFEF4444),
                   backgroundColor: const Color(0xFFFEF2F2),
@@ -933,6 +1022,7 @@ class _MobileMenu extends StatelessWidget {
     BuildContext context,
     int i,
     IconData icon,
+    IconData activeIcon,
     String label,
   ) {
     final bool selected = selectedIndex == i;
@@ -953,10 +1043,11 @@ class _MobileMenu extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                icon,
-                color: selected
-                    ? const Color(0xFF0EA5E9)
-                    : const Color(0xFF64748B),
+                selected ? activeIcon : icon,
+                color:
+                    selected
+                        ? const Color(0xFF0EA5E9)
+                        : const Color(0xFF64748B),
                 size: 22,
               ),
               const SizedBox(width: 12),
@@ -971,11 +1062,12 @@ class _MobileMenu extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded,
-                color: selected
-                    ? const Color(0xFF0EA5E9)
-                    : const Color(0xFF94A3B8),
-                size: 20,
+                IconlyLight.arrowRight2,
+                color:
+                    selected
+                        ? const Color(0xFF0EA5E9)
+                        : const Color(0xFF94A3B8),
+                size: 18,
               ),
             ],
           ),
@@ -1016,7 +1108,7 @@ class _MobileMenu extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: color, size: 20),
+            Icon(IconlyLight.arrowRight2, color: color, size: 18),
           ],
         ),
       ),
@@ -1054,9 +1146,10 @@ class _Select extends StatelessWidget {
             fontWeight: FontWeight.w900,
             fontSize: 12.8,
           ),
-          items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
+          items:
+              items
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
           onChanged: (v) => v == null ? null : onChanged(v),
         ),
       ),
@@ -1099,7 +1192,11 @@ class _AvatarChip extends StatelessWidget {
                 color: const Color(0xFFE0F2FE),
                 border: Border.all(color: const Color(0xFFBAE6FD)),
               ),
-              child: const Icon(Icons.shield_outlined, color: Color(0xFF0284C7)),
+              child: const Icon(
+                IconlyBold.shieldDone,
+                color: Color(0xFF0284C7),
+                size: 18,
+              ),
             ),
             const SizedBox(width: 10),
             Column(

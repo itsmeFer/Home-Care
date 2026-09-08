@@ -9,6 +9,7 @@ import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:http/http.dart' as http;
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 String get kBaseUrl => ApiConstants.baseUrl;
 String get kApiBase => ApiConstants.apiBase;
@@ -43,7 +44,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
 
   static const primaryColor = Color(0xFF0BA5A7);
   static const primaryDark = Color(0xFF088088);
-  static const backgroundColor = Color(0xFFF5F7FA);
+  static const backgroundColor = Color(0xFFFFFFFF);
   static const cardColor = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF2D3436);
   static const textSecondary = Color(0xFF636E72);
@@ -561,7 +562,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.check_circle,
+                IconlyBold.shieldDone,
                 color: successColor,
                 size: 48,
               ),
@@ -656,7 +657,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.error_outline,
+                    IconlyLight.dangerCircle,
                     size: 48,
                     color: Colors.red,
                   ),
@@ -750,7 +751,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
         title: 'Pembayaran',
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+            icon: const Icon(IconlyLight.swap, color: Colors.white),
             onPressed: _fetchDraftData,
             tooltip: 'Refresh',
           ),
@@ -782,7 +783,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
-                                Icons.medical_services,
+                                IconlyLight.activity,
                                 color: primaryColor,
                                 size: 20,
                               ),
@@ -801,11 +802,11 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                           ],
                         ),
                         const SizedBox(height: 16),
-                        _infoRow(Icons.calendar_today, 'Tanggal', tanggal),
+                        _infoRow(IconlyLight.calendar, 'Tanggal', tanggal),
                         const SizedBox(height: 12),
-                        _infoRow(Icons.access_time, 'Waktu', jam),
+                        _infoRow(IconlyLight.timeCircle, 'Waktu', jam),
                         const SizedBox(height: 12),
-                        _infoRow(Icons.location_on, 'Lokasi', alamat),
+                        _infoRow(IconlyLight.location, 'Lokasi', alamat),
                       ],
                     ),
                   ),
@@ -863,7 +864,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
-                              Icons.payments,
+                              IconlyLight.wallet,
                               color: primaryColor,
                               size: 24,
                             ),
@@ -893,7 +894,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                             ),
                           ),
                           const Icon(
-                            Icons.check_circle,
+                            IconlyBold.tickSquare,
                             color: successColor,
                             size: 24,
                           ),
@@ -912,7 +913,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.info_outline,
+                          IconlyLight.infoSquare,
                           color: primaryColor.withOpacity(0.8),
                           size: 18,
                         ),

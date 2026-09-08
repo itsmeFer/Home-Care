@@ -15,6 +15,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -407,8 +408,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
           children: [
             Icon(
               _isDraftExpired(order)
-                  ? Icons.timer_off_outlined
-                  : Icons.timer_outlined,
+                  ? IconlyLight.dangerCircle
+                  : IconlyLight.timeCircle,
               size: 14,
               color:
                   _isDraftExpired(order) ? HCColors.danger : HCColors.warning,
@@ -457,7 +458,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.payment,
+                      IconlyLight.wallet,
                       color: HCColors.warning,
                       size: 40,
                     ),
@@ -643,7 +644,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
         tabController: _tabController,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+            icon: const Icon(IconlyLight.swap, color: Colors.white),
             onPressed: () {
               _fetchHistory();
             },
@@ -683,7 +684,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.error_outline_rounded,
+                IconlyLight.dangerCircle,
                 size: 64,
                 color: HCColors.danger.withOpacity(0.5),
               ),
@@ -698,7 +699,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                 onPressed: () {
                   _fetchHistory();
                 },
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(IconlyLight.swap),
                 label: const Text('Coba Lagi'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HCColors.primary,
@@ -747,8 +748,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.inbox_outlined,
-              size: 80,
+              IconlyLight.document,
+              size: 72,
               color: HCColors.textMuted.withOpacity(0.3),
             ),
             const SizedBox(height: 16),
@@ -895,7 +896,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                                   fit: BoxFit.cover,
                                   errorBuilder:
                                       (_, __, ___) => Icon(
-                                        Icons.medical_services_rounded,
+                                        IconlyLight.activity,
                                         color:
                                             isUnpaid
                                                 ? HCColors.danger
@@ -907,7 +908,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                                 ),
                               )
                               : Icon(
-                                Icons.medical_services_rounded,
+                                IconlyLight.activity,
                                 color:
                                     isUnpaid
                                         ? HCColors.danger
@@ -1042,7 +1043,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                 Row(
                   children: [
                     Icon(
-                      Icons.today_outlined,
+                      IconlyLight.calendar,
                       size: 14,
                       color: HCColors.textMuted.withOpacity(0.6),
                     ),
@@ -1056,7 +1057,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                     ),
                     const SizedBox(width: 16),
                     Icon(
-                      Icons.access_time_rounded,
+                      IconlyLight.timeCircle,
                       size: 14,
                       color: HCColors.textMuted.withOpacity(0.6),
                     ),
@@ -1206,7 +1207,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                       )
                     else
                       Icon(
-                        Icons.arrow_forward_ios_rounded,
+                        IconlyLight.arrowRight2,
                         size: 16,
                         color: HCColors.textMuted.withOpacity(0.5),
                       ),
@@ -1251,7 +1252,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
-              Icons.star_rounded,
+              IconlyBold.star,
               color: Color.fromARGB(255, 248, 179, 76),
               size: 20,
             ),

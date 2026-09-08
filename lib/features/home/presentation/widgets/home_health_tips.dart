@@ -1,19 +1,6 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/core/services/storage_service.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/services_catalog/domain/service_model.dart';
-import 'package:home_care/users/home_page.dart';
-import 'package:home_care/users/layanan_page.dart';
-import 'package:home_care/users/notifikasi_page.dart';
-import 'package:home_care/users/profile.dart';
-import 'package:home_care/users/search_page.dart';
-import 'package:home_care/utils/app_cached_image.dart';
 
 class HealthTipsCarousel extends StatelessWidget {
   const HealthTipsCarousel();
@@ -22,113 +9,112 @@ class HealthTipsCarousel extends StatelessWidget {
   Widget build(BuildContext context) {
     final tips = [
       _HealthTip(
-        icon: Icons.water_drop_outlined,
+        icon: IconlyLight.heart,
         title: 'Cukupi air putih',
         description: 'Minum air yang cukup bantu tubuh tetap segar dan tidak mudah lelah.',
         color: Colors.blue.shade400,
       ),
       _HealthTip(
-        icon: Icons.directions_run_outlined,
+        icon: IconlyLight.activity,
         title: 'Bergerak tiap hari',
         description: 'Aktivitas ringan 30 menit sehari bisa bantu tubuh tetap bugar.',
         color: Colors.green.shade400,
       ),
       _HealthTip(
-        icon: Icons.restaurant_outlined,
+        icon: IconlyLight.buy,
         title: 'Makan lebih seimbang',
         description: 'Sayur, buah, dan makanan bergizi bantu tubuh pulih dan tetap kuat.',
         color: Colors.orange.shade400,
       ),
       _HealthTip(
-        icon: Icons.nightlight_round_outlined,
+        icon: IconlyLight.timeCircle,
         title: 'Istirahat yang cukup',
         description: 'Tidur yang cukup bantu tubuh lebih cepat pulih dan pikiran lebih tenang.',
         color: Colors.purple.shade400,
       ),
       _HealthTip(
-        icon: Icons.self_improvement_outlined,
+        icon: IconlyLight.shieldDone,
         title: 'Jaga pikiran tetap tenang',
         description: 'Luangkan waktu sebentar untuk relaksasi agar tubuh dan hati lebih nyaman.',
         color: Colors.teal.shade400,
       ),
       _HealthTip(
-        icon: Icons.clean_hands_outlined,
+        icon: IconlyLight.star,
         title: 'Jaga kebersihan diri',
         description: 'Kebiasaan kecil seperti cuci tangan rutin sangat berarti untuk kesehatan.',
         color: Colors.cyan.shade400,
       ),
     ];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: HCColor.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome_outlined,
-                    color: HCColor.primary,
-                    size: 20,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: HCColor.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Jurnal Sehat',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black87,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Langkah kecil untuk hidup lebih baik',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: const Icon(
+                  IconlyBold.star,
+                  color: HCColor.primary,
+                  size: 18,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Jurnal Sehat',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Langkah kecil untuk hidup lebih baik',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11.8,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 154,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              itemCount: tips.length,
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 154,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: tips.length,
               separatorBuilder: (_, __) => const SizedBox(width: 16),
               itemBuilder: (_, i) => _HealthTipCard(tip: tips[i]),
             ),
           ),
         ],
-      ),
-    );
-  }
+      );
+    }
 }
 
 class _HealthTip {

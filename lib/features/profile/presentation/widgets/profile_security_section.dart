@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 
@@ -27,7 +28,7 @@ class ProfileSecuritySection extends StatelessWidget {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.settings_outlined, color: Color(0xFF0BA5A7), size: 20),
+                  Icon(IconlyLight.setting, color: Color(0xFF0BA5A7), size: 20),
                   SizedBox(width: 8),
                   Text(
                     'Pengaturan & Keamanan',
@@ -44,7 +45,7 @@ class ProfileSecuritySection extends StatelessWidget {
               ListTile(
                 dense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFF0BA5A7)),
+                leading: const Icon(IconlyLight.shieldDone, color: Color(0xFF0BA5A7)),
                 title: const Text(
                   'Kebijakan Privasi (Privacy Policy)',
                   style: TextStyle(
@@ -54,7 +55,7 @@ class ProfileSecuritySection extends StatelessWidget {
                     color: Color(0xFF1F2937),
                   ),
                 ),
-                trailing: const Icon(Icons.open_in_new, size: 16, color: Colors.black54),
+                trailing: const Icon(IconlyLight.arrowRight2, size: 16, color: Colors.black54),
                 onTap: () async {
                   final url = Uri.parse('https://royal-klinik.cloud/privacy-homecare.html');
                   if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -70,7 +71,7 @@ class ProfileSecuritySection extends StatelessWidget {
               ListTile(
                 dense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                leading: const Icon(Icons.delete_forever_outlined, color: Colors.redAccent),
+                leading: const Icon(IconlyLight.delete, color: Colors.redAccent),
                 title: const Text(
                   'Hapus Akun',
                   style: TextStyle(
@@ -80,7 +81,7 @@ class ProfileSecuritySection extends StatelessWidget {
                     color: Colors.redAccent,
                   ),
                 ),
-                trailing: const Icon(Icons.chevron_right, size: 16, color: Colors.black54),
+                trailing: const Icon(IconlyLight.arrowRight2, size: 16, color: Colors.black54),
                 onTap: () {
                   showDialog(
                     context: context,
@@ -126,7 +127,7 @@ class ProfileSecuritySection extends StatelessWidget {
           width: double.infinity,
           height: 52,
           child: ElevatedButton.icon(
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFFE53935)),
+            icon: const Icon(IconlyLight.logout, color: Color(0xFFE53935)),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFFEBEE),
               elevation: 0,

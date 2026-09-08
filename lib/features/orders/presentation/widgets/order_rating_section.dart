@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 /// Komponen ulasan dan rating pesanan layanan.
 class OrderRatingSection extends StatelessWidget {
@@ -73,7 +74,7 @@ class OrderRatingSection extends StatelessWidget {
           Row(
             children: [
               Icon(
-                hasRating ? Icons.check_circle_rounded : Icons.star_rounded,
+                hasRating ? IconlyBold.shieldDone : IconlyBold.star,
                 color: hasRating ? HCColors.success : HCColors.primary,
                 size: 20,
               ),
@@ -104,7 +105,7 @@ class OrderRatingSection extends StatelessWidget {
               const SizedBox(height: 12),
               if (avgLayanan != null)
                 _buildAverageRatingRow(
-                  icon: Icons.medical_services_rounded,
+                  icon: IconlyLight.activity,
                   label: 'Layanan',
                   average: avgLayanan,
                 ),
@@ -112,7 +113,7 @@ class OrderRatingSection extends StatelessWidget {
                 const SizedBox(height: 8),
               if (avgPerawat != null)
                 _buildAverageRatingRow(
-                  icon: Icons.person_rounded,
+                  icon: IconlyLight.profile,
                   label: 'Perawat',
                   average: avgPerawat,
                 ),
@@ -124,7 +125,7 @@ class OrderRatingSection extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildRatingInputRow(
-              icon: Icons.medical_services_rounded,
+              icon: IconlyLight.activity,
               label: 'Rating Layanan',
               required: true,
               rating: ratingLayanan,
@@ -132,7 +133,7 @@ class OrderRatingSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildRatingInputRow(
-              icon: Icons.person_rounded,
+              icon: IconlyLight.profile,
               label: 'Rating Perawat',
               required: false,
               rating: ratingPerawat,
@@ -261,7 +262,7 @@ class OrderRatingSection extends StatelessWidget {
         Row(
           children: List.generate(5, (i) {
             return Icon(
-              i < rating ? Icons.star_rounded : Icons.star_border_rounded,
+              i < rating ? IconlyBold.star : IconlyLight.star,
               color: AppColors.warning,
               size: 20,
             );
@@ -309,8 +310,8 @@ class OrderRatingSection extends StatelessWidget {
             return IconButton(
               icon: Icon(
                 starVal <= rating
-                    ? Icons.star_rounded
-                    : Icons.star_border_rounded,
+                    ? IconlyBold.star
+                    : IconlyLight.star,
                 color: AppColors.warning,
                 size: 32,
               ),
@@ -338,7 +339,7 @@ class OrderRatingSection extends StatelessWidget {
           '$label: ',
           style: const TextStyle(fontSize: 13, color: HCColors.textMuted),
         ),
-        const Icon(Icons.star_rounded, size: 16, color: AppColors.warning),
+        const Icon(IconlyBold.star, size: 16, color: AppColors.warning),
         const SizedBox(width: 2),
         Text(
           val.toStringAsFixed(1),

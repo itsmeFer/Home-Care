@@ -12,6 +12,7 @@ import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 export 'package:home_care/features/services_catalog/domain/service_model.dart';
 
@@ -153,7 +154,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+              Icon(IconlyLight.dangerCircle, size: 64, color: Colors.red[300]),
               const SizedBox(height: 16),
               Text(
                 _error!,
@@ -163,7 +164,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _fetchLayanan,
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(IconlyLight.swap),
                 label: const Text('Coba Lagi'),
               ),
             ],
@@ -180,7 +181,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off, size: 80, color: Colors.grey[300]),
+            Icon(IconlyLight.search, size: 80, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
               _searchController.text.isNotEmpty
@@ -356,7 +357,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.warning_rounded,
+                    IconlyLight.dangerCircle,
                     color: Colors.orange[700],
                     size: 28,
                   ),
@@ -392,7 +393,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                       Row(
                         children: [
                           Icon(
-                            Icons.info_outline,
+                            IconlyLight.infoSquare,
                             size: 16,
                             color: HCColor.primary,
                           ),
@@ -413,10 +414,13 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.circle,
-                                size: 6,
-                                color: HCColor.primaryDark,
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: HCColor.primaryDark,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -458,7 +462,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                     _fetchProfileData();
                   });
                 },
-                icon: const Icon(Icons.edit, size: 18),
+                icon: const Icon(IconlyLight.edit, size: 18),
                 label: const Text('Lengkapi Profil'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HCColor.primary,
@@ -656,12 +660,12 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                 decoration: InputDecoration(
                   hintText: 'Cari layanan kesehatan...',
                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                  prefixIcon: Icon(Icons.search, color: HCColor.primary),
+                  prefixIcon: Icon(IconlyLight.search, color: HCColor.primary),
                   suffixIcon:
                       _searchController.text.isNotEmpty
                           ? IconButton(
                             icon: Icon(
-                              Icons.clear,
+                              IconlyLight.closeSquare,
                               size: 20,
                               color: Colors.grey,
                             ),
@@ -903,19 +907,19 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                       children: [
                         if (layanan.tipeLayanan == 'paket')
                           _buildInfoBadge(
-                            icon: Icons.inventory_2_outlined,
+                            icon: IconlyLight.bag2,
                             label: '${layanan.jumlahVisit}x Visit',
                             color: HCColor.primary,
                           ),
                         if (layanan.durasiMenit != null)
                           _buildInfoBadge(
-                            icon: Icons.access_time_outlined,
+                            icon: IconlyLight.timeCircle,
                             label: '${layanan.durasiMenit} menit',
                             color: HCColor.primaryDark,
                           ),
                         if (layanan.syaratPerawat != null)
                           _buildInfoBadge(
-                            icon: Icons.medical_services_outlined,
+                            icon: IconlyLight.activity,
                             label: layanan.syaratPerawat!.toUpperCase(),
                             color: const Color(0xFF43A047),
                           ),
@@ -993,7 +997,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                                     ),
                                     SizedBox(width: 6),
                                     Icon(
-                                      Icons.arrow_forward,
+                                      IconlyLight.arrowRight2,
                                       color: Colors.white,
                                       size: 16,
                                     ),
@@ -1028,7 +1032,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
         ),
         child: Center(
           child: Icon(
-            Icons.medical_services_rounded,
+            IconlyLight.activity,
             size: 64,
             color: HCColor.primary,
           ),
@@ -1058,7 +1062,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
             ),
             child: Center(
               child: Icon(
-                Icons.broken_image_rounded,
+                IconlyLight.image,
                 size: 64,
                 color: HCColor.primary,
               ),

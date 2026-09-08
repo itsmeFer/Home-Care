@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 /// Model terpadu item pesanan (Order) untuk seluruh role (Pasien, Perawat, Koordinator, Admin).
 /// Mengonsolidasi OrderLayananItem, OrderHistory, dan OrderLayananAdmin.
@@ -317,43 +318,43 @@ class OrderTrackingHelper {
       'key': 'pending',
       'title': 'Pesanan Dibuat',
       'description': 'Menunggu konfirmasi pemesanan',
-      'icon': Icons.assignment_outlined,
+      'icon': IconlyLight.document,
     },
     {
       'key': 'menunggu_penugasan',
       'title': 'Menunggu Penugasan',
       'description': 'Koordinator sedang menugaskan perawat',
-      'icon': Icons.person_search_outlined,
+      'icon': IconlyLight.search,
     },
     {
       'key': 'mendapatkan_perawat',
       'title': 'Perawat Ditugaskan',
       'description': 'Perawat siap melayani kunjungan',
-      'icon': Icons.assignment_ind_outlined,
+      'icon': IconlyLight.profile,
     },
     {
       'key': 'sedang_dalam_perjalanan',
       'title': 'Dalam Perjalanan',
       'description': 'Perawat sedang menuju alamat pasien',
-      'icon': Icons.directions_bike_outlined,
+      'icon': IconlyLight.send,
     },
     {
       'key': 'sampai_ditempat',
       'title': 'Sampai di Lokasi',
       'description': 'Perawat telah tiba di alamat tujuan',
-      'icon': Icons.location_on_outlined,
+      'icon': IconlyLight.location,
     },
     {
       'key': 'sedang_berjalan',
       'title': 'Tindakan Berlangsung',
       'description': 'Pelayanan medis sedang dilakukan',
-      'icon': Icons.medical_services_outlined,
+      'icon': IconlyLight.activity,
     },
     {
       'key': 'selesai',
       'title': 'Layanan Selesai',
       'description': 'Pelayanan telah berhasil diselesaikan',
-      'icon': Icons.check_circle_outline,
+      'icon': IconlyLight.tickSquare,
     },
   ];
 
@@ -369,7 +370,7 @@ class OrderTrackingHelper {
           key: 'dibatalkan',
           title: 'Pesanan Dibatalkan',
           description: 'Pesanan ini telah dibatalkan',
-          icon: Icons.cancel_outlined,
+          icon: IconlyLight.closeSquare,
           isCompleted: true,
           isActive: true,
           timestamp: timestamps?['dibatalkan']?.toString(),

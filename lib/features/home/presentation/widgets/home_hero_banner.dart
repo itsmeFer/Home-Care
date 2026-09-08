@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
@@ -115,15 +116,14 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-          child: Column(
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
               Container(
+                margin: const EdgeInsets.only(bottom: 26),
                 height: bannerHeight,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
+                  borderRadius: BorderRadius.circular(20),
                   image: const DecorationImage(
                     image: NetworkImage(
                       'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=800',
@@ -134,22 +134,19 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
                     BoxShadow(
                       blurRadius: 12,
                       offset: const Offset(0, 6),
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                     ),
                   ],
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
+                    borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.5),
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.black.withValues(alpha: 0.5),
                       ],
                     ),
                   ),
@@ -158,8 +155,9 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
                   child: Text(
                     'Kami hadir untuk merawat Anda dan keluarga dengan hangat, tenang, dan sepenuh hati.',
                     style: TextStyle(
+                      fontFamily: 'Poppins',
                       color: Colors.white,
-                      fontSize: screenWidth > 600 ? 22 : 18,
+                      fontSize: screenWidth > 600 ? 22 : 17,
                       fontWeight: FontWeight.w600,
                       height: 1.4,
                     ),
@@ -167,8 +165,11 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
                   ),
                 ),
               ),
-              Transform.translate(
-                offset: const Offset(0, -25),
+              Positioned(
+                left: screenWidth > 600 ? 40 : 16,
+                right: screenWidth > 600 ? 40 : 16,
+                bottom: 0,
+                height: 52,
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -177,10 +178,6 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
                     );
                   },
                   child: Container(
-                    margin: EdgeInsets.symmetric(
-                      horizontal: screenWidth > 600 ? 40 : 20,
-                    ),
-                    height: 56,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -188,7 +185,7 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
                         BoxShadow(
                           blurRadius: 16,
                           offset: const Offset(0, 4),
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                         ),
                       ],
                     ),
@@ -199,15 +196,16 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
                           child: Text(
                             _displayedText,
                             style: TextStyle(
+                              fontFamily: 'Poppins',
                               color: Colors.black38,
-                              fontSize: screenWidth > 600 ? 18 : 16,
+                              fontSize: screenWidth > 600 ? 17 : 15,
                             ),
                           ),
                         ),
                         const Icon(
-                          Icons.search,
+                          IconlyLight.search,
                           color: Colors.black38,
-                          size: 24,
+                          size: 22,
                         ),
                       ],
                     ),

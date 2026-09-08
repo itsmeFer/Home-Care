@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class AppErrorBoundary extends StatelessWidget {
   final FlutterErrorDetails errorDetails;
@@ -25,7 +26,7 @@ class AppErrorBoundary extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.healing_rounded,
+                  IconlyLight.activity,
                   size: 38,
                   color: AppColors.primary,
                 ),
@@ -81,7 +82,7 @@ class AppErrorBoundary extends StatelessWidget {
                     nav.pop();
                   }
                 },
-                icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                icon: const Icon(IconlyLight.arrowLeft2, size: 18),
                 label: const Text('Kembali'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

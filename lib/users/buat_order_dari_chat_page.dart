@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -237,7 +238,7 @@ final request = http.MultipartRequest('POST', uri)
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: _pickDate,
-                      icon: const Icon(Icons.date_range),
+                      icon: const Icon(IconlyLight.calendar),
                       label: Text(
                         _selectedDate == null
                             ? 'Pilih Tanggal'
@@ -249,7 +250,7 @@ final request = http.MultipartRequest('POST', uri)
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: _pickTime,
-                      icon: const Icon(Icons.access_time),
+                      icon: const Icon(IconlyLight.timeCircle),
                       label: Text(
                         _selectedTime == null
                             ? 'Pilih Jam'
@@ -325,7 +326,7 @@ final request = http.MultipartRequest('POST', uri)
                 children: [
                   ElevatedButton.icon(
                     onPressed: _pickKondisiImage,
-                    icon: const Icon(Icons.camera_alt),
+                    icon: const Icon(IconlyLight.camera),
                     label: const Text('Ambil Foto'),
                   ),
                   const SizedBox(width: 12),

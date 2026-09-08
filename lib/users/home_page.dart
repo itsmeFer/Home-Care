@@ -1,23 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:home_care/chat/pasien_chat_list_page.dart';
-import 'package:home_care/users/menu_page.dart';
-import 'package:home_care/users/layanan_page.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
-import 'package:home_care/users/notifikasi_page.dart';
-import 'package:home_care/users/profile.dart';
-import 'package:home_care/users/search_page.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/users/lihat_histori_pemesanan.dart';
-import 'package:home_care/utils/app_cached_image.dart';
 import 'package:home_care/users/widgets/home_bottom_nav.dart';
 import 'package:home_care/users/widgets/home_sections.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 export 'package:home_care/users/widgets/home_bottom_nav.dart';
 export 'package:home_care/users/widgets/home_sections.dart';
@@ -147,7 +136,9 @@ class BannerService {
       if (res is Map && res['data'] is List) {
         final List data = res['data'] as List;
         return data
-            .map((e) => BannerItem.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map(
+              (e) => BannerItem.fromJson(Map<String, dynamic>.from(e as Map)),
+            )
             .where((e) => e.aktif && e.tipeCard == tipeCard)
             .toList();
       }
@@ -178,16 +169,15 @@ class TestimonialService {
       if (res is Map && res['data'] is List) {
         final List data = res['data'] as List;
         return data
-            .map((e) =>
-                Testimonial.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map(
+              (e) => Testimonial.fromJson(Map<String, dynamic>.from(e as Map)),
+            )
             .toList();
       }
       return [];
     } catch (e) {
       debugPrint('Error fetching testimonials: $e');
-      return [
-        
-      ];
+      return [];
     }
   }
 }
@@ -199,8 +189,10 @@ class KategoriLayananService {
       if (res is Map && res['data'] is List) {
         final List data = res['data'] as List;
         return data
-            .map((e) =>
-                LayananCategory.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map(
+              (e) =>
+                  LayananCategory.fromJson(Map<String, dynamic>.from(e as Map)),
+            )
             .where((e) => e.namaKategori.trim().isNotEmpty)
             .toList();
       }
@@ -218,45 +210,44 @@ class KategoriLayananService {
     switch (icon) {
       case 'hospital':
       case 'local_hospital':
-        return Icons.local_hospital_outlined;
+        return IconlyLight.activity;
       case 'healing':
-        return Icons.healing_outlined;
+        return IconlyLight.shieldDone;
       case 'child_care':
-        return Icons.child_care_outlined;
+        return IconlyLight.user2;
       case 'accessibility':
       case 'accessibility_new':
-        return Icons.accessibility_new_outlined;
+        return IconlyLight.activity;
       case 'medical_services':
-        return Icons.medical_services_outlined;
+        return IconlyLight.work;
       case 'favorite':
-        return Icons.favorite_border;
-      case 'vaccines':
-        return Icons.vaccines_outlined;
       case 'monitor_heart':
-        return Icons.monitor_heart_outlined;
+        return IconlyLight.heart;
+      case 'vaccines':
+        return IconlyLight.discovery;
       case 'medication':
-        return Icons.medication_outlined;
+        return IconlyLight.timeCircle;
       case 'elderly':
-        return Icons.elderly_outlined;
+        return IconlyLight.profile;
     }
 
     if (nama.contains('umum')) {
-      return Icons.local_hospital_outlined;
+      return IconlyLight.activity;
     } else if (nama.contains('luka')) {
-      return Icons.healing_outlined;
+      return IconlyLight.shieldDone;
     } else if (nama.contains('fisio')) {
-      return Icons.accessibility_new_outlined;
+      return IconlyLight.activity;
     } else if (nama.contains('anak')) {
-      return Icons.child_care_outlined;
+      return IconlyLight.user2;
     } else if (nama.contains('jantung')) {
-      return Icons.monitor_heart_outlined;
+      return IconlyLight.heart;
     } else if (nama.contains('obat')) {
-      return Icons.medication_outlined;
+      return IconlyLight.timeCircle;
     } else if (nama.contains('lansia')) {
-      return Icons.elderly_outlined;
+      return IconlyLight.profile;
     }
 
-    return Icons.medical_services_outlined;
+    return IconlyLight.activity;
   }
 
   static Color mapKategoriColor(String? hexColor) {
@@ -275,34 +266,29 @@ class KategoriLayananService {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColor.bg,
       bottomNavigationBar: const HCBottomNav(currentIndex: 0),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            const SliverToBoxAdapter(child: TopLocationBar()),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-            const SliverToBoxAdapter(child: HeroImageBanner()),
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            const SliverToBoxAdapter(child: CategoryIconsSection()),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
-            const SliverToBoxAdapter(child: SquareBannerSection()),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            const SliverToBoxAdapter(child: HealthTipsCarousel()),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            const SliverToBoxAdapter(child: LandscapeBannerSection()),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            const SliverToBoxAdapter(child: PromoFullWidthSection()),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            const SliverToBoxAdapter(child: TestimonialsSection()),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
-          ],
-        ),
+      body: CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: HomeImmersiveHeroHeader()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          const SliverToBoxAdapter(child: CategoryIconsSection()),
+          const SliverToBoxAdapter(child: SquareBannerSection()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          const SliverToBoxAdapter(child: HealthTipsCarousel()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          const SliverToBoxAdapter(child: LandscapeBannerSection()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          const SliverToBoxAdapter(child: PromoFullWidthSection()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          const SliverToBoxAdapter(child: TestimonialsSection()),
+          const SliverToBoxAdapter(child: SizedBox(height: 36)),
+        ],
       ),
     );
   }

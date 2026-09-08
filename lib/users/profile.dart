@@ -1,3 +1,4 @@
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/features/profile/presentation/widgets/profile_ui_components.dart';
 import 'package:home_care/features/profile/presentation/widgets/profile_avatar_header.dart';
 import 'package:home_care/features/profile/presentation/widgets/profile_security_section.dart';
@@ -80,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   static const Color _primary = Color(0xFF0BA5A7);
   static const Color _primaryDark = Color(0xFF087F81);
-  static const Color _bg = Color(0xFFF4F7FB);
+  static const Color _bg = Color(0xFFFFFFFF);
   static const Color _card = Colors.white;
   static const Color _textDark = Color(0xFF1F2937);
   static const Color _textSoft = Color(0xFF6B7280);
@@ -1001,7 +1002,7 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           if (!_isLoading && _pasien != null)
             IconButton(
-              icon: Icon(_isEditing ? Icons.close_rounded : Icons.edit_rounded, color: Colors.white),
+              icon: Icon(_isEditing ? IconlyLight.closeSquare : IconlyLight.edit, color: Colors.white),
               tooltip: _isEditing ? 'Batal' : 'Edit Profil',
               onPressed: _isEditing ? _cancelEdit : _startEdit,
             ),
@@ -1033,7 +1034,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
-                            Icons.error_outline_rounded,
+                            IconlyLight.dangerCircle,
                             size: 44,
                             color: Colors.redAccent,
                           ),
@@ -1046,7 +1047,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           const SizedBox(height: 16),
                           OutlinedButton.icon(
                             onPressed: _fetchProfile,
-                            icon: const Icon(Icons.refresh_rounded),
+                            icon: const Icon(IconlyLight.swap),
                             label: const Text('Coba lagi'),
                           ),
                         ],
@@ -1122,7 +1123,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 16),
           _SectionCard(
             title: 'Data Pribadi',
-            icon: Icons.badge_outlined,
+            icon: IconlyLight.profile,
             children: [
               _InfoRow(label: 'NIK', value: nik),
               _InfoRow(label: 'Jenis Kelamin', value: jk),
@@ -1132,7 +1133,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 14),
           _SectionCard(
             title: 'Kontak & Alamat',
-            icon: Icons.location_on_outlined,
+            icon: IconlyLight.location,
             children: [
               _InfoRow(label: 'No. HP', value: noHp),
               _InfoRow(label: 'Email', value: email),
@@ -1147,7 +1148,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 14),
           _SectionCard(
             title: 'Info Medis Dasar',
-            icon: Icons.medical_information_outlined,
+            icon: IconlyLight.activity,
             children: [
               _InfoRow(
                 label: 'Golongan Darah',
@@ -1454,7 +1455,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Row(
           children: [
             const Icon(
-              Icons.calendar_today_outlined,
+              IconlyLight.calendar,
               size: 18,
               color: _textSoft,
             ),

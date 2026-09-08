@@ -1,6 +1,7 @@
 // Modularized Home Sections
 export 'package:home_care/features/home/presentation/widgets/home_top_location_bar.dart';
 export 'package:home_care/features/home/presentation/widgets/home_hero_banner.dart';
+export 'package:home_care/features/home/presentation/widgets/home_immersive_hero_header.dart';
 export 'package:home_care/features/home/presentation/widgets/home_category_icons.dart';
 export 'package:home_care/features/home/presentation/widgets/home_square_banners.dart';
 export 'package:home_care/features/home/presentation/widgets/home_health_tips.dart';

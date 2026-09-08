@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/screen/login.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -111,7 +112,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
-                    Icons.error_outline,
+                    IconlyLight.dangerCircle,
                     color: Colors.red,
                     size: 28,
                   ),
@@ -158,7 +159,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
-                    Icons.mark_email_read,
+                    IconlyBold.message,
                     color: Color(0xFF0066AE),
                     size: 28,
                   ),
@@ -185,7 +186,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Row(
                     children: [
                       const Icon(
-                        Icons.email,
+                        IconlyLight.message,
                         color: Color(0xFF0066AE),
                         size: 20,
                       ),
@@ -399,8 +400,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           _obscurePassword
-                                              ? Icons.visibility_off_outlined
-                                              : Icons.visibility_outlined,
+                                              ? IconlyLight.hide
+                                              : IconlyLight.show,
                                           color: Colors.grey[600],
                                           size: 22,
                                         ),
@@ -439,8 +440,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           _obscureConfirm
-                                              ? Icons.visibility_off_outlined
-                                              : Icons.visibility_outlined,
+                                              ? IconlyLight.hide
+                                              : IconlyLight.show,
                                           color: Colors.grey[600],
                                           size: 22,
                                         ),

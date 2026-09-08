@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -45,14 +46,14 @@ class _ServicesGridMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = <_Svc>[
-      _Svc('Rekam Medis', Icons.folder_shared),
-      _Svc('Tanda Vital', Icons.monitor_heart),
-      _Svc('SOAP Notes', Icons.description),
-      _Svc('Perawatan Luka', Icons.healing),
-      _Svc('Care Plan', Icons.checklist),
-      _Svc('Obat & Reminder', Icons.medication),
-      _Svc('Hasil Lab/Radio', Icons.science),
-      _Svc.more('More', Icons.apps),
+      _Svc('Rekam Medis', IconlyLight.folder),
+      _Svc('Tanda Vital', IconlyLight.activity),
+      _Svc('SOAP Notes', IconlyLight.document),
+      _Svc('Perawatan Luka', IconlyLight.shieldDone),
+      _Svc('Care Plan', IconlyLight.tickSquare),
+      _Svc('Obat & Reminder', IconlyLight.timeCircle),
+      _Svc('Hasil Lab/Radio', IconlyLight.discovery),
+      _Svc.more('More', IconlyLight.category),
     ];
 
     return Container(
@@ -91,6 +92,19 @@ class _Svc {
   _Svc(this.title, this.icon) : isMore = false;
   _Svc.more(this.title, this.icon) : isMore = true;
 }
+
+class HealthTip {
+  final String image;
+  final String title;
+  final String category;
+
+  HealthTip({
+    required this.image,
+    required this.title,
+    required this.category,
+  });
+}
+
 
 class _SvcItem extends StatelessWidget {
   final _Svc item;
@@ -166,7 +180,7 @@ class _MenuGroup extends StatelessWidget {
               (e) => ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.chevron_right),
+                leading: const Icon(IconlyLight.arrowRight2, size: 18),
                 title: Text(e),
                 onTap: () {
                   ScaffoldMessenger.of(
@@ -257,20 +271,17 @@ class _SettingsGroup extends StatelessWidget {
               dense: true,
               contentPadding: EdgeInsets.zero,
               leading: const Icon(
-                Icons.privacy_tip_outlined,
+                IconlyLight.shieldDone,
                 color: Color(0xFF088088),
               ),
               title: const Text('Kebijakan Privasi (Privacy Policy)'),
-              trailing: const Icon(Icons.open_in_new, size: 16),
+              trailing: const Icon(IconlyLight.arrowRight2, size: 16),
               onTap: _openPrivacyPolicy,
             ),
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(
-                Icons.delete_forever_outlined,
-                color: Colors.red,
-              ),
+              leading: const Icon(IconlyLight.delete, color: Colors.red),
               title: const Text(
                 'Hapus Akun',
                 style: TextStyle(

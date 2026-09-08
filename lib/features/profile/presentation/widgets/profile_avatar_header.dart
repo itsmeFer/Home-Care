@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class ProfileAvatarHeader extends StatelessWidget {
   final String nama;
@@ -177,19 +178,18 @@ class ProfileAvatarHeader extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: isUploadingFoto
-                        ? const SizedBox(
-                          width: 15,
-                          height: 15,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                        : const Icon(
-                          Icons.camera_alt_rounded,
-                          size: 16,
-                          color: _primary,
-                        ),
+                    child:
+                        isUploadingFoto
+                            ? const SizedBox(
+                              width: 15,
+                              height: 15,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Icon(
+                              IconlyLight.camera,
+                              size: 16,
+                              color: _primary,
+                            ),
                   ),
                 ),
               ),
@@ -211,20 +211,7 @@ class ProfileAvatarHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'No. Rekam Medis: $noRm',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13.5,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Lengkapi data profil Anda dengan informasi terbaru.',
-                  style: TextStyle(color: Colors.white70, fontSize: 12.8),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Gunakan foto JPG/PNG dengan ukuran maksimal 2 MB.',
-                  style: TextStyle(color: Colors.white70, fontSize: 11.8),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13.5),
                 ),
               ],
             ),

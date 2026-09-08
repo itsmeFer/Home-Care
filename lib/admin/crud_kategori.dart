@@ -1,4 +1,4 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -8,8 +8,8 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/admin/widgets/color_slider_picker.dart';
 
 class CrudKategoriPage extends StatefulWidget {
   const CrudKategoriPage({super.key});
@@ -1279,18 +1279,13 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                TextFormField(
-                  controller: _warnaC,
-                  decoration: const InputDecoration(
-                    labelText: 'Warna Hex',
-                    hintText: '#3B82F6',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return null;
-                    final ok = RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(v.trim());
-                    if (!ok) return 'Format warna harus seperti #3B82F6';
-                    return null;
+                ColorSliderPicker(
+                  initialHex:
+                      _warnaC.text.trim().isNotEmpty
+                          ? _warnaC.text.trim()
+                          : '#3B82F6',
+                  onColorChanged: (newHex) {
+                    _warnaC.text = newHex;
                   },
                 ),
                 const SizedBox(height: 10),

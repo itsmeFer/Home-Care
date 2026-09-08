@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
@@ -169,9 +170,9 @@ class _TopLocationBarState extends State<TopLocationBar> {
                       )
                       : CircleAvatar(
                         radius: 18,
-                        backgroundColor: HCColor.primary.withOpacity(0.12),
+                        backgroundColor: HCColor.primary.withValues(alpha: 0.12),
                         child: const Icon(
-                          Icons.person_outline,
+                          IconlyLight.profile,
                           color: HCColor.primary,
                           size: 18,
                         ),
@@ -204,7 +205,7 @@ class _TopLocationBarState extends State<TopLocationBar> {
                     Row(
                       children: [
                         const Icon(
-                          Icons.location_on,
+                          IconlyLight.location,
                           color: HCColor.primary,
                           size: 14,
                         ),
@@ -258,7 +259,7 @@ class _TopLocationBarState extends State<TopLocationBar> {
                     ],
                   ),
                   child: const Icon(
-                    Icons.notifications_outlined,
+                    IconlyLight.notification,
                     color: Colors.black87,
                     size: 20,
                   ),

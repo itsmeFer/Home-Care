@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/screen/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -169,26 +170,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // 3. Top Header (Logo + Lewati Button)
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
                     'assets/images/home_nobg.png',
-                    height: 28,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    height: 90,
+                    fit: BoxFit.contain,
                   ),
                   TextButton(
                     onPressed: _finishOnboarding,
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.white.withValues(alpha: 0.85),
-                      backgroundColor: Colors.black.withValues(alpha: 0.3),
+                      foregroundColor: Colors.white.withValues(alpha: 0.9),
+                      backgroundColor: Colors.black.withValues(alpha: 0.35),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 6,
+                        horizontal: 16,
+                        vertical: 8,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(18),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
                       ),
                     ),
                     child: const Text(
@@ -196,7 +201,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -325,7 +330,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                               const SizedBox(width: 6),
                               const Icon(
-                                Icons.arrow_forward_rounded,
+                                IconlyLight.arrowRight2,
                                 size: 16,
                                 color: Colors.white,
                               ),
