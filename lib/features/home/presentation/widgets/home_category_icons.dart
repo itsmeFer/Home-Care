@@ -1,18 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/services_catalog/domain/service_model.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:home_care/users/layanan_page.dart';
-import 'package:home_care/users/notifikasi_page.dart';
-import 'package:home_care/users/profile.dart';
-import 'package:home_care/users/search_page.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
@@ -63,39 +53,27 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
                   const Expanded(
                     child: Text(
                       'Layanan untuk Anda',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF2E2323),
-                        height: 1.1,
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamilyFallback: ['Jakarta Sans', 'Poppins'],
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.2,
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PilihLayananPage(),
-                        ),
-                      );
+                  TextButton(
+                    onPressed: () {
+                      HomePage.switchTab(context, 1);
                     },
-                    child: TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Fitur lihat semua tips akan segera hadir',
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Lihat semua',
-                        style: TextStyle(
-                          color: Color(0xFF0BA5A7),
-                          fontWeight: FontWeight.w600,
-                        ),
+                    child: const Text(
+                      'Lihat semua',
+                      style: TextStyle(
+                        color: Color(0xFF0BA5A7),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -205,8 +183,6 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconData = KategoriLayananService.mapKategoriToIcon(category);
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -223,9 +199,17 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
             Container(
               width: 74,
               height: 74,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFF1E6E6),
+                color: const Color(0xFFE0F7F7),
+                border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: ClipOval(
                 child:
@@ -235,21 +219,21 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
                           imageUrl: category.gambarUrl!,
                           fit: BoxFit.cover,
                           errorWidget: Container(
-                            color: const Color(0xFFF1E6E6),
+                            color: const Color(0xFFE0F7F7),
                             alignment: Alignment.center,
-                            child: Icon(
-                              iconData,
-                              color: const Color(0xFF9C7B7B),
+                            child: const Icon(
+                              IconlyLight.activity,
+                              color: Color(0xFF0BA5A7),
                               size: 30,
                             ),
                           ),
                         )
                         : Container(
-                          color: const Color(0xFFF1E6E6),
+                          color: const Color(0xFFE0F7F7),
                           alignment: Alignment.center,
-                          child: Icon(
-                            iconData,
-                            color: const Color(0xFF9C7B7B),
+                          child: const Icon(
+                            IconlyLight.activity,
+                            color: Color(0xFF0BA5A7),
                             size: 30,
                           ),
                         ),

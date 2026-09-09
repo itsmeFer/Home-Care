@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/users/home_page.dart';
-import 'package:home_care/users/layanan_page.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/utils/app_cached_image.dart';
@@ -62,13 +61,18 @@ class _SquareBannerSectionState extends State<SquareBannerSection> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: screenWidth > 600
-                                ? 20
-                                : (screenWidth < 360 ? 15.5 : 17.0),
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontFamilyFallback: const [
+                              'Jakarta Sans',
+                              'Poppins',
+                            ],
+                            fontSize:
+                                screenWidth > 600
+                                    ? 19.0
+                                    : (screenWidth < 360 ? 14.5 : 16.0),
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF0F172A),
-                            letterSpacing: -0.3,
+                            letterSpacing: -0.2,
                           ),
                         ),
                       ),
@@ -77,12 +81,7 @@ class _SquareBannerSectionState extends State<SquareBannerSection> {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const PilihLayananPage(),
-                              ),
-                            );
+                            HomePage.switchTab(context, 1);
                           },
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(
@@ -362,9 +361,22 @@ class _SquareBannerCard extends StatelessWidget {
 
   Widget _fallbackImage() {
     return Container(
-      color: Colors.grey.shade200,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFE0F7F7),
+            AppColors.primary.withValues(alpha: 0.15),
+          ],
+        ),
+      ),
       alignment: Alignment.center,
-      child: const Icon(IconlyLight.image, size: 34, color: Colors.grey),
+      child: Icon(
+        IconlyLight.activity,
+        size: 36,
+        color: AppColors.primary.withValues(alpha: 0.45),
+      ),
     );
   }
 }
@@ -377,19 +389,14 @@ class _SquareBannerLoading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Pilihan favorit untuk Anda',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
-              letterSpacing: -0.3,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              AppSkeleton(width: 170, height: 18, borderRadius: 6),
+              AppSkeleton(width: 70, height: 14, borderRadius: 4),
+            ],
           ),
         ),
         const SizedBox(height: 16),
@@ -400,12 +407,7 @@ class _SquareBannerLoading extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder:
-                (_, __) => const AppSkeleton(
-                  width: 160,
-                  height: 330,
-                  borderRadius: 20,
-                ),
+            itemBuilder: (_, __) => const _SquareBannerSkeletonCard(),
           ),
         ),
       ],
@@ -413,3 +415,56 @@ class _SquareBannerLoading extends StatelessWidget {
   }
 }
 
+class _SquareBannerSkeletonCard extends StatelessWidget {
+  const _SquareBannerSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 165,
+      height: 330,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.04),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Image Skeleton
+          const AppSkeleton(
+            width: double.infinity,
+            height: 155,
+            borderRadius: 20,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                AppSkeleton(width: 65, height: 16, borderRadius: 99),
+                SizedBox(height: 10),
+                AppSkeleton(width: double.infinity, height: 14, borderRadius: 4),
+                SizedBox(height: 6),
+                AppSkeleton(width: 100, height: 11, borderRadius: 4),
+                SizedBox(height: 12),
+                AppSkeleton(width: 85, height: 16, borderRadius: 4),
+                SizedBox(height: 4),
+                AppSkeleton(width: 55, height: 11, borderRadius: 4),
+                SizedBox(height: 12),
+                AppSkeleton(width: double.infinity, height: 20, borderRadius: 6),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

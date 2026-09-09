@@ -11,37 +11,43 @@ class HealthTipsCarousel extends StatelessWidget {
       _HealthTip(
         icon: IconlyLight.heart,
         title: 'Cukupi air putih',
-        description: 'Minum air yang cukup bantu tubuh tetap segar dan tidak mudah lelah.',
+        description:
+            'Minum air yang cukup bantu tubuh tetap segar dan tidak mudah lelah.',
         color: Colors.blue.shade400,
       ),
       _HealthTip(
         icon: IconlyLight.activity,
         title: 'Bergerak tiap hari',
-        description: 'Aktivitas ringan 30 menit sehari bisa bantu tubuh tetap bugar.',
+        description:
+            'Aktivitas ringan 30 menit sehari bisa bantu tubuh tetap bugar.',
         color: Colors.green.shade400,
       ),
       _HealthTip(
         icon: IconlyLight.buy,
         title: 'Makan lebih seimbang',
-        description: 'Sayur, buah, dan makanan bergizi bantu tubuh pulih dan tetap kuat.',
+        description:
+            'Sayur, buah, dan makanan bergizi bantu tubuh pulih dan tetap kuat.',
         color: Colors.orange.shade400,
       ),
       _HealthTip(
         icon: IconlyLight.timeCircle,
         title: 'Istirahat yang cukup',
-        description: 'Tidur yang cukup bantu tubuh lebih cepat pulih dan pikiran lebih tenang.',
+        description:
+            'Tidur yang cukup bantu tubuh lebih cepat pulih dan pikiran lebih tenang.',
         color: Colors.purple.shade400,
       ),
       _HealthTip(
         icon: IconlyLight.shieldDone,
         title: 'Jaga pikiran tetap tenang',
-        description: 'Luangkan waktu sebentar untuk relaksasi agar tubuh dan hati lebih nyaman.',
+        description:
+            'Luangkan waktu sebentar untuk relaksasi agar tubuh dan hati lebih nyaman.',
         color: Colors.teal.shade400,
       ),
       _HealthTip(
         icon: IconlyLight.star,
         title: 'Jaga kebersihan diri',
-        description: 'Kebiasaan kecil seperti cuci tangan rutin sangat berarti untuk kesehatan.',
+        description:
+            'Kebiasaan kecil seperti cuci tangan rutin sangat berarti untuk kesehatan.',
         color: Colors.cyan.shade400,
       ),
     ];
@@ -76,11 +82,12 @@ class HealthTipsCarousel extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 17,
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamilyFallback: ['Jakarta Sans', 'Poppins'],
+                        fontSize: 16.0,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF0F172A),
-                        letterSpacing: -0.3,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     SizedBox(height: 2),
@@ -108,13 +115,13 @@ class HealthTipsCarousel extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: tips.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 16),
-              itemBuilder: (_, i) => _HealthTipCard(tip: tips[i]),
-            ),
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (_, i) => _HealthTipCard(tip: tips[i]),
           ),
-        ],
-      );
-    }
+        ),
+      ],
+    );
+  }
 }
 
 class _HealthTip {
@@ -197,4 +204,3 @@ class _HealthTipCard extends StatelessWidget {
     );
   }
 }
-

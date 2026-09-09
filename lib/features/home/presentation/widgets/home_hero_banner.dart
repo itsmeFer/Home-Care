@@ -219,4 +219,3 @@ class _HeroImageBannerState extends State<HeroImageBanner> {
     );
   }
 }
-

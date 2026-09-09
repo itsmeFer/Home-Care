@@ -3,7 +3,6 @@ import 'package:home_care/features/chat/presentation/screens/chat_room_page.dart
 import 'package:home_care/chat/chat_models.dart';
 import 'package:home_care/chat/chat_unread_counter.dart';
 import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
 class PasienChatListPage extends StatefulWidget {
@@ -171,7 +170,7 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -435,6 +434,7 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: false,
+        automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFFF8FAFC),
         surfaceTintColor: Colors.transparent,
         title: const Text(

@@ -109,12 +109,21 @@ class AppCachedImage extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: backgroundColor ?? const Color(0xFFF2F4F7),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            backgroundColor ?? const Color(0xFFF1F8F8),
+            const Color(0xFFE2F3F3),
+          ],
+        ),
+      ),
       alignment: Alignment.center,
-      child: const Icon(
+      child: Icon(
         IconlyLight.image,
-        color: Colors.black26,
-        size: 28,
+        color: const Color(0xFF0BA5A7).withValues(alpha: 0.35),
+        size: (height != null && height! < 60) ? 20 : 28,
       ),
     );
   }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/users/home_page.dart';
-import 'package:home_care/users/layanan_page.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
@@ -60,14 +59,14 @@ class _LandscapeBannerSectionState extends State<LandscapeBannerSection> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize:
-                                screenWidth > 600
-                                    ? 20
-                                    : (screenWidth < 360 ? 15.5 : 17.0),
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontFamilyFallback: const ['Jakarta Sans', 'Poppins'],
+                            fontSize: screenWidth > 600
+                                ? 19.0
+                                : (screenWidth < 360 ? 14.5 : 16.0),
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF0F172A),
-                            letterSpacing: -0.3,
+                            letterSpacing: -0.2,
                           ),
                         ),
                       ),
@@ -76,12 +75,7 @@ class _LandscapeBannerSectionState extends State<LandscapeBannerSection> {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const PilihLayananPage(),
-                              ),
-                            );
+                            HomePage.switchTab(context, 1);
                           },
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(
@@ -209,9 +203,22 @@ class _LandscapeBannerCard extends StatelessWidget {
 
   Widget _fallback() {
     return Container(
-      color: Colors.grey.shade300,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0BA5A7),
+            Color(0xFF075E64),
+          ],
+        ),
+      ),
       alignment: Alignment.center,
-      child: const Icon(IconlyLight.image, color: Colors.grey, size: 36),
+      child: Icon(
+        IconlyLight.activity,
+        color: Colors.white.withValues(alpha: 0.25),
+        size: 48,
+      ),
     );
   }
 }
@@ -224,19 +231,14 @@ class _LandscapeBannerLoading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Paket perawatan pilihan',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
-              letterSpacing: -0.3,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              AppSkeleton(width: 175, height: 18, borderRadius: 6),
+              AppSkeleton(width: 70, height: 14, borderRadius: 4),
+            ],
           ),
         ),
         const SizedBox(height: 16),
@@ -247,15 +249,59 @@ class _LandscapeBannerLoading extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder:
-                (_, __) => const AppSkeleton(
-                  width: 280,
-                  height: 170,
-                  borderRadius: 16,
-                ),
+            itemBuilder: (_, __) => const _LandscapeBannerSkeletonCard(),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LandscapeBannerSkeletonCard extends StatelessWidget {
+  const _LandscapeBannerSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 280,
+      height: 170,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.04),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            const AppSkeleton(
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: 16,
+            ),
+            Positioned(
+              left: 16,
+              right: 24,
+              bottom: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  AppSkeleton(width: 160, height: 16, borderRadius: 4),
+                  SizedBox(height: 6),
+                  AppSkeleton(width: 100, height: 12, borderRadius: 4),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

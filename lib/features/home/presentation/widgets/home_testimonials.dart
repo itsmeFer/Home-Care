@@ -57,11 +57,12 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 17,
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontFamilyFallback: ['Jakarta Sans', 'Poppins'],
+                              fontSize: 16.0,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF0F172A),
-                              letterSpacing: -0.3,
+                              letterSpacing: -0.2,
                             ),
                           ),
                         ),
@@ -135,20 +136,13 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
-            children: [
-              Icon(IconlyLight.chat, color: Color(0xFF0BA5A7), size: 24),
-              SizedBox(width: 8),
-              Text(
-                'Cerita hangat dari pasien',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              AppSkeleton(width: 190, height: 18, borderRadius: 6),
+              AppSkeleton(width: 70, height: 14, borderRadius: 4),
             ],
           ),
         ),
@@ -160,15 +154,63 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
             scrollDirection: Axis.horizontal,
             itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder:
-                (_, __) => const AppSkeleton(
-                  width: 300,
-                  height: 180,
-                  borderRadius: 16,
-                ),
+            itemBuilder: (_, __) => const _TestimonialSkeletonCard(),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TestimonialSkeletonCard extends StatelessWidget {
+  const _TestimonialSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const AppSkeleton.circle(size: 44),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    AppSkeleton(width: 110, height: 14, borderRadius: 4),
+                    SizedBox(height: 6),
+                    AppSkeleton(width: 80, height: 12, borderRadius: 4),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const AppSkeleton(width: double.infinity, height: 12, borderRadius: 4),
+          const SizedBox(height: 6),
+          const AppSkeleton(width: double.infinity, height: 12, borderRadius: 4),
+          const SizedBox(height: 6),
+          const AppSkeleton(width: 180, height: 12, borderRadius: 4),
+          const Spacer(),
+          const AppSkeleton(width: 90, height: 20, borderRadius: 6),
+        ],
+      ),
     );
   }
 }

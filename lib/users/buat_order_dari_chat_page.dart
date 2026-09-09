@@ -84,108 +84,112 @@ class _BuatOrderDariChatPageState extends State<BuatOrderDariChatPage> {
     }
   }
 
- Future<void> _submitOrder() async {
-  if (_isSubmitting) return;
+  Future<void> _submitOrder() async {
+    if (_isSubmitting) return;
 
-  if (_selectedDate == null || _selectedTime == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pilih tanggal & jam kunjungan.')),
-    );
-    return;
-  }
-  if (_alamatController.text.trim().isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Alamat lengkap wajib diisi.')),
-    );
-    return;
-  }
-  if (_kondisiFile == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Foto kondisi pasien wajib diupload.')),
-    );
-    return;
-  }
-
-  setState(() => _isSubmitting = true);
-
-  try {
-    final token = await StorageService.getToken();
-
-    if (token == null) {
+    if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sesi login berakhir, silakan login ulang.')),
+        const SnackBar(content: Text('Pilih tanggal & jam kunjungan.')),
+      );
+      return;
+    }
+    if (_alamatController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Alamat lengkap wajib diisi.')),
+      );
+      return;
+    }
+    if (_kondisiFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto kondisi pasien wajib diupload.')),
       );
       return;
     }
 
-    final tanggalMulai =
-        "${_selectedDate!.year.toString().padLeft(4, '0')}-"
-        "${_selectedDate!.month.toString().padLeft(2, '0')}-"
-        "${_selectedDate!.day.toString().padLeft(2, '0')}";
+    setState(() => _isSubmitting = true);
 
-    final jamMulai =
-        "${_selectedTime!.hour.toString().padLeft(2, '0')}:"
-        "${_selectedTime!.minute.toString().padLeft(2, '0')}";
+    try {
+      final token = await StorageService.getToken();
 
-    final uri = Uri.parse('$kBaseUrl/pasien/order-layanan');
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesi login berakhir, silakan login ulang.'),
+          ),
+        );
+        return;
+      }
 
-final request = http.MultipartRequest('POST', uri)
-  ..headers['Accept'] = 'application/json'
-  ..headers['Authorization'] = 'Bearer $token'
-  ..fields['layanan_id'] = widget.layananId.toString()
-  ..fields['tanggal_mulai'] = tanggalMulai
-  ..fields['jam_mulai'] = jamMulai
-  ..fields['alamat_lengkap'] = _alamatController.text.trim()
-  ..fields['kecamatan'] = _kecamatanController.text.trim()
-  ..fields['kota'] = _kotaController.text.trim()
-  ..fields['catatan_pasien'] = _catatanController.text.trim()
-  ..fields['qty'] = '1'
-  ..fields['kesepakatan_harga'] = widget.kesepakatanHarga.toString()
-  ..fields['chat_room_id'] = widget.roomId.toString();
+      final tanggalMulai =
+          "${_selectedDate!.year.toString().padLeft(4, '0')}-"
+          "${_selectedDate!.month.toString().padLeft(2, '0')}-"
+          "${_selectedDate!.day.toString().padLeft(2, '0')}";
 
-    final bytes = await _kondisiFile!.readAsBytes();
-    final fileName = _kondisiFile!.name;
+      final jamMulai =
+          "${_selectedTime!.hour.toString().padLeft(2, '0')}:"
+          "${_selectedTime!.minute.toString().padLeft(2, '0')}";
 
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        'kondisi_pasien',
-        bytes,
-        filename: fileName,
-      ),
-    );
+      final uri = Uri.parse('$kBaseUrl/pasien/order-layanan');
 
-    final streamed = await request.send();
-    final res = await http.Response.fromStream(streamed);
+      final request =
+          http.MultipartRequest('POST', uri)
+            ..headers['Accept'] = 'application/json'
+            ..headers['Authorization'] = 'Bearer $token'
+            ..fields['layanan_id'] = widget.layananId.toString()
+            ..fields['tanggal_mulai'] = tanggalMulai
+            ..fields['jam_mulai'] = jamMulai
+            ..fields['alamat_lengkap'] = _alamatController.text.trim()
+            ..fields['kecamatan'] = _kecamatanController.text.trim()
+            ..fields['kota'] = _kotaController.text.trim()
+            ..fields['catatan_pasien'] = _catatanController.text.trim()
+            ..fields['qty'] = '1'
+            ..fields['kesepakatan_harga'] = widget.kesepakatanHarga.toString()
+            ..fields['chat_room_id'] = widget.roomId.toString();
 
-    if (res.statusCode == 201) {
-      final body = json.decode(res.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order berhasil dibuat')),
+      final bytes = await _kondisiFile!.readAsBytes();
+      final fileName = _kondisiFile!.name;
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'kondisi_pasien',
+          bytes,
+          filename: fileName,
+        ),
       );
-      Navigator.pop(context, body['data']);
-    } else if (res.statusCode == 422) {
-      final body = json.decode(res.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Validasi gagal: ${body['message'] ?? 'cek data'}')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal membuat order (${res.statusCode})')),
-      );
+
+      final streamed = await request.send();
+      final res = await http.Response.fromStream(streamed);
+
+      if (res.statusCode == 201) {
+        final body = json.decode(res.body);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Order berhasil dibuat')));
+        Navigator.pop(context, body['data']);
+      } else if (res.statusCode == 422) {
+        final body = json.decode(res.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Validasi gagal: ${body['message'] ?? 'cek data'}'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat order (${res.statusCode})')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Terjadi kesalahan: $e')),
-    );
-  } finally {
-    if (mounted) setState(() => _isSubmitting = false);
   }
-}
 
   @override
   Widget build(BuildContext context) {
-    final hargaDisplay =
-        "Rp ${widget.kesepakatanHarga.toString()}";
+    final hargaDisplay = "Rp ${widget.kesepakatanHarga.toString()}";
 
     return Scaffold(
       appBar: const PatientAppBar(title: 'Konfirmasi Order Layanan'),
@@ -195,7 +199,6 @@ final request = http.MultipartRequest('POST', uri)
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -343,13 +346,14 @@ final request = http.MultipartRequest('POST', uri)
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submitOrder,
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Buat Order Sekarang'),
+                  child:
+                      _isSubmitting
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Text('Buat Order Sekarang'),
                 ),
               ),
             ],

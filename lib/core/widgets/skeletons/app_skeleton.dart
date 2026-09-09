@@ -62,24 +62,14 @@ class AppSkeleton extends StatefulWidget {
 class _AppSkeletonState extends State<AppSkeleton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
-
-    // Palet warna shimmer: dari abu-abu slate muda ke abu-abu lembut
-    _colorAnimation = ColorTween(
-      begin: const Color(0xFFE2E8F0),
-      end: const Color(0xFFF1F5F9),
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
   }
 
   @override
@@ -91,19 +81,29 @@ class _AppSkeletonState extends State<AppSkeleton>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _colorAnimation,
+      animation: _controller,
       builder: (context, child) {
+        final double v = _controller.value;
         return Container(
           width: widget.width,
           height: widget.height,
           margin: widget.margin,
           padding: widget.padding,
           decoration: BoxDecoration(
-            color: _colorAnimation.value,
             shape: widget.shape,
             borderRadius: widget.shape == BoxShape.circle
                 ? null
                 : BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment(-2.2 + (v * 4.4), -0.2),
+              end: Alignment(-0.2 + (v * 4.4), 0.2),
+              colors: const [
+                Color(0xFFE2E8F0),
+                Color(0xFFF8FAFC),
+                Color(0xFFE2E8F0),
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
           ),
           child: widget.child,
         );

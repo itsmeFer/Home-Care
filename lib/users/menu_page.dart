@@ -98,13 +98,8 @@ class HealthTip {
   final String title;
   final String category;
 
-  HealthTip({
-    required this.image,
-    required this.title,
-    required this.category,
-  });
+  HealthTip({required this.image, required this.title, required this.category});
 }
-
 
 class _SvcItem extends StatelessWidget {
   final _Svc item;

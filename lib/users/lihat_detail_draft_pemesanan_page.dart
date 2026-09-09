@@ -510,11 +510,7 @@ class _LihatDetailDraftPemesananPageState
         children: [
           const Row(
             children: [
-              Icon(
-                IconlyLight.activity,
-                color: HCColors.primary,
-                size: 20,
-              ),
+              Icon(IconlyLight.activity, color: HCColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 'Layanan',
@@ -548,10 +544,7 @@ class _LihatDetailDraftPemesananPageState
                 'Durasi: ${_draft!['durasi_menit'] ?? '-'} menit',
                 IconlyLight.timeCircle,
               ),
-              _buildInfoChip(
-                'Qty: ${_draft!['qty'] ?? 1}',
-                IconlyLight.buy,
-              ),
+              _buildInfoChip('Qty: ${_draft!['qty'] ?? 1}', IconlyLight.buy),
               _buildInfoChip(
                 'Visit: ${_draft!['jumlah_visit'] ?? '-'}x',
                 IconlyLight.swap,
