@@ -9,7 +9,6 @@ import 'package:home_care/core/theme/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:home_care/utils/app_cached_image.dart';
-import 'package:home_care/admin/widgets/color_slider_picker.dart';
 
 class CrudKategoriPage extends StatefulWidget {
   const CrudKategoriPage({super.key});
@@ -1019,7 +1018,6 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
   late TextEditingController _namaC;
   late TextEditingController _slugC;
   late TextEditingController _deskripsiC;
-  late TextEditingController _iconC;
   late TextEditingController _warnaC;
   late TextEditingController _urutanC;
 
@@ -1028,6 +1026,7 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
   File? _selectedImageFile;
   Uint8List? _selectedImageBytes;
   String? _selectedImageName;
+  String? _imageError;
 
   @override
   void initState() {
@@ -1037,8 +1036,7 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
     _namaC = TextEditingController(text: item?.namaKategori ?? '');
     _slugC = TextEditingController(text: item?.slug ?? '');
     _deskripsiC = TextEditingController(text: item?.deskripsi ?? '');
-    _iconC = TextEditingController(text: item?.icon ?? '');
-    _warnaC = TextEditingController(text: item?.warna ?? '#3B82F6');
+    _warnaC = TextEditingController(text: item?.warna ?? '#0BA5A7');
     _urutanC = TextEditingController(
       text: item?.urutan != null ? item!.urutan.toString() : '0',
     );
@@ -1051,7 +1049,6 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
     _namaC.dispose();
     _slugC.dispose();
     _deskripsiC.dispose();
-    _iconC.dispose();
     _warnaC.dispose();
     _urutanC.dispose();
     super.dispose();
@@ -1084,12 +1081,14 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
           _selectedImageBytes = bytes;
           _selectedImageFile = null;
           _selectedImageName = picked.name;
+          _imageError = null;
         });
       } else {
         setState(() {
           _selectedImageFile = File(picked.path);
           _selectedImageBytes = null;
           _selectedImageName = picked.name;
+          _imageError = null;
         });
       }
     } catch (e) {
@@ -1108,6 +1107,9 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
       _selectedImageFile = null;
       _selectedImageBytes = null;
       _selectedImageName = null;
+      if (widget.item?.gambarUrl == null || widget.item!.gambarUrl!.isEmpty) {
+        _imageError = 'Gambar kategori wajib dipilih!';
+      }
     });
   }
 
@@ -1148,35 +1150,71 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
       );
     }
 
+    final hasError = _imageError != null;
+
     return Container(
       height: 130,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: hasError ? const Color(0xFFFEF2F2) : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: hasError ? Colors.red.shade400 : Colors.grey.shade300,
+          width: hasError ? 1.5 : 1.0,
+        ),
       ),
-      child: const Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.image_outlined, size: 36, color: Colors.grey),
-          SizedBox(height: 8),
-          Text('Belum ada gambar', style: TextStyle(color: Colors.grey)),
+          Icon(
+            Icons.image_outlined,
+            size: 36,
+            color: hasError ? Colors.red.shade400 : Colors.grey,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            hasError ? 'Belum ada gambar (Wajib Diisi)' : 'Belum ada gambar',
+            style: TextStyle(
+              color: hasError ? Colors.red.shade600 : Colors.grey,
+              fontWeight: hasError ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final hasImage = _selectedImageFile != null ||
+        _selectedImageBytes != null ||
+        (widget.item?.gambarUrl != null &&
+            widget.item!.gambarUrl!.trim().isNotEmpty);
+
+    if (!hasImage) {
+      setState(() {
+        _imageError = 'Gambar kategori wajib dipilih!';
+      });
+    }
+
+    if (!_formKey.currentState!.validate() || !hasImage) {
+      if (!hasImage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gambar kategori wajib diisi/dipilih!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
 
     final payload = <String, dynamic>{
       'nama_kategori': _namaC.text.trim(),
       'slug': _slugC.text.trim().isEmpty ? null : _slugC.text.trim(),
       'deskripsi':
           _deskripsiC.text.trim().isEmpty ? null : _deskripsiC.text.trim(),
-      'icon': _iconC.text.trim().isEmpty ? null : _iconC.text.trim(),
-      'warna': _warnaC.text.trim().isEmpty ? null : _warnaC.text.trim(),
+      'icon': widget.item?.icon,
+      'warna': _warnaC.text.trim().isEmpty ? '#0BA5A7' : _warnaC.text.trim(),
       'urutan': int.tryParse(_urutanC.text.trim()) ?? 0,
       'aktif': _aktif,
     };
@@ -1206,6 +1244,48 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Gambar Kategori',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      '*',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: const Text(
+                        'Wajib diisi',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 _buildImagePreview(),
                 const SizedBox(height: 10),
                 Row(
@@ -1232,6 +1312,27 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
                     ],
                   ],
                 ),
+                if (_imageError != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _imageError!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _namaC,
@@ -1267,25 +1368,6 @@ class _KategoriFormDialogState extends State<_KategoriFormDialog> {
                       }
                     }
                     return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _iconC,
-                  decoration: const InputDecoration(
-                    labelText: 'Icon Opsional',
-                    hintText: 'contoh: medical_services',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ColorSliderPicker(
-                  initialHex:
-                      _warnaC.text.trim().isNotEmpty
-                          ? _warnaC.text.trim()
-                          : '#3B82F6',
-                  onColorChanged: (newHex) {
-                    _warnaC.text = newHex;
                   },
                 ),
                 const SizedBox(height: 10),

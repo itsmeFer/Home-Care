@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/users/home_page.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
@@ -58,13 +59,14 @@ class _PromoFullWidthSectionState extends State<PromoFullWidthSection> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: 'Poppins',
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontFamilyFallback: const ['Jakarta Sans', 'Poppins'],
                             fontSize: screenWidth > 600
-                                ? 20
-                                : (screenWidth < 360 ? 15.5 : 17.0),
+                                ? 19.0
+                                : (screenWidth < 360 ? 14.5 : 16.0),
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF0F172A),
-                            letterSpacing: -0.3,
+                            letterSpacing: -0.2,
                           ),
                         ),
                       ),
@@ -296,9 +298,22 @@ class _PromoFullWidthCard extends StatelessWidget {
     return Container(
       width: 120,
       height: 120,
-      color: Colors.grey.shade200,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFE0F7F7),
+            AppColors.primary.withValues(alpha: 0.15),
+          ],
+        ),
+      ),
       alignment: Alignment.center,
-      child: const Icon(IconlyLight.image, color: Colors.grey),
+      child: Icon(
+        IconlyLight.discount,
+        color: AppColors.primary.withValues(alpha: 0.45),
+        size: 32,
+      ),
     );
   }
 }
@@ -311,19 +326,14 @@ class _PromoFullWidthLoading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Promo spesial untuk Anda',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
-              letterSpacing: -0.3,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              AppSkeleton(width: 180, height: 18, borderRadius: 6),
+              AppSkeleton(width: 70, height: 14, borderRadius: 4),
+            ],
           ),
         ),
         const SizedBox(height: 14),
@@ -334,15 +344,72 @@ class _PromoFullWidthLoading extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: 2,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder:
-                (_, __) => const AppSkeleton(
-                  width: 320,
-                  height: 130,
-                  borderRadius: 12,
-                ),
+            itemBuilder: (_, __) => const _PromoFullWidthSkeletonCard(),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PromoFullWidthSkeletonCard extends StatelessWidget {
+  const _PromoFullWidthSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 320,
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Left thumbnail skeleton
+          const AppSkeleton(
+            width: 120,
+            height: 120,
+            borderRadius: 14,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      AppSkeleton(width: 75, height: 10, borderRadius: 4),
+                      SizedBox(height: 8),
+                      AppSkeleton(width: double.infinity, height: 14, borderRadius: 4),
+                      SizedBox(height: 6),
+                      AppSkeleton(width: 110, height: 11, borderRadius: 4),
+                    ],
+                  ),
+                  Row(
+                    children: const [
+                      AppSkeleton(width: 70, height: 16, borderRadius: 4),
+                      SizedBox(width: 8),
+                      AppSkeleton(width: 50, height: 12, borderRadius: 4),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

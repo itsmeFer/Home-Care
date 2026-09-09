@@ -6,7 +6,7 @@ class ColorSliderPicker extends StatefulWidget {
 
   const ColorSliderPicker({
     super.key,
-    this.initialHex = '#3B82F6',
+    this.initialHex = '#0BA5A7',
     required this.onColorChanged,
   });
 
@@ -62,7 +62,7 @@ class _ColorSliderPickerState extends State<ColorSliderPicker> {
 
   static Color _parseHexColor(
     String? hexString, {
-    Color defaultColor = const Color(0xFF3B82F6),
+    Color defaultColor = const Color(0xFF0BA5A7),
   }) {
     if (hexString == null || hexString.trim().isEmpty) return defaultColor;
     try {
