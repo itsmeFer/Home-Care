@@ -1,16 +1,10 @@
-import 'dart:convert';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:intl/intl.dart';
-
 import 'package:flutter/material.dart';
-import 'package:home_care/features/chat/presentation/screens/chat_room_page.dart';
 import 'package:home_care/chat/chat_models.dart';
 import 'package:home_care/chat/chat_unread_counter.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
-String get kBaseUrl => ApiConstants.apiBase;
+import 'package:home_care/chat/services/chat_service.dart';
+import 'package:home_care/chat/widgets/chat_room_tile.dart';
+import 'package:home_care/chat/widgets/chat_state_views.dart';
+import 'package:home_care/features/chat/presentation/screens/chat_room_page.dart';
 
 class KoordinatorChatListPage extends StatefulWidget {
   const KoordinatorChatListPage({super.key});
@@ -21,14 +15,23 @@ class KoordinatorChatListPage extends StatefulWidget {
 }
 
 class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
+  final TextEditingController _searchC = TextEditingController();
   bool _isLoading = true;
   String? _error;
-  List<ChatRoom> _rooms = [];
+  List<ChatRoom> _allRooms = [];
+  List<ChatRoom> _filteredRooms = [];
 
   @override
   void initState() {
     super.initState();
     _loadRooms();
+    _searchC.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchC.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRooms() async {
@@ -38,47 +41,9 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
     });
 
     try {
-      final token = await StorageService.getToken();
+      final rooms = await ChatService.fetchKoordinatorChatRooms();
 
-      if (token == null) {
-        setState(() {
-          _isLoading = false;
-          _error = 'Sesi login berakhir, silakan login ulang.';
-        });
-        return;
-      }
-
-      final res = await http.get(
-        Uri.parse('$kBaseUrl/koordinator/chat-rooms'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (res.statusCode != 200) {
-        setState(() {
-          _isLoading = false;
-          _error =
-              'Gagal memuat daftar chat (${res.statusCode} ${res.reasonPhrase})';
-        });
-        return;
-      }
-
-      final body = json.decode(res.body) as Map<String, dynamic>;
-      if (body['success'] != true) {
-        setState(() {
-          _isLoading = false;
-          _error = body['message']?.toString() ?? 'Gagal memuat chat.';
-        });
-        return;
-      }
-
-      final List data = body['data'] as List;
-      final rooms =
-          data
-              .map((e) => ChatRoom.fromJson(e as Map<String, dynamic>))
-              .toList();
+      if (!mounted) return;
 
       final totalUnread = rooms.fold<int>(
         0,
@@ -87,154 +52,142 @@ class _KoordinatorChatListPageState extends State<KoordinatorChatListPage> {
       ChatUnreadCounter.setTotal(totalUnread);
 
       setState(() {
-        _rooms = rooms;
+        _allRooms = rooms;
         _isLoading = false;
       });
+      _onSearchChanged();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = 'Terjadi kesalahan: $e';
+        _error = e.toString().replaceFirst('Exception: ', '');
       });
     }
   }
 
-  Widget _buildUnreadBadge(int unreadCount) {
-    if (unreadCount <= 0) return const SizedBox.shrink();
-
-    final text = unreadCount > 99 ? '99+' : unreadCount.toString();
-
-    return Container(
-      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoomTile(ChatRoom room) {
-    final isUnread = room.unreadCount > 0;
-    final title =
-        room.pasienName?.isNotEmpty == true
-            ? room.pasienName!
-            : (room.title.isNotEmpty ? room.title : 'Chat Pasien');
-
-    return ListTile(
-      leading: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const CircleAvatar(child: Icon(Icons.person)),
-          if (isUnread)
-            Positioned(
-              top: -2,
-              right: -2,
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-        ],
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
-        ),
-      ),
-      subtitle:
-          room.lastMessage.isNotEmpty
-              ? Text(
-                room.lastMessage,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
-                  color: isUnread ? Colors.black87 : Colors.grey[700],
-                ),
-              )
-              : const Text('Belum ada pesan', style: TextStyle(fontSize: 12)),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (room.lastTime != null)
-            Text(
-              DateFormat('dd MMM HH:mm').format(room.lastTime!),
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontSize: 11,
-                color: isUnread ? Colors.blue : Colors.grey,
-                fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          const SizedBox(height: 6),
-          _buildUnreadBadge(room.unreadCount),
-        ],
-      ),
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (_) => ChatRoomPage(
-                  roomId: room.id,
-                  roomTitle: title,
-                  role: 'koordinator',
-                ),
-          ),
-        );
-
-        _loadRooms();
-      },
-    );
+  void _onSearchChanged() {
+    final query = _searchC.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      setState(() => _filteredRooms = _allRooms);
+    } else {
+      setState(() {
+        _filteredRooms = _allRooms.where((r) {
+          final titleMatch =
+              r.displayTitle('koordinator').toLowerCase().contains(query);
+          final msgMatch = r.lastMessage.toLowerCase().contains(query);
+          final pasienMatch =
+              r.pasienName?.toLowerCase().contains(query) ?? false;
+          return titleMatch || msgMatch || pasienMatch;
+        }).toList();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat dengan Pasien')),
-      body: RefreshIndicator(
-        onRefresh: _loadRooms,
-        child:
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                ? ListView(
-                  children: [
-                    const SizedBox(height: 120),
-                    Center(child: Text(_error!)),
-                  ],
-                )
-                : _rooms.isEmpty
-                ? ListView(
-                  children: const [
-                    SizedBox(height: 120),
-                    Center(child: Text('Belum ada chat.')),
-                  ],
-                )
-                : ListView.separated(
-                  itemCount: _rooms.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final room = _rooms[index];
-                    return _buildRoomTile(room);
-                  },
-                ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('Chat dengan Pasien'),
+        backgroundColor: const Color(0xFFF8FAFC),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
       ),
+      body: Column(
+        children: [
+          ChatSearchBar(
+            controller: _searchC,
+            hintText: 'Cari nama pasien atau pesan...',
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _loadRooms,
+              child: _buildBody(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.65,
+            child: ChatErrorStateView(
+              errorMessage: _error!,
+              onRetry: _loadRooms,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_allRooms.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.65,
+            child: const ChatEmptyStateView(
+              icon: Icons.chat_bubble_outline_rounded,
+              title: 'Belum ada chat',
+              subtitle: 'Percakapan dari pasien akan muncul di sini.',
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_filteredRooms.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.65,
+            child: const ChatEmptyStateView(
+              icon: Icons.search_off_rounded,
+              title: 'Tidak ditemukan',
+              subtitle: 'Tidak ada percakapan yang cocok dengan pencarian.',
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(top: 2, bottom: 20),
+      itemCount: _filteredRooms.length,
+      itemBuilder: (context, index) {
+        final room = _filteredRooms[index];
+        final title = room.displayTitle('koordinator');
+
+        return ChatRoomTile(
+          room: room,
+          currentRole: 'koordinator',
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatRoomPage(
+                  roomId: room.id,
+                  roomTitle: title,
+                  role: 'koordinator',
+                ),
+              ),
+            );
+            _loadRooms();
+          },
+        );
+      },
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 
 class ChatRoom {
   final int id;
@@ -8,6 +9,8 @@ class ChatRoom {
   final String? koordinatorName;
   final String? perawatName;
   final String? pasienName;
+  final String? layananName;
+  final String? status;
   final bool isPerawatChat;
   final int unreadCount;
 
@@ -19,26 +22,99 @@ class ChatRoom {
     this.koordinatorName,
     this.perawatName,
     this.pasienName,
+    this.layananName,
+    this.status,
     required this.isPerawatChat,
     required this.unreadCount,
   });
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
     return ChatRoom(
-      id: json['id'] as int,
+      id: (json['id'] is int)
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       title: (json['title'] ?? '').toString(),
       lastMessage: (json['last_message'] ?? '').toString(),
       lastTime: json['last_time'] != null
-          ? DateTime.tryParse(json['last_time'].toString())
+          ? DateTime.tryParse(json['last_time'].toString())?.toLocal()
           : null,
       koordinatorName: json['koordinator_name']?.toString(),
       perawatName: json['perawat_name']?.toString(),
       pasienName: json['pasien_name']?.toString(),
+      layananName: (json['layanan_name'] ?? json['layanan']?['nama_layanan'])
+          ?.toString(),
+      status: json['status']?.toString(),
       isPerawatChat: json['is_perawat_chat'] == true,
       unreadCount: (json['unread_count'] ?? 0) is int
           ? (json['unread_count'] ?? 0) as int
           : int.tryParse(json['unread_count'].toString()) ?? 0,
     );
+  }
+
+  String displayTitle(String currentRole) {
+    if (currentRole == 'perawat') {
+      if (pasienName != null && pasienName!.trim().isNotEmpty) {
+        return pasienName!;
+      }
+      if (title.trim().isNotEmpty) return title;
+      if (layananName != null && layananName!.trim().isNotEmpty) {
+        return layananName!;
+      }
+      return 'Chat Pasien';
+    } else if (currentRole == 'koordinator') {
+      if (pasienName != null && pasienName!.trim().isNotEmpty) {
+        return pasienName!;
+      }
+      if (title.trim().isNotEmpty) return title;
+      return 'Chat Pasien';
+    } else {
+      if (isPerawatChat) {
+        return perawatName != null && perawatName!.trim().isNotEmpty
+            ? 'Perawat $perawatName'
+            : 'Chat Perawat';
+      }
+      return koordinatorName != null && koordinatorName!.trim().isNotEmpty
+          ? koordinatorName!
+          : (title.trim().isNotEmpty ? title : 'Chat Layanan');
+    }
+  }
+
+  Color get statusColor {
+    switch (status?.toLowerCase()) {
+      case 'tawar':
+        return const Color(0xFFD97706);
+      case 'deal':
+        return const Color(0xFF16A34A);
+      case 'closed':
+      case 'selesai':
+        return const Color(0xFF64748B);
+      case 'orderan_berjalan':
+        return const Color(0xFF2563EB);
+      case 'dibatalkan':
+        return const Color(0xFFDC2626);
+      default:
+        return const Color(0xFF475569);
+    }
+  }
+
+  String get statusLabel {
+    switch (status?.toLowerCase()) {
+      case 'tawar':
+        return 'Sedang tawar';
+      case 'deal':
+        return 'Sudah deal';
+      case 'closed':
+      case 'selesai':
+        return 'Selesai';
+      case 'orderan_berjalan':
+        return 'Order berjalan';
+      case 'dibatalkan':
+        return 'Dibatalkan';
+      default:
+        return (status != null && status!.trim().isNotEmpty)
+            ? status!
+            : 'Chat aktif';
+    }
   }
 }
 
