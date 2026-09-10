@@ -7,14 +7,11 @@ import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/pesan_layanan.dart';
 import 'services/layanan_service.dart';
-import 'widgets/incomplete_profile_dialog.dart';
-import 'widgets/layanan_card.dart';
-import 'widgets/layanan_category_chips.dart';
+import 'widgets/widgets.dart';
 
 export 'package:home_care/features/services_catalog/domain/service_model.dart';
 export 'services/layanan_service.dart';
-export 'widgets/layanan_card.dart';
-export 'widgets/layanan_category_chips.dart';
+export 'widgets/widgets.dart';
 
 class PilihLayananPage extends StatefulWidget {
   final String? kategori;
@@ -24,6 +21,9 @@ class PilihLayananPage extends StatefulWidget {
   @override
   State<PilihLayananPage> createState() => _PilihLayananPageState();
 }
+
+/// Backward compatibility alias for universal naming
+typedef LayananPage = PilihLayananPage;
 
 class _PilihLayananPageState extends State<PilihLayananPage> {
   final LayananService _service = const LayananService();
@@ -94,11 +94,14 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     });
   }
 
-  Future<void> _fetchLayanan() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _fetchLayanan({bool isRefresh = false}) async {
+    // Only show full skeleton loader on cold start; do not blink on pull-to-refresh
+    if (!isRefresh && _layananList.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final list = await _service.fetchLayanan();
@@ -106,6 +109,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
       setState(() {
         _layananList = list;
         _isLoading = false;
+        _error = null;
       });
       _applyFilters();
     } catch (e) {
@@ -226,46 +230,77 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     }
 
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(IconlyLight.dangerCircle, size: 64, color: Colors.red.shade300),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red, fontSize: 14),
+      return RefreshIndicator(
+        onRefresh: () => _fetchLayanan(isRefresh: true),
+        color: HCColor.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.55,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(IconlyLight.dangerCircle, size: 64, color: Colors.red.shade300),
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => _fetchLayanan(isRefresh: true),
+                        icon: const Icon(IconlyLight.swap),
+                        label: const Text('Coba Lagi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HCColor.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _fetchLayanan,
-                icon: const Icon(IconlyLight.swap),
-                label: const Text('Coba Lagi'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
 
     if (_filteredList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return RefreshIndicator(
+        onRefresh: () => _fetchLayanan(isRefresh: true),
+        color: HCColor.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(IconlyLight.search, size: 80, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text(
-              _searchController.text.isNotEmpty
-                  ? 'Tidak ada layanan yang cocok'
-                  : 'Belum ada layanan tersedia',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.55,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(IconlyLight.search, size: 80, color: Colors.grey.shade300),
+                    const SizedBox(height: 16),
+                    Text(
+                      _searchController.text.isNotEmpty
+                          ? 'Tidak ada layanan yang cocok'
+                          : 'Belum ada layanan tersedia',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -274,9 +309,10 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
     }
 
     return RefreshIndicator(
-      onRefresh: _fetchLayanan,
+      onRefresh: () => _fetchLayanan(isRefresh: true),
       color: HCColor.primary,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: _filteredList.length,
         itemBuilder: (context, index) {

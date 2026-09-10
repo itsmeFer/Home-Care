@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 
 class LayananCard extends StatelessWidget {
@@ -228,48 +228,27 @@ class LayananCard extends StatelessWidget {
       );
     }
 
-    return ClipRRect(
+    return AppCachedImage(
+      imageUrl: layanan.gambarUrl!,
+      height: 180,
+      width: double.infinity,
+      fit: BoxFit.cover,
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(16),
         topRight: Radius.circular(16),
       ),
-      child: Image.network(
-        layanan.gambarUrl!,
+      errorWidget: Container(
         height: 180,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return Container(
-            height: 180,
-            decoration: const BoxDecoration(
-              color: HCColor.lightTeal,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-            ),
-            child: const Center(
-              child: Icon(IconlyLight.image, size: 64, color: HCColor.primary),
-            ),
-          );
-        },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            height: 180,
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-            ),
-            child: const AppSkeleton(
-              width: double.infinity,
-              height: double.infinity,
-              borderRadius: 16,
-            ),
-          );
-        },
+        decoration: const BoxDecoration(
+          color: HCColor.lightTeal,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: const Center(
+          child: Icon(IconlyLight.image, size: 64, color: HCColor.primary),
+        ),
       ),
     );
   }
