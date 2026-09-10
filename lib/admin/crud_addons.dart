@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
@@ -100,7 +100,9 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     setState(() => loadingCategoriesDropdown = true);
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/all");
-      final res = await http.get(uri, headers: await _authHeaders());
+      final res = await http
+          .get(uri, headers: await _authHeaders())
+          .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         setState(() {
@@ -109,6 +111,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
       } else {
         _toast("Gagal ambil kategori dropdown (${res.statusCode})");
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout. Periksa internet Anda.");
     } catch (e) {
       _toast("Error kategori dropdown: $e");
     } finally {
@@ -135,7 +139,9 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         "$baseUrl/admin/addons",
       ).replace(queryParameters: params);
 
-      final res = await http.get(uri, headers: await _authHeaders());
+      final res = await http
+          .get(uri, headers: await _authHeaders())
+          .timeout(const Duration(seconds: 15));
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
@@ -148,6 +154,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
       } else {
         _toast("Gagal ambil add-ons (${res.statusCode})");
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout. Periksa internet Anda.");
     } catch (e) {
       _toast("Error list add-ons: $e");
     } finally {
@@ -158,17 +166,21 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   Future<void> _toggleAddon(int id, bool newValue) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addons/$id/toggle");
-      final res = await http.patch(
-        uri,
-        headers: await _authHeaders(),
-        body: jsonEncode({"aktif": newValue}),
-      );
+      final res = await http
+          .patch(
+            uri,
+            headers: await _authHeaders(),
+            body: jsonEncode({"aktif": newValue}),
+          )
+          .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
         _toast("Status berhasil diubah");
         await _fetchAddons();
       } else {
         _toast("Gagal toggle (${res.statusCode})");
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat mengubah status.");
     } catch (e) {
       _toast("Error toggle: $e");
     }
@@ -177,13 +189,17 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   Future<void> _deleteAddon(int id) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addons/$id");
-      final res = await http.delete(uri, headers: await _authHeaders());
+      final res = await http
+          .delete(uri, headers: await _authHeaders())
+          .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
         _toast("Add-on dihapus");
         await _fetchAddons();
       } else {
         _toast("Gagal hapus (${res.statusCode})");
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat menghapus add-on.");
     } catch (e) {
       _toast("Error hapus: $e");
     }
@@ -204,7 +220,9 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
       final uri = Uri.parse(
         "$baseUrl/admin/addon-categories",
       ).replace(queryParameters: params);
-      final res = await http.get(uri, headers: await _authHeaders());
+      final res = await http
+          .get(uri, headers: await _authHeaders())
+          .timeout(const Duration(seconds: 15));
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
@@ -217,6 +235,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
       } else {
         _toast("Gagal ambil kategori (${res.statusCode})");
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat memuat kategori.");
     } catch (e) {
       _toast("Error list kategori: $e");
     } finally {
@@ -227,11 +247,13 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   Future<void> _createCategory(Map<String, dynamic> payload) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories");
-      final res = await http.post(
-        uri,
-        headers: await _authHeaders(),
-        body: jsonEncode(payload),
-      );
+      final res = await http
+          .post(
+            uri,
+            headers: await _authHeaders(),
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 15));
       final body = _safeJson(res.body);
 
       if (res.statusCode == 201 || res.statusCode == 200) {
@@ -245,6 +267,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           body?["message"]?.toString() ?? "Gagal create (${res.statusCode})",
         );
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat membuat kategori.");
     } catch (e) {
       _toast("Error create kategori: $e");
     }
@@ -253,11 +277,13 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   Future<void> _updateCategory(int id, Map<String, dynamic> payload) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/$id");
-      final res = await http.put(
-        uri,
-        headers: await _authHeaders(),
-        body: jsonEncode(payload),
-      );
+      final res = await http
+          .put(
+            uri,
+            headers: await _authHeaders(),
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 15));
       final body = _safeJson(res.body);
 
       if (res.statusCode == 200) {
@@ -268,6 +294,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           body?["message"]?.toString() ?? "Gagal update (${res.statusCode})",
         );
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat mengupdate kategori.");
     } catch (e) {
       _toast("Error update kategori: $e");
     }
@@ -276,7 +304,9 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   Future<void> _deleteCategory(int id) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/$id");
-      final res = await http.delete(uri, headers: await _authHeaders());
+      final res = await http
+          .delete(uri, headers: await _authHeaders())
+          .timeout(const Duration(seconds: 15));
       final body = _safeJson(res.body);
 
       if (res.statusCode == 200) {
@@ -290,6 +320,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           body?["message"]?.toString() ?? "Gagal hapus (${res.statusCode})",
         );
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat menghapus kategori.");
     } catch (e) {
       _toast("Error hapus kategori: $e");
     }
@@ -298,11 +330,13 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   Future<void> _toggleCategory(int id, bool newValue) async {
     try {
       final uri = Uri.parse("$baseUrl/admin/addon-categories/$id/toggle");
-      final res = await http.patch(
-        uri,
-        headers: await _authHeaders(),
-        body: jsonEncode({"is_active": newValue}),
-      );
+      final res = await http
+          .patch(
+            uri,
+            headers: await _authHeaders(),
+            body: jsonEncode({"is_active": newValue}),
+          )
+          .timeout(const Duration(seconds: 15));
       final body = _safeJson(res.body);
 
       if (res.statusCode == 200) {
@@ -313,6 +347,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           body?["message"]?.toString() ?? "Gagal toggle (${res.statusCode})",
         );
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat toggle kategori.");
     } catch (e) {
       _toast("Error toggle kategori: $e");
     }
@@ -326,11 +362,13 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         items.add({"id": catItems[i]["id"], "sort_order": i});
       }
 
-      final res = await http.post(
-        uri,
-        headers: await _authHeaders(),
-        body: jsonEncode({"items": items}),
-      );
+      final res = await http
+          .post(
+            uri,
+            headers: await _authHeaders(),
+            body: jsonEncode({"items": items}),
+          )
+          .timeout(const Duration(seconds: 15));
       final body = _safeJson(res.body);
 
       if (res.statusCode == 200) {
@@ -344,6 +382,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           body?["message"]?.toString() ?? "Gagal reorder (${res.statusCode})",
         );
       }
+    } on TimeoutException {
+      _toast("Koneksi timeout saat merapikan urutan kategori.");
     } catch (e) {
       _toast("Error reorder: $e");
     }
@@ -435,11 +475,12 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
       final headers = await _authHeaders(jsonContent: false);
       req.headers.addAll(headers);
 
-      final streamed = await req.send();
-      return http.Response.fromStream(streamed);
+      final streamed = await req.send().timeout(const Duration(seconds: 25));
+      return await http.Response.fromStream(streamed).timeout(const Duration(seconds: 25));
     }
 
-    await showModalBottomSheet(
+    try {
+      await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -687,6 +728,11 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         );
       },
     );
+    } finally {
+      namaCtrl.dispose();
+      deskCtrl.dispose();
+      hargaCtrl.dispose();
+    }
   }
 
   Future<void> _openCategoryForm({Map<String, dynamic>? item}) async {
@@ -703,7 +749,8 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
 
     final formKey = GlobalKey<FormState>();
 
-    await showModalBottomSheet(
+    try {
+      await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -821,6 +868,10 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         );
       },
     );
+    } finally {
+      nameCtrl.dispose();
+      descCtrl.dispose();
+    }
   }
 
   @override
@@ -1693,7 +1744,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
   }
 
   Widget _chip(String text, {Color? accent}) {
-    final bg = (accent ?? Colors.grey.shade200).withOpacity(0.15);
+    final bg = (accent ?? Colors.grey.shade200).withValues(alpha: 0.15);
     final fg = accent ?? Colors.grey.shade800;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1701,7 +1752,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         color: bg,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: (accent ?? Colors.grey.shade300).withOpacity(0.5),
+          color: (accent ?? Colors.grey.shade300).withValues(alpha: 0.5),
         ),
       ),
       child: Text(
