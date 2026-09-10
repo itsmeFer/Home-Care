@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:home_care/features/profile/presentation/widgets/profile_avatar_header.dart';
-import 'package:home_care/features/profile/presentation/widgets/profile_security_section.dart';
-import 'package:home_care/features/profile/presentation/widgets/profile_ui_components.dart';
+import 'profile_avatar_header.dart';
+import 'profile_security_section.dart';
+import 'profile_ui_components.dart';
 
 class ProfileViewMode extends StatelessWidget {
   final Map<String, dynamic>? user;

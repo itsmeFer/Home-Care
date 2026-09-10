@@ -1,6 +1,4 @@
-﻿import 'dart:typed_data';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
+﻿
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -140,7 +138,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            void _filterLayanan(String query) {
+            void filterLayanan(String query) {
               setDialogState(() {
                 if (query.isEmpty) {
                   filteredList = List.from(_layananList);
@@ -202,7 +200,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                   icon: const Icon(Icons.clear),
                                   onPressed: () {
                                     searchCtrl.clear();
-                                    _filterLayanan('');
+                                    filterLayanan('');
                                   },
                                 )
                                 : null,
@@ -217,7 +215,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                           vertical: 12,
                         ),
                       ),
-                      onChanged: _filterLayanan,
+                      onChanged: filterLayanan,
                     ),
                     const SizedBox(height: 16),
                     ListTile(
@@ -532,13 +530,13 @@ class _FormBannerPageState extends State<FormBannerPage> {
         Icon(
           Icons.add_photo_alternate_outlined,
           size: 44,
-          color: _AC.primary.withOpacity(.5),
+          color: _AC.primary.withValues(alpha: .5),
         ),
         const SizedBox(height: 8),
         Text(
           'Pilih Gambar Banner',
           style: TextStyle(
-            color: _AC.primary.withOpacity(.8),
+            color: _AC.primary.withValues(alpha: .8),
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -735,7 +733,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [Colors.black.withOpacity(.55), Colors.transparent],
+                colors: [Colors.black.withValues(alpha: .55), Colors.transparent],
               ),
             ),
           ),
@@ -973,7 +971,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: _AC.primary.withOpacity(.3),
+                              color: _AC.primary.withValues(alpha: .3),
                               width: 2,
                             ),
                           ),
@@ -1171,7 +1169,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                       decoration: BoxDecoration(
                                         color:
                                             _tipeCard == 'landscape'
-                                                ? _AC.primary.withOpacity(.2)
+                                                ? _AC.primary.withValues(alpha: .2)
                                                 : Colors.grey.shade200,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1262,7 +1260,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                       decoration: BoxDecoration(
                                         color:
                                             _tipeCard == 'square'
-                                                ? _AC.primary.withOpacity(.2)
+                                                ? _AC.primary.withValues(alpha: .2)
                                                 : Colors.grey.shade200,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1355,7 +1353,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                       decoration: BoxDecoration(
                                         color:
                                             _tipeCard == 'full_width'
-                                                ? _AC.primary.withOpacity(.2)
+                                                ? _AC.primary.withValues(alpha: .2)
                                                 : Colors.grey.shade200,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1455,7 +1453,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: _AC.primary.withOpacity(.3),
+                                color: _AC.primary.withValues(alpha: .3),
                                 width: 1.5,
                               ),
                             ),
@@ -1513,8 +1511,9 @@ class _FormBannerPageState extends State<FormBannerPage> {
                         validator: (v) {
                           if (v != null &&
                               v.isNotEmpty &&
-                              int.tryParse(v) == null)
+                              int.tryParse(v) == null) {
                             return 'Harus angka';
+                          }
                           return null;
                         },
                       ),
@@ -1551,53 +1550,50 @@ class _FormBannerPageState extends State<FormBannerPage> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey[300]!),
                         ),
-                        child: Column(
-                          children: [
-                            RadioListTile<String>(
-                              title: const Text('Tidak Ada Diskon'),
-                              subtitle: const Text(
-                                'Banner biasa tanpa promo',
-                                style: TextStyle(fontSize: 12),
+                        child: RadioGroup<String>(
+                          groupValue: _tipeDiskon,
+                          onChanged: (v) {
+                            if (v == null) return;
+                            setState(() {
+                              _tipeDiskon = v;
+                              if (v == 'none') {
+                                _nilaiDiskonCtrl.clear();
+                                _maxDiskonCtrl.clear();
+                                _minTransaksiCtrl.clear();
+                                _teksDiskonCtrl.clear();
+                              }
+                            });
+                          },
+                          child: Column(
+                            children: [
+                              RadioListTile<String>(
+                                title: const Text('Tidak Ada Diskon'),
+                                subtitle: const Text(
+                                  'Banner biasa tanpa promo',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                value: 'none',
                               ),
-                              value: 'none',
-                              groupValue: _tipeDiskon,
-                              activeColor: _AC.primary,
-                              onChanged:
-                                  (v) => setState(() {
-                                    _tipeDiskon = v!;
-                                    _nilaiDiskonCtrl.clear();
-                                    _maxDiskonCtrl.clear();
-                                    _minTransaksiCtrl.clear();
-                                    _teksDiskonCtrl.clear();
-                                  }),
-                            ),
-                            const Divider(height: 1),
-                            RadioListTile<String>(
-                              title: const Text('Diskon Nominal'),
-                              subtitle: const Text(
-                                'Potongan dalam rupiah (Rp 50.000)',
-                                style: TextStyle(fontSize: 12),
+                              const Divider(height: 1),
+                              RadioListTile<String>(
+                                title: const Text('Diskon Nominal'),
+                                subtitle: const Text(
+                                  'Potongan dalam rupiah (Rp 50.000)',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                value: 'nominal',
                               ),
-                              value: 'nominal',
-                              groupValue: _tipeDiskon,
-                              activeColor: _AC.primary,
-                              onChanged:
-                                  (v) => setState(() => _tipeDiskon = v!),
-                            ),
-                            const Divider(height: 1),
-                            RadioListTile<String>(
-                              title: const Text('Diskon Persentase'),
-                              subtitle: const Text(
-                                'Potongan dalam persen (20%)',
-                                style: TextStyle(fontSize: 12),
+                              const Divider(height: 1),
+                              RadioListTile<String>(
+                                title: const Text('Diskon Persentase'),
+                                subtitle: const Text(
+                                  'Potongan dalam persen (20%)',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                value: 'persen',
                               ),
-                              value: 'persen',
-                              groupValue: _tipeDiskon,
-                              activeColor: _AC.primary,
-                              onChanged:
-                                  (v) => setState(() => _tipeDiskon = v!),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
 
@@ -1619,14 +1615,17 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                   : [FilteringTextInputFormatter.digitsOnly],
                           onChanged: (_) => setState(() {}),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty)
+                            if (v == null || v.trim().isEmpty) {
                               return 'Nilai diskon wajib diisi';
+                            }
                             if (_tipeDiskon == 'nominal') {
-                              if (parseRupiah(v) == 0)
+                              if (parseRupiah(v) == 0) {
                                 return 'Nilai harus lebih dari 0';
+                              }
                             } else {
-                              if (double.tryParse(v) == null)
+                              if (double.tryParse(v) == null) {
                                 return 'Harus angka';
+                              }
                             }
                             return null;
                           },
@@ -1729,7 +1728,8 @@ class _FormBannerPageState extends State<FormBannerPage> {
                             ),
                           ),
                           value: _aktif,
-                          activeColor: _AC.primary,
+                          activeThumbColor: _AC.primary,
+                          activeTrackColor: _AC.primary.withValues(alpha: .5),
                           onChanged: (v) => setState(() => _aktif = v),
                         ),
                       ),
