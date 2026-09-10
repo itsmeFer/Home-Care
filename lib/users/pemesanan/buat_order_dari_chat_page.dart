@@ -1,5 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
 import 'package:home_care/users/pemesanan/services/booking_service.dart';
 import 'package:image_picker/image_picker.dart';
@@ -33,6 +35,7 @@ class _BuatOrderDariChatPageState extends State<BuatOrderDariChatPage> {
   TimeOfDay? _selectedTime;
 
   XFile? _kondisiFile;
+  Uint8List? _kondisiBytes;
   bool _isSubmitting = false;
 
   @override
@@ -74,7 +77,11 @@ class _BuatOrderDariChatPageState extends State<BuatOrderDariChatPage> {
       imageQuality: 80,
     );
     if (file != null) {
-      setState(() => _kondisiFile = file);
+      final compressed = await AppImageCompressor.compressXFile(file);
+      setState(() {
+        _kondisiFile = file;
+        _kondisiBytes = compressed;
+      });
     }
   }
 
@@ -125,10 +132,9 @@ class _BuatOrderDariChatPageState extends State<BuatOrderDariChatPage> {
         'chat_room_id': widget.roomId.toString(),
       };
 
-      final bytes = await _kondisiFile!.readAsBytes();
       final data = await _bookingService.submitDraft(
         fields: fields,
-        kondisiBytes: bytes,
+        kondisiBytes: _kondisiBytes ?? await _kondisiFile!.readAsBytes(),
         kondisiFileName: _kondisiFile!.name,
       );
 

@@ -1,25 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/core/widgets/app_cached_image.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/features/orders/domain/order_pricing_calculator.dart';
-import 'package:home_care/users/pemesanan/widgets/booking/booking_addons_step.dart';
-import 'package:home_care/users/pemesanan/widgets/booking/booking_bottom_bar.dart';
-import 'package:home_care/users/pemesanan/widgets/booking/booking_details_step.dart';
-import 'package:home_care/users/pemesanan/widgets/booking/booking_location_step.dart';
-import 'package:home_care/users/pemesanan/widgets/booking/booking_schedule_step.dart';
-import 'package:home_care/users/pemesanan/widgets/booking/booking_step_indicator.dart';
-import 'package:home_care/users/pemesanan/widgets/booking/booking_summary_step.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/pemesanan/payment_method_page.dart';
 import 'package:home_care/users/pemesanan/services/booking_service.dart';
-import 'package:home_care/users/pemesanan/widgets/booking_metrics_grid.dart';
-import 'package:home_care/users/pemesanan/widgets/booking_related_services.dart';
-import 'package:home_care/users/pemesanan/widgets/booking_sop_section.dart';
-import 'package:home_care/users/pemesanan/widgets/booking_supervisor_card.dart';
+import 'package:home_care/users/pemesanan/widgets/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -152,10 +140,11 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       );
 
       if (pickedFile != null) {
-        final bytes = await pickedFile.readAsBytes();
+        // Pre-upload client side image compression
+        final compressedBytes = await AppImageCompressor.compressXFile(pickedFile);
         setState(() {
           _kondisiPasienImage = pickedFile;
-          _kondisiPasienBytes = bytes;
+          _kondisiPasienBytes = compressedBytes;
         });
       }
     } catch (e) {
@@ -376,161 +365,25 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          SliverAppBar(
-            expandedHeight: expandedHeroHeight,
-            pinned: true,
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            leadingWidth: 76,
-            toolbarHeight: 64,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 18, top: 10, bottom: 10),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+          BookingHeroAppBar(
+            layanan: widget.layanan,
+            scrollController: _scrollController,
+            expandedHeroHeight: expandedHeroHeight,
+            isFavorite: _isFavorite,
+            onToggleFavorite: () {
+              setState(() => _isFavorite = !_isFavorite);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    _isFavorite
+                        ? 'Disimpan ke layanan favorit'
+                        : 'Dihapus dari favorit',
+                  ),
+                  duration: const Duration(seconds: 1),
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(15),
-                    onTap: () => Navigator.pop(context),
-                    child: const Center(
-                      child: Icon(
-                        Icons.close_rounded,
-                        color: Color(0xFF0F172A),
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 18, top: 10, bottom: 10),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        setState(() => _isFavorite = !_isFavorite);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              _isFavorite
-                                  ? 'Disimpan ke layanan favorit'
-                                  : 'Dihapus dari favorit',
-                            ),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                      child: Center(
-                        child: Icon(
-                          _isFavorite ? IconlyBold.heart : IconlyLight.heart,
-                          color: _isFavorite
-                              ? const Color(0xFFEF4444)
-                              : const Color(0xFF0F172A),
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            title: AnimatedBuilder(
-              animation: _scrollController,
-              builder: (context, _) {
-                double offset = 0;
-                if (_scrollController.hasClients) {
-                  offset = _scrollController.offset;
-                }
-                final double opacity = ((offset - 130) / 80).clamp(0.0, 1.0);
-
-                return Opacity(
-                  opacity: opacity,
-                  child: Text(
-                    widget.layanan.namaLayanan,
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
-                      letterSpacing: -0.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              },
-            ),
-            centerTitle: true,
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Container(color: const Color(0xFFF8FAFC)),
-                  if (widget.layanan.gambarUrl != null)
-                    AppCachedImage(
-                      imageUrl: widget.layanan.gambarUrl,
-                      fit: BoxFit.cover,
-                    )
-                  else
-                    Container(
-                      color: const Color(0xFFE6F5F5),
-                      child: const Center(
-                        child: Icon(
-                          IconlyLight.activity,
-                          size: 80,
-                          color: HCColor.primary,
-                        ),
-                      ),
-                    ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: -1,
-                    height: 38,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(38),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+              );
+            },
+            onClose: () => Navigator.pop(context),
           ),
           SliverToBoxAdapter(
             child: Container(
@@ -552,94 +405,15 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.layanan.namaLayanan,
-                                style: TextStyle(
-                                  fontSize: screenWidth < 360 ? 20 : 23,
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF0F172A),
-                                  height: 1.2,
-                                  letterSpacing: -0.4,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  IconlyLight.timeCircle,
-                                  size: 16,
-                                  color: Color(0xFF64748B),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  widget.layanan.durasiMenit != null
-                                      ? '${widget.layanan.durasiMenit} Min'
-                                      : '${widget.layanan.jumlahVisit ?? 1}x Visit',
-                                  style: TextStyle(
-                                    fontSize: screenWidth < 360 ? 12 : 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-                        child: RichText(
-                          text: TextSpan(
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              color: Color(0xFF64748B),
-                              height: 1.5,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: (widget.layanan.deskripsi != null &&
-                                        widget.layanan.deskripsi!.trim().isNotEmpty)
-                                    ? (_isDescriptionExpanded
-                                        ? '${widget.layanan.deskripsi!} '
-                                        : (widget.layanan.deskripsi!.length > 95
-                                            ? '${widget.layanan.deskripsi!.substring(0, 95)}... '
-                                            : '${widget.layanan.deskripsi!} '))
-                                    : 'Layanan perawatan medis dan pendampingan kesehatan berkualitas langsung di rumah Anda. ',
-                              ),
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.baseline,
-                                baseline: TextBaseline.alphabetic,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _isDescriptionExpanded = !_isDescriptionExpanded;
-                                    });
-                                  },
-                                  child: Text(
-                                    _isDescriptionExpanded
-                                        ? 'Tutup'
-                                        : 'Lihat Selengkapnya',
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      BookingHeaderTitleSection(
+                        layanan: widget.layanan,
+                        screenWidth: screenWidth,
+                        isDescriptionExpanded: _isDescriptionExpanded,
+                        onToggleDescription: () {
+                          setState(() {
+                            _isDescriptionExpanded = !_isDescriptionExpanded;
+                          });
+                        },
                       ),
                       const SizedBox(height: 20),
                       Padding(
@@ -649,7 +423,10 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                       const SizedBox(height: 22),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildSegmentedPillTab(),
+                        child: BookingSegmentedTab(
+                          selectedSegmentTab: _selectedSegmentTab,
+                          onTabChanged: (tab) => setState(() => _selectedSegmentTab = tab),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       if (_selectedSegmentTab == 0) ...[
@@ -660,87 +437,65 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                         const SizedBox(height: 16),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              children: [
-                                if (_currentStep == 0)
-                                  BookingScheduleStep(
-                                    tanggalController: _tanggalController,
-                                    jamController: _jamController,
-                                    onPickDate: _pickDate,
-                                    onPickTime: _pickTime,
-                                  ),
-                                if (_currentStep == 1)
-                                  BookingLocationStep(
-                                    alamatController: _alamatController,
-                                    kotaController: _kotaController,
-                                    kecamatanController: _kecamatanController,
-                                    isLoadingProfile: _isLoadingProfile,
-                                    onUseProfile: () {
-                                      if (_profileData != null) {
-                                        setState(() {
-                                          _alamatController.text = (_profileData!['alamat'] ?? '').toString();
-                                          _kotaController.text = (_profileData!['kota'] ?? '').toString();
-                                          _kecamatanController.text = (_profileData!['kecamatan'] ?? '').toString();
-                                        });
-                                      }
-                                    },
-                                  ),
-                                if (_currentStep == 2)
-                                  BookingDetailsStep(
-                                    catatanController: _catatanController,
-                                    qty: _qty,
-                                    onIncrementQty: () => setState(() => _qty++),
-                                    onDecrementQty: () => setState(() {
-                                      if (_qty > 1) _qty--;
-                                    }),
-                                    kondisiPasienBytes: _kondisiPasienBytes,
-                                    onPickImage: _pickImage,
-                                    inputDecoration: _inputDecoration,
-                                  ),
-                                if (_currentStep == 3)
-                                  BookingAddonsStep(
-                                    isLoadingAddons: _isLoadingAddons,
-                                    availableAddons: _availableAddons,
-                                    selectedAddons: _selectedAddons,
-                                    onToggleAddon: (addon) {
-                                      setState(() {
-                                        if (_selectedAddons.contains(addon)) {
-                                          _selectedAddons.remove(addon);
-                                        } else {
-                                          _selectedAddons.add(addon);
-                                        }
-                                      });
-                                    },
-                                    onIncrementAddon: (addon) {
-                                      setState(() => addon.qty++);
-                                    },
-                                    onDecrementAddon: (addon) {
-                                      setState(() {
-                                        if (addon.qty > 1) {
-                                          addon.qty--;
-                                        } else {
-                                          _selectedAddons.remove(addon);
-                                        }
-                                      });
-                                    },
-                                    formatRupiah: AppFormatters.currency,
-                                  ),
-                                if (_currentStep == 4)
-                                  BookingSummaryStep(
-                                    namaLayanan: widget.layanan.namaLayanan,
-                                    hargaLayanan: widget.layanan.hargaFix,
-                                    tanggal: _tanggalController.text,
-                                    jam: _jamController.text,
-                                    lokasi: _kotaController.text,
-                                    qty: _qty,
-                                    selectedAddons: _selectedAddons,
-                                    total: _calculateTotal(),
-                                    formatRupiah: AppFormatters.currency,
-                                  ),
-                              ],
-                            ),
+                          child: BookingStepContent(
+                            currentStep: _currentStep,
+                            formKey: _formKey,
+                            tanggalController: _tanggalController,
+                            jamController: _jamController,
+                            onPickDate: _pickDate,
+                            onPickTime: _pickTime,
+                            alamatController: _alamatController,
+                            kotaController: _kotaController,
+                            kecamatanController: _kecamatanController,
+                            isLoadingProfile: _isLoadingProfile,
+                            onUseProfile: () {
+                              if (_profileData != null) {
+                                setState(() {
+                                  _alamatController.text =
+                                      (_profileData!['alamat'] ?? '').toString();
+                                  _kotaController.text =
+                                      (_profileData!['kota'] ?? '').toString();
+                                  _kecamatanController.text =
+                                      (_profileData!['kecamatan'] ?? '')
+                                          .toString();
+                                });
+                              }
+                            },
+                            catatanController: _catatanController,
+                            qty: _qty,
+                            onIncrementQty: () => setState(() => _qty++),
+                            onDecrementQty: () => setState(() {
+                              if (_qty > 1) _qty--;
+                            }),
+                            kondisiPasienBytes: _kondisiPasienBytes,
+                            onPickImage: _pickImage,
+                            inputDecoration: _inputDecoration,
+                            isLoadingAddons: _isLoadingAddons,
+                            availableAddons: _availableAddons,
+                            selectedAddons: _selectedAddons,
+                            onToggleAddon: (addon) {
+                              setState(() {
+                                if (_selectedAddons.contains(addon)) {
+                                  _selectedAddons.remove(addon);
+                                } else {
+                                  _selectedAddons.add(addon);
+                                }
+                              });
+                            },
+                            onIncrementAddon: (addon) {
+                              setState(() => addon.qty++);
+                            },
+                            onDecrementAddon: (addon) {
+                              setState(() {
+                                if (addon.qty > 1) {
+                                  addon.qty--;
+                                } else {
+                                  _selectedAddons.remove(addon);
+                                }
+                              });
+                            },
+                            layanan: widget.layanan,
+                            total: _calculateTotal(),
                           ),
                         ),
                       ] else ...[
@@ -783,92 +538,6 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
         isSubmitting: _isSubmitting,
         onBack: () => setState(() => _currentStep--),
         onNextOrSubmit: _handleNextOrSubmit,
-      ),
-    );
-  }
-
-  Widget _buildSegmentedPillTab() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEEF3F5),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedSegmentTab = 0),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _selectedSegmentTab == 0
-                      ? const Color(0xFF0F3E3E)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: _selectedSegmentTab == 0
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF0F3E3E).withValues(alpha: 0.25),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Center(
-                  child: Text(
-                    'Formulir Pemesanan',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _selectedSegmentTab == 0
-                          ? Colors.white
-                          : Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedSegmentTab = 1),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _selectedSegmentTab == 1
-                      ? const Color(0xFF0F3E3E)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: _selectedSegmentTab == 1
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF0F3E3E).withValues(alpha: 0.25),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Center(
-                  child: Text(
-                    'Tata Cara & SOP',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _selectedSegmentTab == 1
-                          ? Colors.white
-                          : Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

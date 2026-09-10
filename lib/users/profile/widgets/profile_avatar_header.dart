@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class ProfileAvatarHeader extends StatelessWidget {
   final String nama;
@@ -44,23 +45,23 @@ class ProfileAvatarHeader extends StatelessWidget {
         radius: 28,
         backgroundColor: _primary,
         child: ClipOval(
-          child: Image.network(
-            fotoProfilUrl!,
+          child: AppCachedImage(
+            imageUrl: fotoProfilUrl,
             width: 56,
             height: 56,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: Text(
-                  initial,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
+            memCacheWidth: 200,
+            memCacheHeight: 200,
+            errorWidget: Center(
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
                 ),
-              );
-            },
+              ),
+            ),
           ),
         ),
       );

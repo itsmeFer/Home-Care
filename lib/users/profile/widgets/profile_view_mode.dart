@@ -64,6 +64,7 @@ class ProfileViewMode extends StatelessWidget {
     final kelurahan = (pasien?['kelurahan'] ?? '-').toString();
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         children: [
           ProfileAvatarHeader(
