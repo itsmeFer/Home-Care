@@ -135,13 +135,7 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
         "$baseUrl/admin/addons",
       ).replace(queryParameters: params);
 
-      final headers = await _authHeaders();
-      debugPrint("HEADERS ADDONS: $headers");
-
-      final res = await http.get(uri, headers: headers);
-
-      debugPrint("ADDONS STATUS: ${res.statusCode}");
-      debugPrint("ADDONS BODY: ${res.body}");
+      final res = await http.get(uri, headers: await _authHeaders());
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
