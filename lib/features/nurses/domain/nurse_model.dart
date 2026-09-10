@@ -31,6 +31,7 @@ class PerawatModel {
   final String statusVerifikasi;
   final String? catatanVerifikasi;
   final String? verifiedAt;
+  final String? namaVerifikator;
   final bool isActive;
 
   final double avgRatingPerawat;
@@ -72,6 +73,7 @@ class PerawatModel {
     required this.statusVerifikasi,
     this.catatanVerifikasi,
     this.verifiedAt,
+    this.namaVerifikator,
     this.isActive = true,
     this.avgRatingPerawat = 0,
     this.totalRatingPerawat = 0,
@@ -124,6 +126,10 @@ class PerawatModel {
     }
   }
 
+  String? get verifikator => namaVerifikator;
+  String get namaPerawat => namaLengkap;
+  String? get namaKoordinator => koordinatorNama;
+
   factory PerawatModel.fromJson(Map<String, dynamic> json) {
     final koor = json['koordinator'];
     String? koorNama;
@@ -145,7 +151,7 @@ class PerawatModel {
       id: _toInt(json['id']),
       userId: _toNullableInt(json['user_id']),
       kodePerawat: json['kode_perawat']?.toString(),
-      namaLengkap: (json['nama_lengkap'] ?? json['nama'] ?? '').toString(),
+      namaLengkap: (json['nama_lengkap'] ?? json['nama_perawat'] ?? json['nama'] ?? '').toString(),
       nik: json['nik']?.toString(),
       jenisKelamin: json['jenis_kelamin']?.toString(),
       tanggalLahir: json['tanggal_lahir']?.toString(),
@@ -172,6 +178,7 @@ class PerawatModel {
       statusVerifikasi: (json['status_verifikasi'] ?? 'pending').toString(),
       catatanVerifikasi: json['catatan_verifikasi']?.toString(),
       verifiedAt: json['verified_at']?.toString(),
+      namaVerifikator: (json['nama_verifikator'] ?? json['verifikator'])?.toString(),
       isActive: (json['is_active'] == true ||
           json['is_active'] == 1 ||
           json['is_active']?.toString() == '1'),

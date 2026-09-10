@@ -1,5 +1,9 @@
 import 'package:home_care/features/nurses/domain/nurse_model.dart';
 
+export 'package:home_care/features/nurses/domain/nurse_model.dart';
+
+typedef PerawatAdmin = PerawatModel;
+
 class PerawatDetailModel {
   final PerawatModel perawat;
   final List<KoordinatorItem> koordinatorOptions;

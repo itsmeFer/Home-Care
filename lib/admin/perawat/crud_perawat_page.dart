@@ -9,7 +9,6 @@ import 'package:home_care/admin/perawat/widgets/perawat_kpi_bar.dart';
 import 'package:home_care/admin/perawat/widgets/set_password_dialog.dart';
 import 'package:home_care/admin/perawat/widgets/verifikasi_perawat_dialog.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/nurses/domain/nurse_model.dart';
 
 class CrudPerawatPage extends StatefulWidget {
   const CrudPerawatPage({super.key});
