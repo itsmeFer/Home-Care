@@ -3,10 +3,10 @@ import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/banners/data/banner_service.dart';
 import 'package:home_care/features/banners/domain/banner_model.dart';
 import 'package:home_care/features/banners/presentation/form_banner_page.dart';
-import 'package:home_care/features/banners/presentation/widgets/banner_card_badges.dart';
-import 'package:home_care/features/banners/presentation/widgets/full_width_banner_card.dart';
-import 'package:home_care/features/banners/presentation/widgets/landscape_banner_card.dart';
-import 'package:home_care/features/banners/presentation/widgets/square_banner_card.dart';
+import 'package:home_care/admin/banners/widgets/banner_card_badges.dart';
+import 'package:home_care/admin/banners/widgets/full_width_banner_card.dart';
+import 'package:home_care/admin/banners/widgets/landscape_banner_card.dart';
+import 'package:home_care/admin/banners/widgets/square_banner_card.dart';
 
 class CrudBannerPage extends StatefulWidget {
   const CrudBannerPage({super.key});
