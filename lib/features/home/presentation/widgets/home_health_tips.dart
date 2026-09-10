@@ -3,7 +3,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 
 class HealthTipsCarousel extends StatelessWidget {
-  const HealthTipsCarousel();
+  const HealthTipsCarousel({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -150,10 +150,10 @@ class _HealthTipCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: tip.color.withOpacity(0.15), width: 1.5),
+        border: Border.all(color: tip.color.withValues(alpha: 0.15), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: tip.color.withOpacity(0.04),
+            color: tip.color.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -165,7 +165,7 @@ class _HealthTipCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: tip.color.withOpacity(0.1),
+              color: tip.color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(tip.icon, color: tip.color, size: 24),

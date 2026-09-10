@@ -129,12 +129,6 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
     return double.tryParse(v.toString()) ?? 0;
   }
 
-  int _toInt(dynamic v) {
-    if (v == null) return 0;
-    if (v is num) return v.toInt();
-    return int.tryParse(v.toString()) ?? 0;
-  }
-
   int _parseMoneyToInt(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.round();
@@ -327,7 +321,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
                       (_) => const FlLine(color: _grid, strokeWidth: 1),
                   getDrawingVerticalLine:
                       (_) =>
-                          FlLine(color: _grid.withOpacity(.7), strokeWidth: 1),
+                          FlLine(color: _grid.withValues(alpha: .7), strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
@@ -368,7 +362,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: _cIncome.withOpacity(.18),
+                      color: _cIncome.withValues(alpha: .18),
                     ),
                   ),
                   LineChartBarData(
@@ -379,7 +373,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: _cFee.withOpacity(.14),
+                      color: _cFee.withValues(alpha: .14),
                     ),
                   ),
                   LineChartBarData(
@@ -390,7 +384,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: _cProfit.withOpacity(.14),
+                      color: _cProfit.withValues(alpha: .14),
                     ),
                   ),
                 ],
@@ -521,7 +515,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
                       (_) => const FlLine(color: _grid, strokeWidth: 1),
                   getDrawingVerticalLine:
                       (_) =>
-                          FlLine(color: _grid.withOpacity(.7), strokeWidth: 1),
+                          FlLine(color: _grid.withValues(alpha: .7), strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
@@ -548,7 +542,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: _cIncome.withOpacity(.16),
+                      color: _cIncome.withValues(alpha: .16),
                     ),
                   ),
                 ],
@@ -721,50 +715,6 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen>
       child: TableCard(
         columns: const ['Nama', 'Role', 'Order', 'Rating', 'Fee'],
         rows: rows,
-      ),
-    );
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchList(String url) async {
-    final body = await ApiClient.get(url);
-
-    if (body is Map && body['data'] is List) return _list(body['data']);
-    if (body is Map && body['data'] is Map && (body['data']['items'] is List)) {
-      return _list(body['data']['items']);
-    }
-    if (body is List) return _list(body);
-    if (body is Map && body['items'] is List) return _list(body['items']);
-
-    return <Map<String, dynamic>>[];
-  }
-
-  String _pickName(Map<String, dynamic> m) {
-    return (m['nama_lengkap'] ??
-            m['name'] ??
-            m['nama'] ??
-            m['full_name'] ??
-            '-')
-        .toString();
-  }
-
-  int _pickId(Map<String, dynamic> m) => _toInt(m['id']);
-
-  void _toastSuccess(String title, String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$title • $msg'),
-        backgroundColor: const Color(0xFF16A34A),
-      ),
-    );
-  }
-
-  void _toastError(String title, String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$title • $msg'),
-        backgroundColor: const Color(0xFFDC2626),
       ),
     );
   }

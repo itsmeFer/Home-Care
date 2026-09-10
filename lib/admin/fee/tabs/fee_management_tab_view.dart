@@ -5,9 +5,9 @@ import 'package:home_care/admin/fee/widgets/fee_item_selector_card.dart';
 import 'package:home_care/admin/fee/widgets/fee_leaderboard_card.dart';
 import 'package:home_care/admin/fee/widgets/fee_recipient_card.dart';
 import 'package:home_care/features/fee_management/domain/fee_models.dart';
-import 'package:home_care/features/fee_management/presentation/widgets/fee_charts.dart';
-import 'package:home_care/features/fee_management/presentation/widgets/fee_dialogs.dart';
-import 'package:home_care/features/fee_management/presentation/widgets/fee_ui_components.dart';
+import 'package:home_care/admin/fee/widgets/fee_charts.dart';
+import 'package:home_care/admin/fee/widgets/fee_dialogs.dart';
+import 'package:home_care/admin/fee/widgets/fee_ui_components.dart';
 
 enum FeeSimMode { perItem, semuaItem }
 

@@ -4,7 +4,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class PromoFullWidthSection extends StatefulWidget {
   const PromoFullWidthSection({super.key});
@@ -159,7 +159,7 @@ class _PromoFullWidthCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 8,
             offset: const Offset(0, 2),
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
           ),
         ],
       ),
@@ -223,7 +223,7 @@ class _PromoFullWidthCard extends StatelessWidget {
                           'Minimal transaksi ${formatRupiah(item.minTransaksi)}',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             fontWeight: FontWeight.w500,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -245,7 +245,7 @@ class _PromoFullWidthCard extends StatelessWidget {
                           subtitle,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.black.withOpacity(0.6),
+                            color: Colors.black.withValues(alpha: 0.6),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -269,7 +269,7 @@ class _PromoFullWidthCard extends StatelessWidget {
                           formatRupiah(hargaAsli),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withValues(alpha: 0.4),
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
@@ -368,7 +368,7 @@ class _PromoFullWidthSkeletonCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 8,
             offset: const Offset(0, 2),
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
           ),
         ],
       ),

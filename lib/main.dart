@@ -1,4 +1,4 @@
-import 'package:device_preview/device_preview.dart';
+﻿import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +12,9 @@ import 'package:home_care/direktur/direktur_dashboard.dart';
 import 'package:home_care/kordinator/dashboard.dart';
 import 'package:home_care/manager/manager_dashboard.dart';
 import 'package:home_care/perawat/dashboard.dart';
-import 'package:home_care/screen/splash_screen.dart';
-import 'package:home_care/screen/login.dart';
-import 'package:home_care/services/firebase_notification_service.dart';
+import 'package:home_care/features/auth/presentation/screens/splash_screen.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
+import 'package:home_care/core/services/firebase_notification_service.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -29,21 +29,21 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    debugPrint('✅ Firebase initialized');
+    debugPrint('âœ… Firebase initialized');
   } on FirebaseException catch (e) {
     if (e.code == 'duplicate-app') {
-      debugPrint('⚠️ Firebase already initialized');
+      debugPrint('âš ï¸ Firebase already initialized');
     } else {
-      debugPrint('❌ Firebase init error: $e');
+      debugPrint('âŒ Firebase init error: $e');
     }
   } catch (e) {
-    debugPrint('❌ Unknown Firebase init error: $e');
+    debugPrint('âŒ Unknown Firebase init error: $e');
   }
 
   await initializeDateFormatting('id_ID', null);
 
   ApiClient.onUnauthorized = () async {
-    debugPrint('⚠️ Sesi berakhir (401). Mengarahkan ke LoginPage.');
+    debugPrint('âš ï¸ Sesi berakhir (401). Mengarahkan ke LoginPage.');
     await StorageService.clearAuth();
     navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -157,7 +157,7 @@ class _RootAuthGateState extends State<RootAuthGate> {
     if (!mounted) return;
 
     if (token == null || token.isEmpty) {
-      debugPrint('⚠️ Auth token tidak ada, arahkan ke login');
+      debugPrint('âš ï¸ Auth token tidak ada, arahkan ke login');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -206,9 +206,9 @@ class _RootAuthGateState extends State<RootAuthGate> {
           final notifService = FirebaseNotificationService();
           await notifService.initialize();
           await notifService.syncTokenToBackend();
-          debugPrint('✅ Firebase Notification initialized after auth check');
+          debugPrint('âœ… Firebase Notification initialized after auth check');
         } catch (e) {
-          debugPrint('❌ Notification init error: $e');
+          debugPrint('âŒ Notification init error: $e');
         }
       }
 
@@ -237,7 +237,7 @@ class _RootAuthGateState extends State<RootAuthGate> {
           nextPage = const HomePage();
           break;
         default:
-          debugPrint('⚠️ Role tidak dikenali: $roleData');
+          debugPrint('âš ï¸ Role tidak dikenali: $roleData');
           await StorageService.clearAuth();
           nextPage = const LoginPage();
       }
@@ -249,7 +249,7 @@ class _RootAuthGateState extends State<RootAuthGate> {
         MaterialPageRoute(builder: (_) => nextPage),
       );
     } catch (e) {
-      debugPrint('❌ Error checking auth: $e');
+      debugPrint('âŒ Error checking auth: $e');
       await StorageService.clearAuth();
 
       if (!mounted) return;

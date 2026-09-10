@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/features/reports/presentation/dashboard_audit_screen.dart';
+import 'package:home_care/features/reports/presentation/screens/dashboard_audit_screen.dart';
 
 class AuditPage extends StatelessWidget {
   final bool isDesktop;

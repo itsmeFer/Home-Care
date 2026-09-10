@@ -1,4 +1,4 @@
-import 'package:flutter_iconly/flutter_iconly.dart';
+﻿import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/features/profile/presentation/widgets/profile_ui_components.dart';
 import 'package:home_care/features/profile/presentation/widgets/profile_avatar_header.dart';
 import 'package:home_care/features/profile/presentation/widgets/profile_security_section.dart';
@@ -15,7 +15,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/services/storage_service.dart';
-import 'package:home_care/screen/login.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
 
 class ProfilePage extends StatefulWidget {

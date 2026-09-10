@@ -50,7 +50,7 @@ class ProfileWilayahDropdowns extends StatelessWidget {
   Widget _buildProvinsiField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: provinsiList.any((e) => e['id']?.toString() == selectedProvinsiId)
+      initialValue: provinsiList.any((e) => e['id']?.toString() == selectedProvinsiId)
           ? selectedProvinsiId
           : null,
       decoration: inputDecoration(
@@ -77,7 +77,7 @@ class ProfileWilayahDropdowns extends StatelessWidget {
   Widget _buildKotaField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: kotaList.any((e) => e['id']?.toString() == selectedKotaId)
+      initialValue: kotaList.any((e) => e['id']?.toString() == selectedKotaId)
           ? selectedKotaId
           : null,
       decoration: inputDecoration(
@@ -104,7 +104,7 @@ class ProfileWilayahDropdowns extends StatelessWidget {
   Widget _buildKecamatanField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: kecamatanList.any((e) => e['id']?.toString() == selectedKecamatanId)
+      initialValue: kecamatanList.any((e) => e['id']?.toString() == selectedKecamatanId)
           ? selectedKecamatanId
           : null,
       decoration: inputDecoration(
@@ -131,7 +131,7 @@ class ProfileWilayahDropdowns extends StatelessWidget {
   Widget _buildKelurahanField() {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: kelurahanList.any((e) => e['id']?.toString() == selectedKelurahanId)
+      initialValue: kelurahanList.any((e) => e['id']?.toString() == selectedKelurahanId)
           ? selectedKelurahanId
           : null,
       decoration: inputDecoration(

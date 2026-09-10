@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/features/fee_management/presentation/widgets/fee_ui_components.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/admin/fee/widgets/fee_ui_components.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class FeeItemSelectorCard extends StatelessWidget {
   final bool isAddon;
@@ -97,7 +97,7 @@ class FeeItemSelectorCard extends StatelessWidget {
                             ],
                             Expanded(
                               child: Text(
-                                '${i.nama} • ${formatRupiah(i.hargaFix)}',
+                                '${i.nama} â€¢ ${formatRupiah(i.hargaFix)}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(color: kText),

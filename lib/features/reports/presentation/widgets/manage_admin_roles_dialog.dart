@@ -39,7 +39,6 @@ const kCard = Colors.white;
     const kBg = Color(0xFFFFFFFF);
 
     const kInfo = Color(0xFF0284C7);
-    const kDanger = Color(0xFFDC2626);
     const kSuccess = Color(0xFF16A34A);
 
     await showDialog(
@@ -682,7 +681,7 @@ const kCard = Colors.white;
                       blurRadius: 30,
                       spreadRadius: 0,
                       offset: const Offset(0, 18),
-                      color: Colors.black.withOpacity(0.14),
+                      color: Colors.black.withValues(alpha: 0.14),
                     ),
                   ],
                 ),
@@ -1138,7 +1137,7 @@ const kCard = Colors.white;
                                                   ],
                                                 ),
                                               );
-                                            }).toList(),
+                                            }),
                                         ],
                                       ),
                                     ),

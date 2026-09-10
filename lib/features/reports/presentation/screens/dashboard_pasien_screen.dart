@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
@@ -486,7 +485,7 @@ class _DashboardPasienScreenState extends State<DashboardPasienScreen>
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: _cPrimary.withOpacity(0.12),
+                    backgroundColor: _cPrimary.withValues(alpha: 0.12),
                     child: Text(
                       '#${idx + 1}',
                       style: const TextStyle(

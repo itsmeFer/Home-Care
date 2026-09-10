@@ -12,9 +12,7 @@ class StorageService {
   static const String keyUserEmail = 'user_email';
   static const String keyUserPhone = 'user_phone';
 
-  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   static SharedPreferences? _prefs;
 

@@ -466,7 +466,7 @@ class FreezeAccountDialog {
                       blurRadius: 30,
                       spreadRadius: 0,
                       offset: const Offset(0, 18),
-                      color: Colors.black.withOpacity(0.14),
+                      color: Colors.black.withValues(alpha: 0.14),
                     ),
                   ],
                 ),

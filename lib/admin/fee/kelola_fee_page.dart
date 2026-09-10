@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:home_care/admin/fee/services/fee_admin_service.dart';
 import 'package:home_care/admin/fee/tabs/fee_management_tab_view.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/fee_management/presentation/widgets/fee_ui_components.dart';
+import 'package:home_care/admin/fee/widgets/fee_ui_components.dart';
 
 class KelolaFeePage extends StatefulWidget {
   const KelolaFeePage({super.key});

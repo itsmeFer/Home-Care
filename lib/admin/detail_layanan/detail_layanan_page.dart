@@ -6,7 +6,7 @@ import 'package:home_care/admin/detail_layanan/widgets/koordinator_multiselect_d
 import 'package:home_care/admin/detail_layanan/widgets/layanan_edit_form_dialog.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
-import 'package:home_care/utils/app_image_compressor.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:image_picker/image_picker.dart';
 
 class DetailLayananPage extends StatefulWidget {

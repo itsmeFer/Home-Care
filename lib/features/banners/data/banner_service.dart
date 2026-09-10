@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/features/banners/domain/banner_model.dart';
-import 'package:home_care/utils/app_image_compressor.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 
 class BannerService {
   BannerService._();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/features/fee_management/domain/fee_models.dart';
-import 'package:home_care/features/fee_management/presentation/widgets/fee_ui_components.dart';
+import 'package:home_care/admin/fee/widgets/fee_ui_components.dart';
 
 class FeeRecipientCard extends StatefulWidget {
   final FeeRule rule;

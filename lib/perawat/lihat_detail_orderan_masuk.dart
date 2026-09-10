@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +9,7 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
@@ -106,7 +106,7 @@ class _DetailOrderanMasukPerawatPageState
           _isLoading = false;
         });
 
-        print('📦 Order Addons: ${_order?['order_addons']}');
+        print('ðŸ“¦ Order Addons: ${_order?['order_addons']}');
       } else {
         setState(() {
           _isLoading = false;
@@ -455,7 +455,7 @@ class _DetailOrderanMasukPerawatPageState
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
 
-        print('📦 Upload Response: ${response.body}');
+        print('ðŸ“¦ Upload Response: ${response.body}');
 
         if (decoded['success'] == true) {
           setState(() {
@@ -465,12 +465,12 @@ class _DetailOrderanMasukPerawatPageState
 
               if (data.containsKey('order')) {
                 _order = data['order'] as Map<String, dynamic>;
-                print('✅ Using data.order');
+                print('âœ… Using data.order');
               }
 
               else {
                 _order = data;
-                print('✅ Using data directly');
+                print('âœ… Using data directly');
               }
             }
           });

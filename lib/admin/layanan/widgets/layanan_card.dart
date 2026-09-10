@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class LayananCard extends StatelessWidget {
   final Layanan layanan;
@@ -62,7 +62,7 @@ class LayananCard extends StatelessWidget {
                         style: const TextStyle(fontSize: 12),
                       ),
                     Text(
-                      'Tipe: ${l.tipeLayananLabel} • Syarat: ${l.syaratPerawatLabel}',
+                      'Tipe: ${l.tipeLayananLabel} â€¢ Syarat: ${l.syaratPerawatLabel}',
                       style: const TextStyle(fontSize: 12),
                     ),
                     Text(

@@ -140,6 +140,34 @@ class ApiClient {
     }
   }
 
+  static Future<dynamic> patch(
+    String url, {
+    dynamic body,
+    Map<String, String>? headers,
+    bool requiresAuth = true,
+  }) async {
+    final uri = _resolveUri(url);
+
+    try {
+      final requestHeaders = await _buildHeaders(
+        customHeaders: headers,
+        requiresAuth: requiresAuth,
+      );
+
+      final encodedBody = body != null && body is! String ? jsonEncode(body) : body;
+
+      final response = await _client
+          .patch(uri, headers: requestHeaders, body: encodedBody)
+          .timeout(timeoutDuration);
+
+      return _handleResponse(response);
+    } on SocketException {
+      throw NoInternetException();
+    } on TimeoutException {
+      throw NoInternetException('Waktu koneksi habis. Coba beberapa saat lagi.');
+    }
+  }
+
   static Future<dynamic> delete(
     String url, {
     dynamic body,

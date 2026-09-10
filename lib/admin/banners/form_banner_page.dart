@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/banners/domain/banner_model.dart';
 import 'package:home_care/features/banners/data/banner_service.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class _AC {
   static const primary = AppColors.primary;
@@ -1219,7 +1219,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                           ),
                                         ),
                                         child: const Text(
-                                          '✓',
+                                          'âœ“',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 9,
@@ -1310,7 +1310,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                           ),
                                         ),
                                         child: const Text(
-                                          '✓',
+                                          'âœ“',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 9,
@@ -1403,7 +1403,7 @@ class _FormBannerPageState extends State<FormBannerPage> {
                                           ),
                                         ),
                                         child: const Text(
-                                          '✓',
+                                          'âœ“',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 9,
@@ -1472,10 +1472,10 @@ class _FormBannerPageState extends State<FormBannerPage> {
                       const SizedBox(height: 6),
                       Text(
                         _tipeCard == 'landscape'
-                            ? 'Rasio 5:2 (800×320px) • JPG/PNG/WEBP • maks 3MB'
+                            ? 'Rasio 5:2 (800Ã—320px) â€¢ JPG/PNG/WEBP â€¢ maks 3MB'
                             : _tipeCard == 'square'
-                            ? 'Rasio 1:1 (600×600px) • JPG/PNG/WEBP • maks 3MB'
-                            : 'Horizontal card (320×140px) • JPG/PNG/WEBP • maks 3MB',
+                            ? 'Rasio 1:1 (600Ã—600px) â€¢ JPG/PNG/WEBP â€¢ maks 3MB'
+                            : 'Horizontal card (320Ã—140px) â€¢ JPG/PNG/WEBP â€¢ maks 3MB',
                         style: TextStyle(
                           fontSize: 11.5,
                           color: Colors.grey[500],

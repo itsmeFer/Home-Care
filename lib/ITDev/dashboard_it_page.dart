@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +11,7 @@ import 'pages/support_ticket_page.dart';
 import 'pages/system_maintenance_page.dart';
 import 'pages/session_token_page.dart';
 
-import 'package:home_care/screen/login.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
 
 class ITDevDashboard extends StatefulWidget {
   const ITDevDashboard({super.key});
@@ -407,7 +407,7 @@ class _TopBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 const Text(
-                  'HomeCare • IT Security & Support',
+                  'HomeCare â€¢ IT Security & Support',
                   style: TextStyle(
                     color: kMuted,
                     fontSize: 12.5,

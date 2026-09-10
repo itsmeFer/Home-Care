@@ -4,7 +4,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:home_care/users/layanan_page.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class CategoryIconsSection extends StatefulWidget {
   const CategoryIconsSection({super.key});
@@ -253,9 +253,9 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.05),
-                        Colors.black.withOpacity(0.65),
-                        Colors.black.withOpacity(0.90),
+                        Colors.black.withValues(alpha: 0.05),
+                        Colors.black.withValues(alpha: 0.65),
+                        Colors.black.withValues(alpha: 0.90),
                       ],
                       stops: const [0.35, 0.55, 0.82, 1.0],
                     ),
@@ -267,7 +267,7 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.16),
+                      color: Colors.white.withValues(alpha: 0.16),
                       width: 1.0,
                     ),
                   ),
@@ -313,7 +313,7 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
                           fontFamilyFallback: const ['Jakarta Sans', 'Poppins'],
                           fontSize: 11,
                           fontWeight: FontWeight.w400,
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -340,7 +340,7 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
       child: Center(
         child: Icon(
           IconlyLight.activity,
-          color: Colors.white.withOpacity(0.18),
+          color: Colors.white.withValues(alpha: 0.18),
           size: 44,
         ),
       ),

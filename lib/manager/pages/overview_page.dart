@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/features/reports/presentation/dashboard_overview_screen.dart';
+import 'package:home_care/features/reports/presentation/screens/dashboard_overview_screen.dart';
 
 class ManagerOverviewPage extends StatelessWidget {
   final bool isDesktop;

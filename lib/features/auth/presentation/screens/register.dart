@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/screen/login.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -24,8 +23,6 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  static String get baseUrl => ApiConstants.apiBase;
-
   int _passwordStrength = 0;
 
   @override
@@ -42,8 +39,9 @@ class _RegisterPageState extends State<RegisterPage> {
     if (password.length >= 6) strength += 1;
     if (password.contains(RegExp(r'[A-Z]'))) strength += 1;
     if (password.contains(RegExp(r'[0-9]')) ||
-        password.contains(RegExp(r'[!@#\$%\^&\*]')))
+        password.contains(RegExp(r'[!@#\$%\^&\*]'))) {
       strength += 1;
+    }
 
     if (password.isEmpty) strength = 0;
 
@@ -108,7 +106,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -155,7 +153,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0066AE).withOpacity(0.1),
+                    color: const Color(0xFF0066AE).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -180,7 +178,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0066AE).withOpacity(0.1),
+                    color: const Color(0xFF0066AE).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -258,7 +256,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 10,
                                     offset: const Offset(0, 5),
                                   ),
@@ -330,8 +328,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                       controller: _namaC,
                                       hint: 'Masukkan nama lengkap',
                                       validator: (v) {
-                                        if (v == null || v.trim().isEmpty)
+                                        if (v == null || v.trim().isEmpty) {
                                           return 'Nama lengkap wajib diisi';
+                                        }
                                         return null;
                                       },
                                     ),
@@ -351,11 +350,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                       hint: 'Masukkan email Anda',
                                       keyboardType: TextInputType.emailAddress,
                                       validator: (v) {
-                                        if (v == null || v.trim().isEmpty)
+                                        if (v == null || v.trim().isEmpty) {
                                           return 'Email wajib diisi';
+                                        }
                                         if (!v.contains('@') ||
-                                            !v.contains('.'))
+                                            !v.contains('.')) {
                                           return 'Format email tidak valid';
+                                        }
                                         return null;
                                       },
                                     ),
@@ -375,10 +376,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                       hint: 'Masukkan nomor HP',
                                       keyboardType: TextInputType.phone,
                                       validator: (v) {
-                                        if (v == null || v.trim().isEmpty)
+                                        if (v == null || v.trim().isEmpty) {
                                           return 'Nomor HP wajib diisi';
-                                        if (v.trim().length < 8)
+                                        }
+                                        if (v.trim().length < 8) {
                                           return 'Nomor terlalu pendek';
+                                        }
                                         return null;
                                       },
                                     ),
@@ -413,10 +416,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                             ),
                                       ),
                                       validator: (v) {
-                                        if (v == null || v.isEmpty)
+                                        if (v == null || v.isEmpty) {
                                           return 'Kata sandi wajib diisi';
-                                        if (v.length < 6)
+                                        }
+                                        if (v.length < 6) {
                                           return 'Minimal 6 karakter';
+                                        }
                                         return null;
                                       },
                                     ),
@@ -453,10 +458,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                             ),
                                       ),
                                       validator: (v) {
-                                        if (v == null || v.isEmpty)
+                                        if (v == null || v.isEmpty) {
                                           return 'Mohon ulangi kata sandi';
-                                        if (v != _passwordC.text)
+                                        }
+                                        if (v != _passwordC.text) {
                                           return 'Kata sandi tidak sama';
+                                        }
                                         return null;
                                       },
                                     ),

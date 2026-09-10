@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,7 +6,7 @@ import 'package:home_care/features/chat/presentation/screens/koordinator_chat_li
 import 'package:home_care/kordinator/kelola_perawat.dart';
 import 'package:home_care/kordinator/lapor_it.dart';
 import 'package:home_care/kordinator/lihat_orderan_masuk.dart';
-import 'package:home_care/screen/login.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
@@ -85,7 +85,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
     try {
       final token = await _getToken();
       if (token == null || token.isEmpty) {
-        debugPrint('❌ TOKEN NOT FOUND');
+        debugPrint('âŒ TOKEN NOT FOUND');
         if (mounted) {
           setState(() {
             _chatUnreadCount = 0;
@@ -96,7 +96,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
         return;
       }
 
-      debugPrint('🔄 Loading badges...');
+      debugPrint('ðŸ”„ Loading badges...');
 
       final results = await Future.wait([
         _fetchChatUnread(token),
@@ -106,8 +106,8 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
       final chatUnread = results[0];
       final orderUnread = results[1];
 
-      debugPrint('✅ Chat Unread: $chatUnread');
-      debugPrint('✅ Order Unread: $orderUnread');
+      debugPrint('âœ… Chat Unread: $chatUnread');
+      debugPrint('âœ… Order Unread: $orderUnread');
 
       if (mounted) {
         setState(() {
@@ -117,7 +117,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
         });
       }
     } catch (e) {
-      debugPrint('❌ LOAD KOORDINATOR BADGES ERROR: $e');
+      debugPrint('âŒ LOAD KOORDINATOR BADGES ERROR: $e');
 
       if (mounted) {
         setState(() {
@@ -139,8 +139,8 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
           )
           .timeout(const Duration(seconds: 10));
 
-      debugPrint('📨 Chat Unread Response: ${res.statusCode}');
-      debugPrint('📨 Chat Unread Body: ${res.body}');
+      debugPrint('ðŸ“¨ Chat Unread Response: ${res.statusCode}');
+      debugPrint('ðŸ“¨ Chat Unread Body: ${res.body}');
 
       if (res.statusCode != 200) return 0;
 
@@ -163,7 +163,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
       return 0;
     } catch (e) {
-      debugPrint('❌ FETCH KOORDINATOR CHAT UNREAD ERROR: $e');
+      debugPrint('âŒ FETCH KOORDINATOR CHAT UNREAD ERROR: $e');
       return 0;
     }
   }
@@ -180,8 +180,8 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
           )
           .timeout(const Duration(seconds: 10));
 
-      debugPrint('📦 Order Response: ${res.statusCode}');
-      debugPrint('📦 Order Body: ${res.body}');
+      debugPrint('ðŸ“¦ Order Response: ${res.statusCode}');
+      debugPrint('ðŸ“¦ Order Body: ${res.body}');
 
       if (res.statusCode != 200) return 0;
 
@@ -211,14 +211,14 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
             return relevantStatuses.contains(status);
           }).toList();
 
-      debugPrint('📊 Total Orders: ${data.length}');
+      debugPrint('ðŸ“Š Total Orders: ${data.length}');
       debugPrint(
-        '📊 Filtered Orders (pending/menunggu): ${filteredData.length}',
+        'ðŸ“Š Filtered Orders (pending/menunggu): ${filteredData.length}',
       );
 
       return filteredData.length;
     } catch (e) {
-      debugPrint('❌ FETCH KOORDINATOR ORDER UNREAD ERROR: $e');
+      debugPrint('âŒ FETCH KOORDINATOR ORDER UNREAD ERROR: $e');
       return 0;
     }
   }
@@ -446,7 +446,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
                       IconButton(
                         onPressed: () {
-                          debugPrint('🔄 Manual Refresh Badge');
+                          debugPrint('ðŸ”„ Manual Refresh Badge');
                           _loadBadges(silent: false);
                         },
                         icon: const Icon(Icons.refresh, color: Colors.white),

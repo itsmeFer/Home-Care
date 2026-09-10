@@ -41,9 +41,6 @@ class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
   String get kBaseUrl => ApiConstants.baseUrl;
   String get kApiBase => ApiConstants.apiBase;
 
-  String get _url =>
-      '$kApiBase/${widget.role}/dashboard/audit?range=${Uri.encodeComponent(widget.range)}';
-
   String get _freezeListUrl => '$kApiBase/direktur/freeze/users';
   String _freezeUrl(int userId) => '$kApiBase/direktur/freeze/users/$userId';
   String _unfreezeUrl(int userId) =>
@@ -587,7 +584,5 @@ class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
   }
 }
 
-typedef _DialogEmpty = DialogEmpty;
-typedef _DialogError = DialogError;
 typedef _EmptyState = EmptyStateBox;
 typedef _AuditRow = AuditRowCard;

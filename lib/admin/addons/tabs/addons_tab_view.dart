@@ -1,9 +1,9 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/addons/services/addon_admin_service.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class AddonsTabView extends StatefulWidget {
   final List<dynamic> categoriesDropdown;

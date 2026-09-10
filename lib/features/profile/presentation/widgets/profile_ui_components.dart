@@ -88,7 +88,7 @@ class ProfilePageSkeleton extends StatelessWidget {
 }
 
 class EditProfileSkeleton extends StatelessWidget {
-  const EditProfileSkeleton();
+  const EditProfileSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +277,7 @@ class EditProfileSkeleton extends StatelessWidget {
 class SkeletonSectionCard extends StatelessWidget {
   final int lines;
 
-  const SkeletonSectionCard({required this.lines});
+  const SkeletonSectionCard({super.key, required this.lines});
 
   @override
   Widget build(BuildContext context) {
@@ -317,7 +317,7 @@ class ProfileSectionCard extends StatelessWidget {
   final IconData? icon;
   final List<Widget> children;
 
-  const ProfileSectionCard({required this.title, required this.children, this.icon});
+  const ProfileSectionCard({super.key, required this.title, required this.children, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -333,7 +333,7 @@ class ProfileSectionCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 18,
             offset: const Offset(0, 8),
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
           ),
         ],
       ),
@@ -371,7 +371,7 @@ class ProfileInfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const ProfileInfoRow({required this.label, required this.value});
+  const ProfileInfoRow({super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

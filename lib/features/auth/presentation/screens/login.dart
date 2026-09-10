@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -8,14 +7,13 @@ import 'package:home_care/manager/manager_dashboard.dart';
 import 'package:home_care/perawat/dashboard.dart';
 import 'package:home_care/direktur/direktur_dashboard.dart';
 import 'package:home_care/ITDev/dashboard_it_page.dart';
-import 'package:home_care/screen/forgot_password_screen.dart';
+import 'package:home_care/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:home_care/users/home_page.dart';
 
-import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/services/storage_service.dart';
-import 'package:home_care/screen/register.dart';
-import 'package:home_care/services/firebase_notification_service.dart';
+import 'package:home_care/features/auth/presentation/screens/register.dart';
+import 'package:home_care/core/services/firebase_notification_service.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 
 class LoginPage extends StatefulWidget {
@@ -33,8 +31,6 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscure = true;
   bool _rememberMe = false;
-
-  static String get baseUrl => ApiConstants.apiBase;
 
   @override
   void initState() {
@@ -126,9 +122,9 @@ class _LoginPageState extends State<LoginPage> {
           final notifService = FirebaseNotificationService();
           await notifService.initialize();
           await notifService.syncTokenToBackend();
-          debugPrint('✅ Firebase Notification initialized after login');
+          debugPrint('âœ… Firebase Notification initialized after login');
         } catch (e) {
-          debugPrint('❌ Notification init after login error: $e');
+          debugPrint('âŒ Notification init after login error: $e');
         }
       }
 
@@ -166,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
           nextPage = const HomePage();
           break;
         default:
-          debugPrint('⚠️ Role tidak dikenali: $role, menggunakan HomePage');
+          debugPrint('âš ï¸ Role tidak dikenali: $role, menggunakan HomePage');
           nextPage = const HomePage();
       }
 
@@ -213,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 10,
                                     offset: const Offset(0, 5),
                                   ),
@@ -320,8 +316,9 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                       ),
                                       validator: (v) {
-                                        if (v == null || v.trim().isEmpty)
+                                        if (v == null || v.trim().isEmpty) {
                                           return 'Email wajib diisi';
+                                        }
                                         return null;
                                       },
                                     ),
@@ -340,7 +337,7 @@ class _LoginPageState extends State<LoginPage> {
                                       obscureText: _obscure,
                                       style: const TextStyle(fontSize: 15),
                                       decoration: InputDecoration(
-                                        hintText: '••••••••',
+                                        hintText: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
                                         hintStyle: TextStyle(
                                           color: Colors.grey[400],
                                         ),
@@ -393,10 +390,12 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                       ),
                                       validator: (v) {
-                                        if (v == null || v.trim().isEmpty)
+                                        if (v == null || v.trim().isEmpty) {
                                           return 'Kata sandi wajib diisi';
-                                        if (v.trim().length < 4)
+                                        }
+                                        if (v.trim().length < 4) {
                                           return 'Minimal 4 karakter';
+                                        }
                                         return null;
                                       },
                                     ),

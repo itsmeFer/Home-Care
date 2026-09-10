@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,37 +16,38 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
-enum KeuanganChartMode { lineRevenue, pieFee, barProfitLayanan }
+enum TimChartMode { lineOrders, barTopNurse, pieComplaints }
 
-class DashboardKeuanganScreen extends StatefulWidget {
+class DashboardTimScreen extends StatefulWidget {
   final String role;
   final bool isDesktop;
   final bool isTablet;
   final String range;
+  final bool showManagerialActions;
 
-  const DashboardKeuanganScreen({
+  const DashboardTimScreen({
     super.key,
     required this.role,
     required this.isDesktop,
     required this.isTablet,
     required this.range,
+    this.showManagerialActions = true,
   });
 
   @override
-  State<DashboardKeuanganScreen> createState() => _DashboardKeuanganScreenState();
+  State<DashboardTimScreen> createState() => _DashboardTimScreenState();
 }
 
-class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
+class _DashboardTimScreenState extends State<DashboardTimScreen>
     with SingleTickerProviderStateMixin {
   String get kBaseUrl => ApiConstants.baseUrl;
   String get kApiBase => ApiConstants.apiBase;
-
   String get _url =>
-      '$kApiBase/${widget.role}/dashboard/keuangan?range=${Uri.encodeComponent(widget.range)}';
+      '$kApiBase/${widget.role}/dashboard/tim?range=${Uri.encodeComponent(widget.range)}';
 
   Future<Map<String, dynamic>>? _future;
 
-  KeuanganChartMode _mode = KeuanganChartMode.lineRevenue;
+  TimChartMode _mode = TimChartMode.lineOrders;
 
   late final AnimationController _chartCtrl;
   late final Animation<double> _t;
@@ -69,7 +69,13 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
   }
 
   @override
-  void didUpdateWidget(covariant DashboardKeuanganScreen oldWidget) {
+  void dispose() {
+    _chartCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardTimScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.range != widget.range || oldWidget.role != widget.role) {
       setState(() {
@@ -78,12 +84,6 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
       });
       _replayChart();
     }
-  }
-
-  @override
-  void dispose() {
-    _chartCtrl.dispose();
-    super.dispose();
   }
 
   void _replayChart() {
@@ -131,7 +131,6 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
       }
       return Map<String, dynamic>.from(body as Map);
     }
-
     throw Exception('HTTP ${res.statusCode}: ${res.body}');
   }
 
@@ -141,10 +140,15 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     return double.tryParse(v.toString()) ?? 0;
   }
 
+  int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString()) ?? 0;
+  }
+
   int _parseMoneyToInt(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.round();
-
     final s = v.toString();
     final cleaned = s.replaceAll(RegExp(r'[^0-9\-]'), '');
     return int.tryParse(cleaned) ?? 0;
@@ -153,14 +157,12 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
   String _formatThousandsId(int n) {
     final neg = n < 0;
     var s = n.abs().toString();
-
     final out = StringBuffer();
     for (int i = 0; i < s.length; i++) {
       final posFromEnd = s.length - i;
       out.write(s[i]);
       if (posFromEnd > 1 && posFromEnd % 3 == 1) out.write('.');
     }
-
     final res = out.toString();
     return neg ? '-$res' : res;
   }
@@ -171,33 +173,133 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     return withPrefix ? 'Rp $txt' : txt;
   }
 
-  String rupiahCompact(dynamic v, {bool withPrefix = false}) {
-    final n = _parseMoneyToInt(v).toDouble();
-    final abs = n.abs();
+  double? _normalizeRating(dynamic raw) {
+    if (raw == null) return null;
 
-    String numId(double x) => x.toStringAsFixed(2).replaceAll('.', ',');
+    final d = _toDouble(raw);
+    if (d.isNaN) return null;
 
-    final prefix = withPrefix ? 'Rp ' : '';
+    double r;
+    if (d <= 1.0) {
+      r = d * 5.0;
+    } else if (d <= 5.0) {
+      r = d;
+    } else if (d <= 100.0) {
+      r = d / 20.0;
+    } else {
+      r = d;
+    }
 
-    if (abs >= 1e12) return '$prefix${numId(n / 1e12)} T';
-    if (abs >= 1e9) return '$prefix${numId(n / 1e9)} M';
-    if (abs >= 1e6) return '$prefix${numId(n / 1e6)} Jt';
-    if (abs >= 1e3) return '$prefix${numId(n / 1e3)} Rb';
-    return '$prefix${_formatThousandsId(n.round())}';
+    if (r < 0) r = 0;
+    if (r > 5) r = 5;
+    return r;
   }
 
-  String _shortServiceLabel(String name) {
-    final n = name.trim();
-    if (n.isEmpty) return '-';
+  double? _readRating(Map<String, dynamic> m) {
+    final raw =
+        m['rating'] ??
+        m['rating_avg'] ??
+        m['avg_rating'] ??
+        m['nilai_rating'] ??
+        m['score'];
+    return _normalizeRating(raw);
+  }
 
-    final m = RegExp(r'(\d+)\s*$').firstMatch(n);
-    final suffix = m != null ? m.group(1)! : '';
+  String _ratingText(double? r) {
+    if (r == null) return '-';
+    final full = r.floor();
+    final hasHalf = (r - full) >= 0.5;
 
-    final parts = n.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
-    final base = parts.take(2).join(' ');
+    final buf = StringBuffer();
+    for (int i = 0; i < 5; i++) {
+      if (i < full) {
+        buf.write('★');
+      } else if (i == full && hasHalf) {
+        buf.write('⯨');
+      } else {
+        buf.write('☆');
+      }
+    }
+    return '${buf.toString()}  ${r.toStringAsFixed(1)}';
+  }
 
-    if (suffix.isNotEmpty) return '$base $suffix';
-    return n.length > 14 ? '${n.substring(0, 14)}…' : n;
+  List<Map<String, dynamic>> _extractTrend(Map<String, dynamic> data) {
+    final keys = [
+      'tim_trend',
+      'trend',
+      'trend_kinerja',
+      'chart_trend',
+      'kinerja_trend',
+    ];
+    for (final k in keys) {
+      final v = data[k];
+      if (v is List) {
+        return v
+            .map(
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
+            )
+            .toList();
+      }
+    }
+    return const [];
+  }
+
+  List<Map<String, dynamic>> _extractComplaintsPie(Map<String, dynamic> data) {
+    final keys = [
+      'komplain_composition',
+      'komplain_pie',
+      'pie_komplain',
+      'complaints_pie',
+    ];
+    for (final k in keys) {
+      final v = data[k];
+      if (v is List) {
+        return v
+            .map(
+              (e) =>
+                  (e is Map)
+                      ? Map<String, dynamic>.from(e)
+                      : <String, dynamic>{},
+            )
+            .toList();
+      }
+    }
+    return const [];
+  }
+
+  ({List<FlSpot> spots, List<String> labels}) _buildOrderTrendSeries(
+    List<Map<String, dynamic>> trend,
+  ) {
+    final spots = <FlSpot>[];
+    final labels = <String>[];
+
+    for (int i = 0; i < trend.length; i++) {
+      final m = trend[i];
+      final label =
+          (m['label'] ??
+                  m['period'] ??
+                  m['date'] ??
+                  m['bulan'] ??
+                  m['month'] ??
+                  '')
+              .toString();
+      labels.add(label.isEmpty ? '${i + 1}' : label);
+
+      final y = _toDouble(
+        m['order'] ?? m['total_order'] ?? m['value'] ?? m['count'] ?? 0,
+      );
+      spots.add(FlSpot(i.toDouble(), y));
+    }
+
+    if (spots.length == 1) {
+      spots.add(FlSpot(1, spots.first.y));
+      labels.add('');
+    }
+
+    return (spots: spots, labels: labels);
   }
 
   Uint8List _utf8WithBom(String s) {
@@ -223,49 +325,33 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     );
   }
 
-  Future<void> _exportKeuangan(Map<String, dynamic> data) async {
+  Future<void> _exportTim(Map<String, dynamic> data) async {
     try {
       final kpi =
           (data['kpi'] is Map)
               ? Map<String, dynamic>.from(data['kpi'])
               : <String, dynamic>{};
 
-      final List perLayananRaw =
-          (data['profit_per_layanan'] is List)
-              ? data['profit_per_layanan']
-              : (data['top_layanan'] is List ? data['top_layanan'] : const []);
-
       final trend = _extractTrend(data);
-      final feePie = _extractFeeComposition(data);
 
-      final incomeVal = kpi['income'] ?? kpi['revenue'] ?? kpi['omset'] ?? 0;
-      final feeVal = kpi['fee'] ?? kpi['fee_total'] ?? 0;
-      final profitVal = kpi['profit'] ?? 0;
-
-      final income = rupiah(incomeVal, withPrefix: true);
-      final fee = rupiah(feeVal, withPrefix: true);
-      final profit = rupiah(profitVal, withPrefix: true);
-
-      final incomeD = _toDouble(incomeVal);
-      final profitD = _toDouble(profitVal);
-      final marginP =
-          (kpi['margin_percent'] != null)
-              ? _toDouble(kpi['margin_percent'])
-              : (incomeD <= 0 ? 0.0 : (profitD / incomeD) * 100.0);
-      final margin = marginP.toStringAsFixed(2);
+      final List lb =
+          (data['leaderboard_perawat'] is List)
+              ? data['leaderboard_perawat']
+              : const [];
 
       final sb = StringBuffer();
       sb.writeln('sep=;');
 
       sb.writeln('KPI;Key;Value');
       sb.writeln('KPI;range;${_esc(widget.range)}');
-      sb.writeln('KPI;income;$income');
-      sb.writeln('KPI;fee;$fee');
-      sb.writeln('KPI;profit;$profit');
-      sb.writeln('KPI;margin_percent;${_esc(margin)}');
+      sb.writeln('KPI;perawat_aktif;${_toInt(kpi['perawat_aktif'])}');
+      sb.writeln('KPI;koordinator_aktif;${_toInt(kpi['koordinator_aktif'])}');
+      sb.writeln('KPI;dokter_aktif;${_toInt(kpi['dokter_aktif'])}');
+      sb.writeln('KPI;komplain;${_toInt(kpi['komplain'])}');
 
       sb.writeln('');
-      sb.writeln('TREND_REVENUE;label;income');
+
+      sb.writeln('TREND;label;order');
       for (final m in trend) {
         final label =
             (m['label'] ??
@@ -275,48 +361,28 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                     m['month'] ??
                     '-')
                 .toString();
-        final val =
-            (m['value'] ?? m['income'] ?? m['revenue'] ?? m['omset'] ?? 0);
-
-        sb.writeln(
-          'TREND_REVENUE;${_esc(label)};${_esc(rupiah(val, withPrefix: true))}',
+        final val = _toDouble(
+          m['order'] ?? m['total_order'] ?? m['value'] ?? m['count'] ?? 0,
         );
+        sb.writeln('TREND;${_esc(label)};${val.toStringAsFixed(0)}');
       }
 
       sb.writeln('');
-      sb.writeln('FEE_COMPOSITION;name;total');
-      for (final m in feePie) {
-        final name =
-            (m['name'] ?? m['label'] ?? m['tipe'] ?? m['role'] ?? '-')
-                .toString();
-        final val =
-            (m['total'] ?? m['value'] ?? m['amount'] ?? m['nominal'] ?? 0);
 
-        sb.writeln(
-          'FEE_COMPOSITION;${_esc(name)};${_esc(rupiah(val, withPrefix: true))}',
-        );
-      }
-
-      sb.writeln('');
-      sb.writeln('PROFIT_PER_LAYANAN;nama;omset;fee;profit');
-      for (final e in perLayananRaw) {
+      sb.writeln('LEADERBOARD_PERAWAT;nama;order;rating;fee');
+      for (final e in lb) {
         final m =
             (e is Map) ? Map<String, dynamic>.from(e) : <String, dynamic>{};
 
-        final nama = (m['nama'] ?? m['nama_layanan'] ?? '-').toString();
-        final omset = m['omset'] ?? m['revenue'] ?? m['income'] ?? 0;
-
-        final feeX = m['fee'] ?? m['fee_total'] ?? m['total_fee'] ?? 0;
-
-        final profitX =
-            m['profit'] ?? max(0, _toDouble(omset) - _toDouble(feeX));
+        final rating = _readRating(m);
+        final ratingTxt = rating == null ? '' : rating.toStringAsFixed(2);
 
         sb.writeln(
-          'PROFIT_PER_LAYANAN;'
-          '${_esc(nama)};'
-          '${_esc(rupiah(omset, withPrefix: true))};'
-          '${_esc(rupiah(feeX, withPrefix: true))};'
-          '${_esc(rupiah(profitX, withPrefix: true))}',
+          'LEADERBOARD_PERAWAT;'
+          '${_esc((m['nama'] ?? '-').toString())};'
+          '${_toInt(m['order'])};'
+          '${_esc(ratingTxt)};'
+          '${_esc(rupiah(m['fee'], withPrefix: true))}',
         );
       }
 
@@ -324,7 +390,7 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
 
       final safeRange = widget.range.replaceAll(' ', '_');
       final safeTime = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final fileName = 'keuangan_${widget.role}_${safeRange}_$safeTime.csv';
+      final fileName = 'kinerja_tim_${safeRange}_$safeTime.csv';
 
       if (kIsWeb) {
         final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
@@ -333,7 +399,7 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
           ..download = fileName
           ..click();
         html.Url.revokeObjectUrl(blobUrl);
-        _toast('Export keuangan berhasil (CSV).');
+        _toast('Export kinerja tim berhasil (CSV).');
         return;
       }
 
@@ -346,105 +412,26 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     }
   }
 
-  List<Map<String, dynamic>> _extractTrend(Map<String, dynamic> data) {
-    final keys = [
-      'trend',
-      'trend_revenue',
-      'revenue_trend',
-      'chart_trend',
-      'tren',
-
-      'cashflow',
-      'cashflow_trend',
-      'cashflow_series',
-    ];
-    for (final k in keys) {
-      final v = data[k];
-      if (v is List) {
-        return v
-            .map(
-              (e) =>
-                  (e is Map)
-                      ? Map<String, dynamic>.from(e)
-                      : <String, dynamic>{},
-            )
-            .toList();
-      }
-    }
-    return const [];
-  }
-
-  List<Map<String, dynamic>> _extractFeeComposition(Map<String, dynamic> data) {
-    final keys = ['fee_composition', 'komposisi_fee', 'fee_pie', 'pie_fee'];
-    for (final k in keys) {
-      final v = data[k];
-      if (v is List) {
-        return v
-            .map(
-              (e) =>
-                  (e is Map)
-                      ? Map<String, dynamic>.from(e)
-                      : <String, dynamic>{},
-            )
-            .toList();
-      }
-    }
-    return const [];
-  }
-
-  ({List<FlSpot> spots, List<String> labels}) _buildTrendSeries(
-    List<Map<String, dynamic>> trend,
-  ) {
-    final spots = <FlSpot>[];
-    final labels = <String>[];
-
-    for (var i = 0; i < trend.length; i++) {
-      final m = trend[i];
-
-      final label =
-          (m['label'] ??
-                  m['period'] ??
-                  m['date'] ??
-                  m['bulan'] ??
-                  m['month'] ??
-                  '')
-              .toString();
-      labels.add(label.isEmpty ? '${i + 1}' : label);
-
-      final val = _toDouble(
-        m['value'] ?? m['income'] ?? m['revenue'] ?? m['omset'] ?? 0,
-      );
-      spots.add(FlSpot(i.toDouble(), val));
-    }
-
-    if (spots.length == 1) {
-      spots.add(FlSpot(1, spots.first.y));
-      labels.add('');
-    }
-
-    return (spots: spots, labels: labels);
-  }
-
   Widget _chartSwitcher() {
-    String label(KeuanganChartMode m) {
+    String label(TimChartMode m) {
       switch (m) {
-        case KeuanganChartMode.lineRevenue:
-          return 'Tren Revenue';
-        case KeuanganChartMode.pieFee:
-          return 'Komposisi Fee';
-        case KeuanganChartMode.barProfitLayanan:
-          return 'Profit per Layanan';
+        case TimChartMode.lineOrders:
+          return 'Tren Order';
+        case TimChartMode.barTopNurse:
+          return 'Top Perawat';
+        case TimChartMode.pieComplaints:
+          return 'Komplain';
       }
     }
 
-    IconData icon(KeuanganChartMode m) {
+    IconData icon(TimChartMode m) {
       switch (m) {
-        case KeuanganChartMode.lineRevenue:
+        case TimChartMode.lineOrders:
           return Icons.show_chart_rounded;
-        case KeuanganChartMode.pieFee:
-          return Icons.pie_chart_rounded;
-        case KeuanganChartMode.barProfitLayanan:
+        case TimChartMode.barTopNurse:
           return Icons.bar_chart_rounded;
+        case TimChartMode.pieComplaints:
+          return Icons.pie_chart_rounded;
       }
     }
 
@@ -452,7 +439,7 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
       spacing: 10,
       runSpacing: 10,
       children:
-          KeuanganChartMode.values.map((m) {
+          TimChartMode.values.map((m) {
             final active = _mode == m;
             return InkWell(
               borderRadius: BorderRadius.circular(14),
@@ -512,84 +499,16 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     );
   }
 
-  Widget _pieLegend(List<Map<String, dynamic>> data, {required bool isWide}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Wrap(
-        spacing: 14,
-        runSpacing: 10,
-        children: List.generate(data.length, (i) {
-          final name = (data[i]['name'] ?? '-').toString();
-          final value = (data[i]['value'] ?? 0) as double;
-          final percent = (data[i]['percent'] ?? 0) as double;
-          final color = (data[i]['color'] ?? const Color(0xFF06B6D4)) as Color;
-
-          final short = name.length > 18 ? '${name.substring(0, 18)}…' : name;
-
-          return SizedBox(
-            width: isWide ? 260 : 180,
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        short,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0F172A),
-                          fontSize: 12.8,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${percent.toStringAsFixed(0)}% • ${rupiah(value, withPrefix: true)}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF64748B),
-                          fontSize: 12.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _lineRevenueChart(List<Map<String, dynamic>> trend) {
+  Widget _lineOrdersChart(List<Map<String, dynamic>> trend) {
     if (trend.isEmpty) {
       return const XCard(
-        title: 'Tren Revenue',
+        title: 'Tren Order',
         subtitle: 'Belum ada data chart untuk range ini.',
         child: ChartPlaceholder(height: 240),
       );
     }
 
-    final series = _buildTrendSeries(trend);
+    final series = _buildOrderTrendSeries(trend);
     final spots = series.spots;
     final labels = series.labels;
 
@@ -600,8 +519,8 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     if (maxY <= 0) maxY = 1;
 
     return XCard(
-      title: 'Tren Revenue',
-      subtitle: 'Sesuai range: ${widget.range}',
+      title: 'Tren Order',
+      subtitle: 'Jumlah order per periode (${widget.range})',
       child: SizedBox(
         height: 240,
         child: AnimatedBuilder(
@@ -635,10 +554,10 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 64,
+                      reservedSize: 44,
                       getTitlesWidget: (v, meta) {
                         return Text(
-                          rupiahCompact(v, withPrefix: false),
+                          v.toStringAsFixed(0),
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -660,7 +579,9 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                         }
                         final label = labels[idx];
                         final short =
-                            label.length > 8 ? label.substring(0, 8) : label;
+                            label.length > 8
+                                ? '${label.substring(0, 8)}…'
+                                : label;
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
@@ -684,29 +605,184 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     );
   }
 
-  Widget _pieFeeChart(List<Map<String, dynamic>> items) {
-    if (items.isEmpty) {
+  Widget _barTopNurseChart(List<Map<String, dynamic>> lb) {
+    if (lb.isEmpty) {
       return const XCard(
-        title: 'Komposisi Fee',
-        subtitle: 'Belum ada data chart untuk range ini.',
-        child: PiePlaceholder(height: 240),
+        title: 'Top Perawat',
+        subtitle: 'Belum ada data leaderboard pada range ini.',
+        child: ChartPlaceholder(height: 240),
       );
     }
 
+    final items =
+        lb.map((e) => Map<String, dynamic>.from(e)).toList();
+
+    items.sort((a, b) {
+      final ao = _toInt(a['order']);
+      final bo = _toInt(b['order']);
+      if (bo != ao) return bo.compareTo(ao);
+
+      final ar = _readRating(a) ?? 0;
+      final br = _readRating(b) ?? 0;
+      return br.compareTo(ar);
+    });
+
+    final top = items.take(8).toList();
+    final maxY = max(
+      1,
+      top
+          .map((m) => _toDouble(m['order']))
+          .fold<double>(0, (p, v) => max(p, v)),
+    );
+
+    return XCard(
+      title: 'Top Perawat',
+      subtitle: 'Perawat paling produktif (berdasarkan order)',
+      child: SizedBox(
+        height: 240,
+        child: AnimatedBuilder(
+          animation: _t,
+          builder: (context, _) {
+            final tt = _t.value;
+
+            return BarChart(
+              BarChartData(
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      final row = Map<String, dynamic>.from(top[group.x]);
+                      final nama = (row['nama'] ?? '-').toString();
+                      final order = _toInt(row['order']);
+                      final rating = _readRating(row) ?? 0;
+                      final ratingTxt = rating.toStringAsFixed(2);
+                      final fee = rupiah(row['fee'], withPrefix: true);
+
+                      return BarTooltipItem(
+                        '$nama\nOrder: $order\nRating: $ratingTxt / 5\nFee: $fee',
+                        const TextStyle(fontWeight: FontWeight.w800),
+                      );
+                    },
+                  ),
+                ),
+                minY: 0,
+                maxY: maxY * 1.2,
+                gridData: const FlGridData(show: true),
+                borderData: FlBorderData(show: false),
+                barGroups: [
+                  for (int i = 0; i < top.length; i++)
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: _toDouble(top[i]['order']) * tt,
+                          width: 18,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ],
+                    ),
+                ],
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 44,
+                      getTitlesWidget: (v, meta) {
+                        return Text(
+                          v.toStringAsFixed(0),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF64748B),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (v, meta) {
+                        final idx = v.toInt();
+                        if (idx < 0 || idx >= top.length) {
+                          return const SizedBox.shrink();
+                        }
+                        final name = (top[idx]['nama'] ?? '-').toString();
+                        final short =
+                            name.length > 10
+                                ? '${name.substring(0, 10)}…'
+                                : name;
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Text(
+                            short,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _pieComplaintsChart(Map<String, dynamic> dataRoot) {
+    final raw = _extractComplaintsPie(dataRoot);
+
+    final list =
+        raw.isNotEmpty
+            ? raw
+            : [
+              {
+                'name': 'Komplain',
+                'total': _toDouble(
+                  ((dataRoot['kpi'] ?? {}) is Map)
+                      ? (Map<String, dynamic>.from(
+                            dataRoot['kpi'],
+                          )['komplain'] ??
+                          0)
+                      : 0,
+                ),
+              },
+            ];
+
     final data =
-        items
-            .map((e) => Map<String, dynamic>.from(e))
+        list
             .map((m) {
               final name =
-                  (m['name'] ?? m['label'] ?? m['tipe'] ?? m['role'] ?? '-')
+                  (m['name'] ?? m['label'] ?? m['tipe'] ?? 'Komplain')
                       .toString();
               final val = _toDouble(
-                m['total'] ?? m['value'] ?? m['amount'] ?? m['nominal'] ?? 0,
+                m['total'] ?? m['value'] ?? m['amount'] ?? 0,
               );
               return {'name': name, 'value': val};
             })
             .where((m) => (m['value'] as double) > 0)
             .toList();
+
+    if (data.isEmpty) {
+      return const XCard(
+        title: 'Komplain',
+        subtitle: 'Belum ada data komplain pada range ini.',
+        child: PiePlaceholder(height: 240),
+      );
+    }
 
     data.sort((a, b) => (b['value'] as double).compareTo(a['value'] as double));
 
@@ -714,40 +790,35 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     final safeTotal = total <= 0 ? 1.0 : total;
 
     const palette = <Color>[
-      Color(0xFF06B6D4),
+      Color(0xFFEF4444),
+      Color(0xFFF59E0B),
       Color(0xFF3B82F6),
       Color(0xFF22C55E),
-      Color(0xFFF59E0B),
       Color(0xFF8B5CF6),
-      Color(0xFFEF4444),
-      Color(0xFF14B8A6),
       Color(0xFF64748B),
     ];
 
     int touchedIndex = -1;
 
     return XCard(
-      title: 'Komposisi Fee',
-      subtitle: 'Sesuai range: ${widget.range}',
+      title: 'Komplain',
+      subtitle: 'Komposisi komplain (${widget.range})',
       child: StatefulBuilder(
         builder: (context, setInner) {
           return LayoutBuilder(
             builder: (context, c) {
-              final w = c.maxWidth;
-              final isWide = w >= 780;
-              final chartSize = isWide ? 260.0 : 240.0;
+              final isWide = c.maxWidth >= 780;
+              final size = isWide ? 260.0 : 240.0;
 
               final baseSections = <PieChartSectionData>[];
-              for (var i = 0; i < data.length; i++) {
+              for (int i = 0; i < data.length; i++) {
                 final v = data[i]['value'] as double;
                 final percent = (v / safeTotal) * 100;
                 final color = palette[i % palette.length];
-
                 data[i]['percent'] = percent;
                 data[i]['color'] = color;
 
                 final isTouched = i == touchedIndex;
-
                 baseSections.add(
                   PieChartSectionData(
                     color: color,
@@ -760,9 +831,9 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
 
               final legend = _pieLegend(data, isWide: isWide);
 
-              Widget chart = SizedBox(
-                width: chartSize,
-                height: chartSize,
+              final chart = SizedBox(
+                width: size,
+                height: size,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -770,7 +841,6 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                       animation: _t,
                       builder: (context, _) {
                         final tt = _t.value;
-
                         final sections =
                             baseSections.map((s) {
                               final v = s.value * tt;
@@ -807,7 +877,7 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
-                          'Total Fee',
+                          'Total Komplain',
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF64748B),
@@ -816,12 +886,12 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          rupiah(safeTotal, withPrefix: true),
+                          _toInt(safeTotal).toString(),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             color: Color(0xFF0F172A),
-                            fontSize: 16.5,
+                            fontSize: 18,
                           ),
                         ),
                       ],
@@ -832,7 +902,6 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
 
               if (isWide) {
                 return Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     chart,
                     const SizedBox(width: 18),
@@ -840,7 +909,6 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                   ],
                 );
               }
-
               return Column(
                 children: [chart, const SizedBox(height: 12), legend],
               );
@@ -851,168 +919,83 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     );
   }
 
-  Widget _barProfitLayananChart(List<Map<String, dynamic>> perLayanan) {
-    if (perLayanan.isEmpty) {
-      return const XCard(
-        title: 'Profit per Layanan',
-        subtitle: 'Belum ada data chart untuk range ini.',
-        child: ChartPlaceholder(height: 240),
-      );
-    }
+  Widget _pieLegend(List<Map<String, dynamic>> data, {required bool isWide}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 10,
+        children: List.generate(data.length, (i) {
+          final name = (data[i]['name'] ?? '-').toString();
+          final value = (data[i]['value'] ?? 0) as double;
+          final percent = (data[i]['percent'] ?? 0) as double;
+          final color = (data[i]['color'] ?? const Color(0xFF64748B)) as Color;
 
-    final items =
-        perLayanan
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
+          final short = name.length > 18 ? '${name.substring(0, 18)}…' : name;
 
-    for (final m in items) {
-      if (m['profit'] == null) {
-        final omset = _toDouble(m['omset'] ?? m['revenue'] ?? m['income'] ?? 0);
-        final feeX = _toDouble(
-          m['fee'] ?? m['fee_total'] ?? m['total_fee'] ?? 0,
-        );
-        m['profit'] = max(0, omset - feeX);
-      }
-    }
-
-    items.sort(
-      (a, b) => _toDouble(b['profit']).compareTo(_toDouble(a['profit'])),
-    );
-    final top = items.take(8).toList();
-
-    final maxY = max(
-      1,
-      top
-          .map((m) => _toDouble(m['profit']))
-          .fold<double>(0, (p, v) => max(p, v)),
-    );
-
-    return XCard(
-      title: 'Profit per Layanan',
-      subtitle: 'Top layanan paling menghasilkan (${widget.range})',
-      child: SizedBox(
-        height: 240,
-        child: AnimatedBuilder(
-          animation: _t,
-          builder: (context, _) {
-            final tt = _t.value;
-
-            return BarChart(
-              BarChartData(
-                barTouchData: BarTouchData(
-                  enabled: true,
-                  touchTooltipData: BarTouchTooltipData(
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      final nama =
-                          (top[group.x]['nama'] ??
-                                  top[group.x]['nama_layanan'] ??
-                                  '-')
-                              .toString();
-                      final raw = _toDouble(top[group.x]['profit']);
-                      return BarTooltipItem(
-                        '$nama\n${rupiah(raw, withPrefix: true)}',
-                        const TextStyle(fontWeight: FontWeight.w800),
-                      );
-                    },
+          return SizedBox(
+            width: isWide ? 260 : 180,
+            child: Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(99),
                   ),
                 ),
-                minY: 0,
-                maxY: maxY * 1.15,
-                gridData: const FlGridData(show: true),
-                borderData: FlBorderData(show: false),
-                barGroups: [
-                  for (var i = 0; i < top.length; i++)
-                    BarChartGroupData(
-                      x: i,
-                      barRods: [
-                        BarChartRodData(
-                          toY: _toDouble(top[i]['profit']) * tt,
-                          width: 18,
-                          borderRadius: BorderRadius.circular(6),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        short,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF0F172A),
+                          fontSize: 12.8,
                         ),
-                      ],
-                    ),
-                ],
-                titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 64,
-                      getTitlesWidget: (v, meta) {
-                        return Text(
-                          rupiahCompact(v, withPrefix: false),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF64748B),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: (v, meta) {
-                        final idx = v.toInt();
-                        if (idx < 0 || idx >= top.length) {
-                          return const SizedBox.shrink();
-                        }
-                        final name =
-                            (top[idx]['nama'] ??
-                                    top[idx]['nama_layanan'] ??
-                                    '-')
-                                .toString();
-                        final short = _shortServiceLabel(name);
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Text(
-                            short,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${percent.toStringAsFixed(0)}% • ${_toInt(value)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF64748B),
+                          fontSize: 12.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            );
-          },
-        ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
 
   Widget _chartByMode({
-    required KeuanganChartMode mode,
+    required TimChartMode mode,
     required Map<String, dynamic> data,
   }) {
     final trend = _extractTrend(data);
-    final feePie = _extractFeeComposition(data);
 
-    final perLayanan =
-        (data['profit_per_layanan'] is List)
-            ? (data['profit_per_layanan'] as List)
-                .map(
-                  (e) =>
-                      (e is Map)
-                          ? Map<String, dynamic>.from(e)
-                          : <String, dynamic>{},
-                )
-                .toList()
-            : (data['top_layanan'] is List)
-            ? (data['top_layanan'] as List)
+    final lb =
+        (data['leaderboard_perawat'] is List)
+            ? (data['leaderboard_perawat'] as List)
                 .map(
                   (e) =>
                       (e is Map)
@@ -1023,18 +1006,18 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
             : <Map<String, dynamic>>[];
 
     switch (mode) {
-      case KeuanganChartMode.lineRevenue:
-        return _lineRevenueChart(trend);
-      case KeuanganChartMode.pieFee:
-        return _pieFeeChart(feePie);
-      case KeuanganChartMode.barProfitLayanan:
-        return _barProfitLayananChart(perLayanan);
+      case TimChartMode.lineOrders:
+        return _lineOrdersChart(trend);
+      case TimChartMode.barTopNurse:
+        return _barTopNurseChart(lb);
+      case TimChartMode.pieComplaints:
+        return _pieComplaintsChart(data);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final cols = widget.isDesktop ? 3 : 2;
+    final cols = widget.isDesktop ? 4 : 2;
 
     return FutureBuilder<Map<String, dynamic>>(
       future: _future,
@@ -1050,52 +1033,31 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                 ? Map<String, dynamic>.from(data['kpi'])
                 : <String, dynamic>{};
 
-        final incomeVal = kpi['income'] ?? kpi['revenue'] ?? kpi['omset'] ?? 0;
-        final feeVal = kpi['fee'] ?? kpi['fee_total'] ?? 0;
-        final profitVal =
-            kpi['profit'] ?? max(0, _toDouble(incomeVal) - _toDouble(feeVal));
+        final perawatAktif = _toInt(kpi['perawat_aktif']).toString();
+        final koordinatorAktif = _toInt(kpi['koordinator_aktif']).toString();
+        final dokterAktif = _toInt(kpi['dokter_aktif']).toString();
+        final komplain = _toInt(kpi['komplain']).toString();
 
-        final incomeTxt = rupiah(incomeVal);
-        final feeTxt = rupiah(feeVal);
-        final profitTxt = rupiah(profitVal);
-
-        final incomeD = _toDouble(incomeVal);
-        final profitD = _toDouble(profitVal);
-
-        final marginP =
-            (kpi['margin_percent'] != null)
-                ? _toDouble(kpi['margin_percent'])
-                : (incomeD <= 0 ? 0.0 : (profitD / incomeD) * 100.0);
-        final margin = marginP.toStringAsFixed(2);
-
-        final List perLayanan =
-            (data['profit_per_layanan'] is List)
-                ? data['profit_per_layanan']
-                : (data['top_layanan'] is List
-                    ? data['top_layanan']
-                    : const []);
+        final List lb =
+            (data['leaderboard_perawat'] is List)
+                ? data['leaderboard_perawat']
+                : const [];
 
         final rows =
-            perLayanan.isNotEmpty
-                ? perLayanan.take(10).map((e) {
+            lb.isNotEmpty
+                ? lb.take(8).map((e) {
                   final m =
                       (e is Map)
                           ? Map<String, dynamic>.from(e)
                           : <String, dynamic>{};
 
-                  final nama =
-                      (m['nama'] ?? m['nama_layanan'] ?? '-').toString();
-                  final omset = m['omset'] ?? m['revenue'] ?? m['income'] ?? 0;
-                  final feeX =
-                      m['fee'] ?? m['fee_total'] ?? m['total_fee'] ?? 0;
-                  final profitX =
-                      m['profit'] ?? max(0, _toDouble(omset) - _toDouble(feeX));
+                  final r = _readRating(m);
 
                   return [
-                    nama,
-                    rupiah(omset, withPrefix: false),
-                    rupiah(feeX, withPrefix: false),
-                    rupiah(profitX, withPrefix: false),
+                    (m['nama'] ?? '-').toString(),
+                    _toInt(m['order']).toString(),
+                    _ratingText(r),
+                    rupiah(m['fee'], withPrefix: true),
                   ];
                 }).toList()
                 : const <List<String>>[];
@@ -1104,9 +1066,9 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
-              SectionHeader(title: 'Keuangan', subtitle: 'Memuat data...'),
+              SectionHeader(title: 'Kinerja Tim', subtitle: 'Memuat data...'),
               SizedBox(height: 12),
-              LoadingCard(title: 'Keuangan'),
+              LoadingCard(title: 'Kinerja Tim'),
             ],
           );
         }
@@ -1116,12 +1078,12 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                title: 'Keuangan',
+                title: 'Kinerja Tim',
                 subtitle: 'Gagal memuat data (${widget.range}).',
               ),
               const SizedBox(height: 12),
               ErrorCard(
-                title: 'Keuangan',
+                title: 'Kinerja Tim',
                 message: snap.error.toString(),
                 onRetry: () {
                   setState(() {
@@ -1139,9 +1101,9 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionHeader(
-              title: 'Keuangan',
+              title: 'Kinerja Tim',
               subtitle:
-                  'Ringkasan revenue, fee, dan profitabilitas (${widget.range}).',
+                  'Performa perawat/koordinator/dokter (${widget.range}).',
             ),
             const SizedBox(height: 12),
 
@@ -1150,25 +1112,32 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
               gap: 12,
               children: [
                 KpiCard(
-                  title: 'Total Income',
-                  value: incomeTxt,
+                  title: 'Perawat Aktif',
+                  value: perawatAktif,
                   hint: widget.range,
-                  icon: Icons.account_balance_wallet_outlined,
+                  icon: Icons.health_and_safety_outlined,
                   accent: const Color(0xFF0EA5E9),
                 ),
                 KpiCard(
-                  title: 'Total Fee Dibayar',
-                  value: feeTxt,
-                  hint: 'Perawat/Koordinator/Dokter',
-                  icon: Icons.groups_outlined,
-                  accent: const Color(0xFFF59E0B),
+                  title: 'Koordinator Aktif',
+                  value: koordinatorAktif,
+                  hint: widget.range,
+                  icon: Icons.badge_outlined,
+                  accent: const Color(0xFF0EA5E9),
                 ),
                 KpiCard(
-                  title: 'Profit Bersih',
-                  value: profitTxt,
-                  hint: 'Margin $margin%',
-                  icon: Icons.savings_outlined,
-                  accent: const Color(0xFF16A34A),
+                  title: 'Dokter Aktif',
+                  value: dokterAktif,
+                  hint: widget.range,
+                  icon: Icons.medical_services_outlined,
+                  accent: const Color(0xFF0EA5E9),
+                ),
+                KpiCard(
+                  title: 'Komplain',
+                  value: komplain,
+                  hint: 'Butuh follow-up',
+                  icon: Icons.report_outlined,
+                  accent: const Color(0xFFDC2626),
                 ),
               ],
             ),
@@ -1176,7 +1145,7 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
             const SizedBox(height: 12),
 
             XCard(
-              title: 'Visualisasi',
+              title: 'Visualisasi Kinerja',
               subtitle: 'Pilih jenis chart sesuai kebutuhan (${widget.range}).',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1191,24 +1160,17 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
             const SizedBox(height: 12),
 
             XCard(
-              title: 'Profitabilitas per Layanan',
-              subtitle:
-                  'Omset vs fee, supaya manager bisa ambil keputusan cepat.',
+              title: 'Leaderboard Perawat',
+              subtitle: 'Produktivitas & rating (${widget.range}).',
               child:
                   rows.isEmpty
                       ? const _EmptyBox(
-                        text:
-                            'Belum ada data profit per layanan pada range ini.',
+                        text: 'Belum ada data leaderboard pada range ini.',
                       )
                       : Column(
                         children: [
                           TableCard(
-                            columns: const [
-                              'Layanan',
-                              'Omset',
-                              'Fee',
-                              'Profit',
-                            ],
+                            columns: const ['Nama', 'Order', 'Rating', 'Fee'],
                             rows: rows,
                           ),
                           const SizedBox(height: 12),
@@ -1216,13 +1178,47 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
                             alignment: Alignment.centerRight,
                             child: OutlineButtonX(
                               icon: Icons.download_outlined,
-                              label: 'Export Keuangan',
-                              onTap: () => _exportKeuangan(data),
+                              label: 'Export Kinerja Tim',
+                              onTap: () => _exportTim(data),
                             ),
                           ),
                         ],
                       ),
             ),
+
+            if (widget.showManagerialActions) ...[
+              const SizedBox(height: 12),
+              XCard(
+                title: 'Aksi Manajerial',
+                subtitle: 'Tombol aksi (nanti disambungkan).',
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    OutlineButtonX(
+                      icon: Icons.workspace_premium_outlined,
+                      label: 'Bonus Tim',
+                      onTap: () {},
+                    ),
+                    OutlineButtonX(
+                      icon: Icons.rate_review_outlined,
+                      label: 'Evaluasi Rating',
+                      onTap: () {},
+                    ),
+                    OutlineButtonX(
+                      icon: Icons.support_agent_outlined,
+                      label: 'Follow-up Komplain',
+                      onTap: () {},
+                    ),
+                    OutlineButtonX(
+                      icon: Icons.schedule_outlined,
+                      label: 'Atur Jadwal',
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         );
       },

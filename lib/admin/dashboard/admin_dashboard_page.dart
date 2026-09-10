@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:home_care/admin/crud_addons.dart';
 import 'package:home_care/admin/crud_banner.dart';
 import 'package:home_care/admin/crud_kategori.dart';
@@ -18,7 +18,7 @@ import 'package:home_care/admin/lapor_it.dart';
 import 'package:home_care/admin/lihat_catatan_fee.dart';
 import 'package:home_care/admin/lihat_layanan_masuk.dart' as admin;
 import 'package:home_care/admin/lihat_perawat.dart';
-import 'package:home_care/screen/login.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});

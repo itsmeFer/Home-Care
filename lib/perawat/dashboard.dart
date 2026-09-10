@@ -1,4 +1,4 @@
-import 'package:home_care/core/services/storage_service.dart';
+﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -7,7 +7,7 @@ import 'package:home_care/features/chat/presentation/screens/perawat_chat_list_p
 import 'package:home_care/perawat/lapor_it.dart';
 import 'package:home_care/perawat/lihat_orderan_masuk.dart';
 import 'package:home_care/perawat/profil.dart';
-import 'package:home_care/screen/login.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:http/http.dart' as http;
@@ -86,7 +86,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
     try {
       final token = await _getToken();
       if (token == null || token.isEmpty) {
-        debugPrint('❌ PERAWAT TOKEN NOT FOUND');
+        debugPrint('âŒ PERAWAT TOKEN NOT FOUND');
         if (mounted) {
           setState(() {
             _chatUnreadCount = 0;
@@ -97,7 +97,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
         return;
       }
 
-      debugPrint('🔄 Loading perawat badges...');
+      debugPrint('ðŸ”„ Loading perawat badges...');
 
       final results = await Future.wait([
         _fetchChatUnread(token),
@@ -107,8 +107,8 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
       final chatUnread = results[0];
       final orderUnread = results[1];
 
-      debugPrint('✅ Perawat Chat Unread: $chatUnread');
-      debugPrint('✅ Perawat Order Unread: $orderUnread');
+      debugPrint('âœ… Perawat Chat Unread: $chatUnread');
+      debugPrint('âœ… Perawat Order Unread: $orderUnread');
 
       if (mounted) {
         setState(() {
@@ -118,7 +118,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
         });
       }
     } catch (e) {
-      debugPrint('❌ LOAD PERAWAT BADGES ERROR: $e');
+      debugPrint('âŒ LOAD PERAWAT BADGES ERROR: $e');
 
       if (mounted) {
         setState(() {
@@ -140,8 +140,8 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
           )
           .timeout(const Duration(seconds: 10));
 
-      debugPrint('📨 Perawat Chat Unread Response: ${res.statusCode}');
-      debugPrint('📨 Perawat Chat Unread Body: ${res.body}');
+      debugPrint('ðŸ“¨ Perawat Chat Unread Response: ${res.statusCode}');
+      debugPrint('ðŸ“¨ Perawat Chat Unread Body: ${res.body}');
 
       if (res.statusCode != 200) return 0;
 
@@ -164,7 +164,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
 
       return 0;
     } catch (e) {
-      debugPrint('❌ FETCH PERAWAT CHAT UNREAD ERROR: $e');
+      debugPrint('âŒ FETCH PERAWAT CHAT UNREAD ERROR: $e');
       return 0;
     }
   }
@@ -181,8 +181,8 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
           )
           .timeout(const Duration(seconds: 10));
 
-      debugPrint('📦 Perawat Order Response: ${res.statusCode}');
-      debugPrint('📦 Perawat Order Body: ${res.body}');
+      debugPrint('ðŸ“¦ Perawat Order Response: ${res.statusCode}');
+      debugPrint('ðŸ“¦ Perawat Order Body: ${res.body}');
 
       if (res.statusCode != 200) return 0;
 
@@ -217,12 +217,12 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
             return relevantStatuses.contains(status);
           }).toList();
 
-      debugPrint('📊 Total Perawat Orders: ${data.length}');
-      debugPrint('📊 Filtered Perawat Orders (aktif): ${filteredData.length}');
+      debugPrint('ðŸ“Š Total Perawat Orders: ${data.length}');
+      debugPrint('ðŸ“Š Filtered Perawat Orders (aktif): ${filteredData.length}');
 
       return filteredData.length;
     } catch (e) {
-      debugPrint('❌ FETCH PERAWAT ORDER UNREAD ERROR: $e');
+      debugPrint('âŒ FETCH PERAWAT ORDER UNREAD ERROR: $e');
       return 0;
     }
   }
@@ -450,7 +450,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
 
                       IconButton(
                         onPressed: () {
-                          debugPrint('🔄 Manual Refresh Perawat Badge');
+                          debugPrint('ðŸ”„ Manual Refresh Perawat Badge');
                           _loadBadges(silent: false);
                         },
                         icon: const Icon(Icons.refresh, color: Colors.white),

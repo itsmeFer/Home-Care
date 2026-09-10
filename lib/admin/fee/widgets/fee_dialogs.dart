@@ -3,7 +3,7 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/fee_management/domain/fee_models.dart';
-import 'package:home_care/features/fee_management/presentation/widgets/fee_ui_components.dart';
+import 'package:home_care/admin/fee/widgets/fee_ui_components.dart';
 
 String get kFeeUsersUrl => ApiConstants.adminFeeUsers;
 String get kFeeCreateUserUrl => ApiConstants.adminFeeCreateUser;

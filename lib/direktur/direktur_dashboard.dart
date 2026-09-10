@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'dart:ui';
@@ -12,7 +12,7 @@ import 'pages/keuangan_page.dart';
 import 'pages/tim_page.dart';
 import 'pages/pasien_page.dart';
 import 'pages/audit_page.dart';
-import 'package:home_care/screen/login.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
 
 class DirekturDashboard extends StatefulWidget {
   const DirekturDashboard({super.key});
@@ -393,7 +393,7 @@ class _TopBar extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             const Text(
-                              'HomeCare • Dashboard',
+                              'HomeCare â€¢ Dashboard',
                               style: TextStyle(
                                 color: kMuted,
                                 fontSize: 11,
@@ -451,7 +451,7 @@ class _TopBar extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         const Text(
-                          'HomeCare • Executive Dashboard',
+                          'HomeCare â€¢ Executive Dashboard',
                           style: TextStyle(
                             color: kMuted,
                             fontSize: 12.5,

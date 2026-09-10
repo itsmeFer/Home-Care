@@ -4,7 +4,7 @@ import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class SquareBannerSection extends StatefulWidget {
   const SquareBannerSection({super.key});
@@ -178,7 +178,7 @@ class _SquareBannerCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 10,
             offset: const Offset(0, 4),
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
           ),
         ],
       ),
@@ -260,7 +260,7 @@ class _SquareBannerCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11.5,
-                        color: Colors.black.withOpacity(0.58),
+                        color: Colors.black.withValues(alpha: 0.58),
                         height: 1.25,
                       ),
                     ),
@@ -284,7 +284,7 @@ class _SquareBannerCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 10.5,
-                        color: Colors.black.withOpacity(0.35),
+                        color: Colors.black.withValues(alpha: 0.35),
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
@@ -345,7 +345,7 @@ class _SquareBannerCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -431,7 +431,7 @@ class _SquareBannerSkeletonCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 10,
             offset: const Offset(0, 4),
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
           ),
         ],
       ),

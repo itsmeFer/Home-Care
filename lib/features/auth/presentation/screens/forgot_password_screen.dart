@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 
@@ -20,7 +19,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   int _cooldownSeconds = 0;
   Timer? _cooldownTimer;
 
-  static String get baseUrl => ApiConstants.apiBase;
   static const int cooldownDuration = 60;
 
   @override
@@ -158,7 +156,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   BoxShadow(
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
-                                    color: Colors.black.withOpacity(.2),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                   ),
                                 ],
                               ),
@@ -214,7 +212,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     BoxShadow(
                                       blurRadius: 20,
                                       offset: const Offset(0, 10),
-                                      color: Colors.black.withOpacity(.15),
+                                      color: Colors.black.withValues(alpha: 0.15),
                                     ),
                                   ],
                                 ),
@@ -270,7 +268,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     disabledBackgroundColor: Colors.white
-                                        .withOpacity(0.5),
+                                        .withValues(alpha: 0.5),
                                     disabledForegroundColor: Colors.grey[600],
                                   ),
                                   onPressed: canSend ? _sendResetLink : null,
@@ -307,7 +305,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     BoxShadow(
                                       blurRadius: 20,
                                       offset: const Offset(0, 10),
-                                      color: Colors.black.withOpacity(.15),
+                                      color: Colors.black.withValues(alpha: 0.15),
                                     ),
                                   ],
                                 ),
@@ -381,7 +379,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     disabledBackgroundColor: Colors.white
-                                        .withOpacity(0.5),
+                                        .withValues(alpha: 0.5),
                                     disabledForegroundColor: Colors.grey[600],
                                   ),
                                   onPressed: canSend ? _sendResetLink : null,

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/banners/domain/banner_model.dart';
 import 'package:home_care/admin/banners/widgets/banner_card_badges.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class FullWidthBannerCard extends StatelessWidget {
   final BannerModel banner;

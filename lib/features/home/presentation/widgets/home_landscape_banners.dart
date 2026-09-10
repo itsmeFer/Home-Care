@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/users/home_page.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import 'package:home_care/utils/app_cached_image.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class LandscapeBannerSection extends StatefulWidget {
   const LandscapeBannerSection({super.key});
@@ -154,7 +154,7 @@ class _LandscapeBannerCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 10,
             offset: const Offset(0, 4),
-            color: Colors.black.withOpacity(0.10),
+            color: Colors.black.withValues(alpha: 0.10),
           ),
         ],
       ),
@@ -176,7 +176,7 @@ class _LandscapeBannerCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.55)],
+                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.55)],
                 ),
               ),
             ),
@@ -273,7 +273,7 @@ class _LandscapeBannerSkeletonCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 8,
             offset: const Offset(0, 3),
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
           ),
         ],
       ),

@@ -3,12 +3,12 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/support_it/data/support_it_service.dart';
-import 'package:home_care/features/support_it/presentation/riwayat_laporan_it_screen.dart';
+import 'package:home_care/features/support_it/presentation/screens/riwayat_laporan_it_screen.dart';
 import 'package:home_care/features/support_it/presentation/widgets/support_it_info_card.dart';
 import 'package:home_care/features/support_it/presentation/widgets/support_it_selectors.dart';
 
 export 'package:home_care/features/support_it/domain/support_it_models.dart';
-export 'package:home_care/features/support_it/presentation/riwayat_laporan_it_screen.dart';
+export 'package:home_care/features/support_it/presentation/screens/riwayat_laporan_it_screen.dart';
 
 class LaporITScreen extends StatefulWidget {
   final String source;
