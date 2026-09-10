@@ -44,6 +44,34 @@ class BannerService {
     throw Exception('Gagal memuat banner');
   }
 
+  static Future<List<BannerModel>> _fetchBannersByType(String tipeCard) async {
+    try {
+      final res = await ApiClient.get('/banners');
+      if (res is Map && res['data'] is List) {
+        final List data = res['data'] as List;
+        return data
+            .map((e) => BannerModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .where((e) => e.aktif && e.tipeCard == tipeCard)
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<List<BannerModel>> fetchSquareBanners() {
+    return _fetchBannersByType('square');
+  }
+
+  static Future<List<BannerModel>> fetchFullWidthBanners() {
+    return _fetchBannersByType('full_width');
+  }
+
+  static Future<List<BannerModel>> fetchLandscapeBanners() {
+    return _fetchBannersByType('landscape');
+  }
+
   static Future<void> create({
     int? layananId,
     String? judul,

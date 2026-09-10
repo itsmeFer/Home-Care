@@ -2,6 +2,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 
+typedef BannerItem = BannerModel;
+
 class CurrencyFormatter extends TextInputFormatter {
   final NumberFormat _formatter = NumberFormat.currency(
     locale: 'id_ID',
