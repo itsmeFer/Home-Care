@@ -45,21 +45,21 @@ class NotificationCard extends StatelessWidget {
               ),
             ],
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 6,
-                height: 122,
-                decoration: BoxDecoration(
-                  color: item.isRead ? Colors.transparent : color,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(22),
-                    bottomLeft: Radius.circular(22),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 6,
+                  decoration: BoxDecoration(
+                    color: item.isRead ? Colors.transparent : color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(22),
+                      bottomLeft: Radius.circular(22),
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
+                Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -157,6 +157,7 @@ class NotificationCard extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

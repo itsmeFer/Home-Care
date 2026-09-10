@@ -5,12 +5,11 @@ import 'package:home_care/core/widgets/patient_app_bar.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'models/notifikasi_model.dart';
 import 'services/notifikasi_service.dart';
-import 'widgets/notifikasi_card.dart';
-import 'widgets/notifikasi_detail_sheet.dart';
-import 'widgets/notifikasi_summary_card.dart';
+import 'widgets/widgets.dart';
 
 export 'models/notifikasi_model.dart';
 export 'services/notifikasi_service.dart';
+export 'widgets/widgets.dart';
 
 class NotifikasiPage extends StatefulWidget {
   const NotifikasiPage({super.key});
@@ -32,12 +31,14 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
     _loadNotifications();
   }
 
-  Future<void> _loadNotifications() async {
+  Future<void> _loadNotifications({bool isRefresh = false}) async {
     if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    if (!isRefresh && _items.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final items = await _service.fetchNotifications();
@@ -45,27 +46,42 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
       setState(() {
         _items = items;
         _isLoading = false;
+        _error = null;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _error = 'Gagal memuat notifikasi: $e';
-      });
+      if (isRefresh && _items.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memperbarui notifikasi: $e')),
+        );
+      } else {
+        setState(() {
+          _isLoading = false;
+          _error = 'Gagal memuat notifikasi: $e';
+        });
+      }
     }
   }
 
   Future<void> _markAsRead(int id) async {
-    final success = await _service.markAsRead(id);
-    if (!success) return;
+    final idx = _items.indexWhere((e) => e.id == id);
+    if (idx == -1 || _items[idx].isRead) return;
 
-    if (!mounted) return;
+    // Optimistic UI update
     setState(() {
-      final idx = _items.indexWhere((e) => e.id == id);
-      if (idx != -1) {
-        _items[idx] = _items[idx].copyWith(isRead: true);
-      }
+      _items[idx] = _items[idx].copyWith(isRead: true);
     });
+
+    final success = await _service.markAsRead(id);
+    if (!success && mounted) {
+      // Revert if API failed
+      setState(() {
+        final currentIdx = _items.indexWhere((e) => e.id == id);
+        if (currentIdx != -1) {
+          _items[currentIdx] = _items[currentIdx].copyWith(isRead: false);
+        }
+      });
+    }
   }
 
   Future<void> _markAllAsRead() async {
@@ -212,7 +228,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _loadNotifications,
+        onRefresh: () => _loadNotifications(isRefresh: true),
         child:
             _isLoading
                 ? const SingleChildScrollView(child: NotificationListSkeleton())
@@ -227,6 +243,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
   Widget _buildErrorView() {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
       children: [
         const SizedBox(height: 80),
@@ -258,7 +275,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _loadNotifications,
+                onPressed: () => _loadNotifications(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F172A),
                   foregroundColor: Colors.white,
@@ -277,6 +294,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
   Widget _buildEmptyView() {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
       children: [
         const SizedBox(height: 80),
@@ -323,38 +341,37 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   }
 
   Widget _buildListView() {
-    return ListView(
+    return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        NotificationSummaryCard(unreadCount: _unreadCount),
-        const SizedBox(height: 16),
-        ..._items.map((item) {
-          final color = colorForType(item.type);
-          final icon = iconForType(item.type);
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: NotificationCard(
+      itemCount: _items.length + 1,
+      separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 16 : 12),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return NotificationSummaryCard(unreadCount: _unreadCount);
+        }
+        final item = _items[index - 1];
+        final color = colorForType(item.type);
+        final icon = iconForType(item.type);
+        return NotificationCard(
+          item: item,
+          color: color,
+          icon: icon,
+          timeAgo: _timeAgo(item.createdAt),
+          fullDate: _formatDate(item.createdAt),
+          onTap: () async {
+            if (!item.isRead) {
+              _markAsRead(item.id);
+            }
+            NotificationDetailSheet.show(
+              context,
               item: item,
               color: color,
               icon: icon,
-              timeAgo: _timeAgo(item.createdAt),
-              fullDate: _formatDate(item.createdAt),
-              onTap: () async {
-                if (!item.isRead) {
-                  _markAsRead(item.id);
-                }
-                NotificationDetailSheet.show(
-                  context,
-                  item: item,
-                  color: color,
-                  icon: icon,
-                );
-              },
-            ),
-          );
-        }),
-      ],
+            );
+          },
+        );
+      },
     );
   }
 }
