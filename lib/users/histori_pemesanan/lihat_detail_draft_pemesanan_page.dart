@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/users/histori_pemesanan/services/histori_pemesanan_service.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_layanan_detail_card.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_pembayaran_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/widgets.dart';
 import 'package:home_care/users/payment_method_page.dart';
 
 class LihatDetailDraftPemesananPage extends StatefulWidget {
@@ -32,11 +32,13 @@ class _LihatDetailDraftPemesananPageState
     _fetchDraftDetail();
   }
 
-  Future<void> _fetchDraftDetail() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _fetchDraftDetail({bool isRefresh = false}) async {
+    if (!isRefresh && _draft == null) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final data = await _service.fetchDraftDetail(widget.draftId);
@@ -46,6 +48,7 @@ class _LihatDetailDraftPemesananPageState
         setState(() {
           _draft = data;
           _isLoading = false;
+          _error = null;
         });
       } else {
         setState(() {
@@ -97,11 +100,12 @@ class _LihatDetailDraftPemesananPageState
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: _fetchDraftDetail,
+              onPressed: () => _fetchDraftDetail(),
               icon: const Icon(IconlyLight.swap),
               label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: HCColors.primary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -121,7 +125,7 @@ class _LihatDetailDraftPemesananPageState
     }
 
     return RefreshIndicator(
-      onRefresh: _fetchDraftDetail,
+      onRefresh: () => _fetchDraftDetail(isRefresh: true),
       color: HCColors.primary,
       child: CustomScrollView(
         slivers: [
@@ -161,10 +165,10 @@ class _LihatDetailDraftPemesananPageState
                   fit: StackFit.expand,
                   children: [
                     if (gambarLayanan != null && gambarLayanan.isNotEmpty)
-                      Image.network(
-                        gambarLayanan,
+                      AppCachedImage(
+                        imageUrl: gambarLayanan,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorWidget: Container(
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [HCColors.warning, HCColors.pending],
@@ -243,7 +247,7 @@ class _LihatDetailDraftPemesananPageState
                 OrderLayananDetailCard(order: _draft!),
                 if ((_draft!['catatan_pasien']?.toString() ?? '').isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _buildCatatanCard(),
+                  OrderCatatanCard(catatan: _draft!['catatan_pasien'].toString()),
                 ],
                 const SizedBox(height: 16),
                 OrderPembayaranCard(order: _draft!),
@@ -257,50 +261,61 @@ class _LihatDetailDraftPemesananPageState
   }
 
   Widget _buildStatusCard() {
+    final status = _draft!['status']?.toString().toLowerCase() ?? '';
+    final expiredAt = _draft!['expired_at']?.toString();
+
+    bool isExpired = status == 'expired';
+    if (!isExpired && expiredAt != null) {
+      try {
+        final expDate = DateTime.parse(expiredAt).toLocal();
+        isExpired = DateTime.now().isAfter(expDate);
+      } catch (_) {}
+    }
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: HCColors.card,
+        color: isExpired
+            ? HCColors.danger.withValues(alpha: 0.1)
+            : HCColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(
+          color: isExpired
+              ? HCColors.danger.withValues(alpha: 0.3)
+              : HCColors.warning.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: HCColors.warning.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              IconlyLight.timeCircle,
-              color: HCColors.warning,
-              size: 28,
-            ),
+          Icon(
+            isExpired ? IconlyBold.danger : IconlyBold.timeCircle,
+            color: isExpired ? HCColors.danger : HCColors.warning,
+            size: 28,
           ),
-          const SizedBox(width: 16),
-          const Expanded(
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Menunggu Pembayaran',
+                  isExpired ? 'Draft Kadaluarsa' : 'Menunggu Pembayaran',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: HCColors.warning,
+                    color: isExpired ? HCColors.danger : HCColors.textDark,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Selesaikan pembayaran untuk memproses pesanan',
-                  style: TextStyle(fontSize: 13, color: HCColors.textMuted),
+                  isExpired
+                      ? 'Batas waktu pembayaran draft ini telah habis.'
+                      : (expiredAt != null && expiredAt.isNotEmpty
+                          ? 'Bayar sebelum: ${AppFormatters.dateTime(expiredAt)}'
+                          : 'Segera selesaikan pembayaran untuk memproses pesanan.'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isExpired ? HCColors.danger : HCColors.textMuted,
+                  ),
                 ),
               ],
             ),
@@ -310,107 +325,86 @@ class _LihatDetailDraftPemesananPageState
     );
   }
 
-  Widget _buildCatatanCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: HCColors.card,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(IconlyLight.document, color: HCColors.primary, size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Catatan Pasien',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: HCColors.textDark,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _draft!['catatan_pasien'].toString(),
-            style: const TextStyle(
-              fontSize: 14,
-              color: HCColors.textMuted,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBottomBar() {
-    final totalBayar =
-        num.tryParse(_draft!['total_bayar']?.toString() ?? '0') ?? 0;
+    final status = _draft!['status']?.toString().toLowerCase() ?? '';
+    final expiredAt = _draft!['expired_at']?.toString();
+
+    bool isExpired = status == 'expired';
+    if (!isExpired && expiredAt != null) {
+      try {
+        final expDate = DateTime.parse(expiredAt).toLocal();
+        isExpired = DateTime.now().isAfter(expDate);
+      } catch (_) {}
+    }
+
+    if (isExpired) return const SizedBox.shrink();
+
+    final totalBayar = double.tryParse(_draft!['total_bayar']?.toString() ?? '0') ?? 0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
-        child: ElevatedButton(
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PaymentMethodPage(
-                  draftId: widget.draftId,
-                  totalBayar: totalBayar.toInt(),
-                ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Total Pembayaran',
+                    style: TextStyle(fontSize: 12, color: HCColors.textMuted),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    AppFormatters.currency(totalBayar),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: HCColors.primary,
+                    ),
+                  ),
+                ],
               ),
-            );
-
-            if (result == true && mounted) {
-              Navigator.pop(context, true);
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: HCColors.warning,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(IconlyLight.wallet, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Bayar Sekarang - ${AppFormatters.currency(totalBayar)}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PaymentMethodPage(
+                      draftId: widget.draftId,
+                      totalBayar: totalBayar.toInt(),
+                    ),
+                  ),
+                ).then((_) => _fetchDraftDetail(isRefresh: true));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HCColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 0,
               ),
-            ],
-          ),
+              child: const Text(
+                'Lanjut Pembayaran',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+            ),
+          ],
         ),
       ),
     );

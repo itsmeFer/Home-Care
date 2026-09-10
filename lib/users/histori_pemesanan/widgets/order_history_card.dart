@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/features/orders/domain/order_models.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_history_rating_prompt.dart';
 import 'package:home_care/users/histori_pemesanan/widgets/order_history_status_helper.dart';
 import 'package:intl/intl.dart';
 
@@ -85,78 +87,67 @@ class OrderHistoryCard extends StatelessWidget {
     }
   }
 
-  Widget _buildRatingPrompt() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            HCColors.accent.withValues(alpha: 0.08),
-            HCColors.primary.withValues(alpha: 0.08),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildTrailingAction(bool isDraftExpired, bool isCod) {
+    if (order.isDraft && !isDraftExpired) {
+      return ElevatedButton(
+        onPressed: onPayDraft,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: HCColors.warning,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
         ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: HCColors.accent.withValues(alpha: 0.2), width: 1),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              IconlyBold.star,
-              color: Color.fromARGB(255, 248, 179, 76),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Bagaimana pengalaman Anda?',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: HCColors.textDark,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Bantu kami meningkatkan layanan',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: HCColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: onRate,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 252, 177, 17),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 0,
-            ),
-            child: const Text(
-              'Beri Rating',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
+        child: const Text('Bayar', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+      );
+    }
+
+    if (order.isDraft && isDraftExpired) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: HCColors.textMuted.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Text(
+          'Draft Expired',
+          style: TextStyle(color: HCColors.textMuted, fontWeight: FontWeight.w600, fontSize: 12),
+        ),
+      );
+    }
+
+    if (isUnpaid && isCod) {
+      return ElevatedButton(
+        onPressed: onConfirmCod,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: HCColors.warning,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
+        ),
+        child: const Text('Konfirmasi', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+      );
+    }
+
+    if (isUnpaid) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: HCColors.danger.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Text(
+          'Bayar Manual',
+          style: TextStyle(color: HCColors.danger, fontWeight: FontWeight.w600, fontSize: 12),
+        ),
+      );
+    }
+
+    return Icon(
+      IconlyLight.arrowRight2,
+      size: 16,
+      color: HCColors.textMuted.withValues(alpha: 0.5),
     );
   }
 
@@ -177,21 +168,15 @@ class OrderHistoryCard extends StatelessWidget {
         color: HCColors.card,
         borderRadius: BorderRadius.circular(12),
         border: isUnpaid
-            ? Border.all(
-                color: HCColors.danger.withValues(alpha: 0.3),
-                width: 1.5,
-              )
+            ? Border.all(color: HCColors.danger.withValues(alpha: 0.3), width: 1.5)
             : needsRating
-                ? Border.all(
-                    color: HCColors.accent.withValues(alpha: 0.3),
-                    width: 1.5,
-                  )
+                ? Border.all(color: HCColors.accent.withValues(alpha: 0.3), width: 1.5)
                 : null,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Color(0x08000000),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -219,20 +204,20 @@ class OrderHistoryCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: order.gambarLayanan != null && order.gambarLayanan!.isNotEmpty
-                          ? ClipRRect(
+                          ? AppCachedImage(
+                              imageUrl: order.gambarLayanan!,
+                              width: 48,
+                              height: 48,
                               borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                order.gambarLayanan!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(
-                                  IconlyLight.activity,
-                                  color: isUnpaid
-                                      ? HCColors.danger
-                                      : needsRating
-                                          ? HCColors.accent
-                                          : HCColors.primary,
-                                  size: 24,
-                                ),
+                              fit: BoxFit.cover,
+                              errorWidget: Icon(
+                                IconlyLight.activity,
+                                color: isUnpaid
+                                    ? HCColors.danger
+                                    : needsRating
+                                        ? HCColors.accent
+                                        : HCColors.primary,
+                                size: 24,
                               ),
                             )
                           : Icon(
@@ -266,10 +251,7 @@ class OrderHistoryCard extends StatelessWidget {
                             runSpacing: 6,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
                                   color: OrderHistoryStatusHelper.paymentStatusColor(
                                     order.statusPembayaran,
@@ -290,10 +272,7 @@ class OrderHistoryCard extends StatelessWidget {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
                                   color: OrderHistoryStatusHelper.statusColor(
                                     order.statusOrder,
@@ -301,15 +280,11 @@ class OrderHistoryCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  OrderHistoryStatusHelper.statusLabel(
-                                    order.statusOrder,
-                                  ),
+                                  OrderHistoryStatusHelper.statusLabel(order.statusOrder),
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    color: OrderHistoryStatusHelper.statusColor(
-                                      order.statusOrder,
-                                    ),
+                                    color: OrderHistoryStatusHelper.statusColor(order.statusOrder),
                                   ),
                                 ),
                               ),
@@ -338,10 +313,7 @@ class OrderHistoryCard extends StatelessWidget {
                   children: [
                     if (order.tipeLayanan != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: HCColors.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
@@ -427,103 +399,14 @@ class OrderHistoryCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    if (order.isDraft && !isDraftExpired)
-                      ElevatedButton(
-                        onPressed: onPayDraft,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: HCColors.warning,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Bayar',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      )
-                    else if (order.isDraft && isDraftExpired)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HCColors.textMuted.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'Draft Expired',
-                          style: TextStyle(
-                            color: HCColors.textMuted,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      )
-                    else if (isUnpaid && isCod)
-                      ElevatedButton(
-                        onPressed: onConfirmCod,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: HCColors.warning,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Konfirmasi',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      )
-                    else if (isUnpaid)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HCColors.danger.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'Bayar Manual',
-                          style: TextStyle(
-                            color: HCColors.danger,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      )
-                    else
-                      Icon(
-                        IconlyLight.arrowRight2,
-                        size: 16,
-                        color: HCColors.textMuted.withValues(alpha: 0.5),
-                      ),
+                    _buildTrailingAction(isDraftExpired, isCod),
                   ],
                 ),
                 if (needsRating) ...[
                   const SizedBox(height: 12),
                   const Divider(height: 1, thickness: 1),
                   const SizedBox(height: 12),
-                  _buildRatingPrompt(),
+                  OrderHistoryRatingPrompt(onRate: onRate),
                 ],
               ],
             ),

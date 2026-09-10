@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:home_care/users/histori_pemesanan/services/histori_pemesanan_service.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_history_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/widgets.dart';
 import 'package:home_care/users/lihat_detail_draft_pemesanan_page.dart';
 import 'package:home_care/users/lihat_detail_histori_pemesanan.dart';
 import 'package:home_care/users/payment_method_page.dart';
@@ -20,6 +19,9 @@ class LihatHistoriPemesananPage extends StatefulWidget {
   State<LihatHistoriPemesananPage> createState() =>
       _LihatHistoriPemesananPageState();
 }
+
+/// Backward compatibility alias for universal naming
+typedef HistoriPemesananPage = LihatHistoriPemesananPage;
 
 class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     with SingleTickerProviderStateMixin {
@@ -108,11 +110,14 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     super.dispose();
   }
 
-  Future<void> _fetchHistory() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _fetchHistory({bool isRefresh = false}) async {
+    // Only show full-screen skeleton on cold start; do not blink on pull-to-refresh
+    if (!isRefresh && _allOrders.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final orders = await _service.fetchAllOrders();
@@ -120,6 +125,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
       setState(() {
         _isLoading = false;
         _allOrders = orders;
+        _error = null;
       });
     } catch (e) {
       if (!mounted) return;
@@ -130,112 +136,8 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     }
   }
 
-  Future<void> _confirmPaymentCod(OrderHistory order) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: HCColors.warning.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  IconlyLight.wallet,
-                  color: HCColors.warning,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Konfirmasi Pembayaran COD',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: HCColors.textDark,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Total: ${AppFormatters.currency(order.totalBayar)}',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: HCColors.primary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Pesanan ini menggunakan metode Bayar di Tempat (COD). Pembayaran akan dilakukan saat perawat datang.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: HCColors.textMuted,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(
-                          color: HCColors.textMuted.withValues(alpha: 0.3),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: HCColors.textDark,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HCColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'OK, Mengerti',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
+  Future<void> _handleConfirmCod(OrderHistory order) async {
+    final confirmed = await ConfirmCodDialog.show(context, order);
     if (confirmed != true) return;
 
     try {
@@ -248,7 +150,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
           duration: Duration(seconds: 3),
         ),
       );
-      _fetchHistory();
+      _fetchHistory(isRefresh: true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -267,7 +169,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
         actions: [
           IconButton(
             icon: const Icon(IconlyLight.swap, color: Colors.white),
-            onPressed: _fetchHistory,
+            onPressed: () => _fetchHistory(isRefresh: true),
             tooltip: 'Refresh',
           ),
         ],
@@ -295,38 +197,51 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     }
 
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                IconlyLight.dangerCircle,
-                size: 64,
-                color: HCColors.danger.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: HCColors.textMuted, fontSize: 15),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _fetchHistory,
-                icon: const Icon(IconlyLight.swap),
-                label: const Text('Coba Lagi'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HCColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+      return RefreshIndicator(
+        onRefresh: () => _fetchHistory(isRefresh: true),
+        color: HCColors.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.65,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        IconlyLight.dangerCircle,
+                        size: 64,
+                        color: HCColors.danger.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: HCColors.textMuted, fontSize: 15),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: () => _fetchHistory(isRefresh: true),
+                        icon: const Icon(IconlyLight.swap),
+                        label: const Text('Coba Lagi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HCColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
@@ -356,21 +271,33 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     bool isHistory = false,
   }) {
     if (orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: () => _fetchHistory(isRefresh: true),
+        color: HCColors.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(
-              IconlyLight.document,
-              size: 72,
-              color: HCColors.textMuted.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              isEmpty,
-              style: TextStyle(
-                color: HCColors.textMuted.withValues(alpha: 0.6),
-                fontSize: 15,
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.55,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      IconlyLight.document,
+                      size: 72,
+                      color: HCColors.textMuted.withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      isEmpty,
+                      style: TextStyle(
+                        color: HCColors.textMuted.withValues(alpha: 0.6),
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -379,9 +306,10 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
     }
 
     return RefreshIndicator(
-      onRefresh: _fetchHistory,
+      onRefresh: () => _fetchHistory(isRefresh: true),
       color: HCColors.primary,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
         itemBuilder: (context, index) {
@@ -412,7 +340,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                     ),
                   ),
                 );
-                if (result == true && mounted) await _fetchHistory();
+                if (result == true && mounted) await _fetchHistory(isRefresh: true);
               } else {
                 await Navigator.push(
                   context,
@@ -422,7 +350,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                     ),
                   ),
                 );
-                if (mounted) await _fetchHistory();
+                if (mounted) await _fetchHistory(isRefresh: true);
               }
             },
             onPayDraft: () {
@@ -435,10 +363,10 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                       totalBayar: order.totalBayar.toInt(),
                     ),
                   ),
-                ).then((_) => _fetchHistory());
+                ).then((_) => _fetchHistory(isRefresh: true));
               }
             },
-            onConfirmCod: () => _confirmPaymentCod(order),
+            onConfirmCod: () => _handleConfirmCod(order),
             onRate: () async {
               await Navigator.push(
                 context,
@@ -448,7 +376,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
                   ),
                 ),
               );
-              if (mounted) await _fetchHistory();
+              if (mounted) await _fetchHistory(isRefresh: true);
             },
           );
         },

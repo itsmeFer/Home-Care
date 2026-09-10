@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_cancel_dialog.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_rating_section.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_timeline_tracker.dart';
 import 'package:home_care/users/histori_pemesanan/services/histori_pemesanan_service.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_foto_section.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_layanan_detail_card.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_pembayaran_card.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/order_petugas_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/widgets.dart';
 
 class LihatDetailHistoriPemesananPage extends StatefulWidget {
   final int orderId;
@@ -60,11 +54,13 @@ class _LihatDetailHistoriPemesananPageState
     return status == 'selesai';
   }
 
-  Future<void> _fetchDetail() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _fetchDetail({bool isRefresh = false}) async {
+    if (!isRefresh && _order == null) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final data = await _service.fetchOrderDetail(widget.orderId);
@@ -74,6 +70,7 @@ class _LihatDetailHistoriPemesananPageState
         setState(() {
           _order = data;
           _isLoading = false;
+          _error = null;
         });
 
         if (_canRate()) {
@@ -184,7 +181,7 @@ class _LihatDetailHistoriPemesananPageState
           duration: Duration(seconds: 3),
         ),
       );
-      await _fetchDetail();
+      await _fetchDetail(isRefresh: true);
     } catch (e) {
       if (!mounted) return;
       if (Navigator.canPop(context)) Navigator.pop(context);
@@ -240,11 +237,12 @@ class _LihatDetailHistoriPemesananPageState
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: _fetchDetail,
+              onPressed: () => _fetchDetail(),
               icon: const Icon(IconlyLight.swap),
               label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: HCColors.primary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -267,7 +265,7 @@ class _LihatDetailHistoriPemesananPageState
     }
 
     return RefreshIndicator(
-      onRefresh: _fetchDetail,
+      onRefresh: () => _fetchDetail(isRefresh: true),
       color: HCColors.primary,
       child: CustomScrollView(
         slivers: [
@@ -307,10 +305,10 @@ class _LihatDetailHistoriPemesananPageState
                   fit: StackFit.expand,
                   children: [
                     if (gambarLayanan != null && gambarLayanan.isNotEmpty)
-                      Image.network(
-                        gambarLayanan,
+                      AppCachedImage(
+                        imageUrl: gambarLayanan,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorWidget: Container(
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [HCColors.primary, HCColors.primaryDark],
@@ -434,7 +432,10 @@ class _LihatDetailHistoriPemesananPageState
                         'dibatalkan' &&
                     (_order?['alasan_batal']?.toString().trim() ?? '').isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  _buildAlasanBatalCard(),
+                  OrderAlasanBatalCard(
+                    alasan: _order!['alasan_batal'].toString().trim(),
+                    dibatalkanAt: _order!['dibatalkan_at']?.toString(),
+                  ),
                 ],
                 const SizedBox(height: 16),
                 OrderLayananDetailCard(order: _order!),
@@ -442,7 +443,7 @@ class _LihatDetailHistoriPemesananPageState
                 OrderPetugasCard(order: _order!),
                 if ((_order!['catatan_pasien']?.toString() ?? '').isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _buildCatatanCard(),
+                  OrderCatatanCard(catatan: _order!['catatan_pasien'].toString()),
                 ],
                 const SizedBox(height: 16),
                 OrderPembayaranCard(order: _order!),
@@ -450,101 +451,6 @@ class _LihatDetailHistoriPemesananPageState
                 OrderFotoSection(order: _order!),
                 const SizedBox(height: 24),
               ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlasanBatalCard() {
-    final alasan = _order?['alasan_batal']?.toString().trim() ?? '';
-    final dibatalkanAt = _order?['dibatalkan_at']?.toString();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: HCColors.danger.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: HCColors.danger.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(IconlyLight.dangerCircle, color: HCColors.danger, size: 18),
-              SizedBox(width: 8),
-              Text(
-                'Alasan Pembatalan',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: HCColors.danger,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            alasan.isEmpty ? '-' : alasan,
-            style: const TextStyle(
-              fontSize: 14,
-              color: HCColors.textDark,
-              height: 1.5,
-            ),
-          ),
-          if (dibatalkanAt != null && dibatalkanAt.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              'Dibatalkan pada: ${AppFormatters.dateTime(dibatalkanAt)}',
-              style: const TextStyle(fontSize: 12, color: HCColors.textMuted),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCatatanCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: HCColors.card,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(IconlyLight.document, color: HCColors.primary, size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Catatan Pasien',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: HCColors.textDark,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _order!['catatan_pasien'].toString(),
-            style: const TextStyle(
-              fontSize: 14,
-              color: HCColors.textMuted,
-              height: 1.5,
             ),
           ),
         ],
