@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:home_care/admin/layanan_masuk/models/order_detail_admin_model.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:http/http.dart' as http;
 
 class LayananMasukAdminService {
@@ -21,6 +22,33 @@ class LayananMasukAdminService {
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
     };
+  }
+
+  static Future<List<OrderLayananAdmin>> fetchOrders({String? status}) async {
+    String url = '$baseUrl/admin/order-layanan';
+    if (status != null && status.isNotEmpty) {
+      url += '?status=$status';
+    }
+
+    final uri = Uri.parse(url);
+    final response = await http.get(uri, headers: await _headers());
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body) as Map<String, dynamic>;
+      if (decoded['success'] == true) {
+        final List<dynamic> data = decoded['data'] ?? [];
+        return data
+            .whereType<Map>()
+            .map((e) =>
+                OrderLayananAdmin.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+      throw decoded['message']?.toString() ?? 'Gagal memuat data order layanan.';
+    } else if (response.statusCode == 401) {
+      throw 'Sesi login admin berakhir. Silakan login ulang.';
+    } else {
+      throw 'Gagal memuat data. Kode: ${response.statusCode}';
+    }
   }
 
   static Future<OrderLayananDetailAdmin> fetchOrderDetail(int orderId) async {
