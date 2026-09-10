@@ -1,4 +1,4 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/chat/chat_models.dart';
+import 'package:home_care/features/chat/data/models/chat_models.dart';
 import 'package:home_care/users/buat_order_dari_chat_page.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
@@ -635,10 +635,10 @@ class _ChatRoomPageState extends State<ChatRoomPage>
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.72),
+                        color: Colors.white.withValues(alpha: 0.72),
                         borderRadius: BorderRadius.circular(22),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.65),
+                          color: Colors.white.withValues(alpha: 0.65),
                         ),
                       ),
                       child: Row(
@@ -987,7 +987,7 @@ class _ChatRoomPageState extends State<ChatRoomPage>
                           _tawarHargaController.text,
                           _tawarCatatanController.text,
                         );
-                        if (ok && mounted) Navigator.pop(ctx);
+                        if (ok && ctx.mounted) Navigator.pop(ctx);
                       },
                       child: const Text('Kirim Penawaran'),
                     ),
@@ -1008,9 +1008,9 @@ class _ChatRoomPageState extends State<ChatRoomPage>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.72),
+        color: Colors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.65)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.65)),
       ),
       child: TextField(
         controller: controller,
@@ -1215,7 +1215,7 @@ class _ChatRoomPageState extends State<ChatRoomPage>
                                         ),
                                         color: const Color(0xFF007AFF),
                                         borderRadius: BorderRadius.circular(12),
-                                        minSize: 0,
+                                        minimumSize: Size.zero,
                                         onPressed:
                                             () => _approveTawarFromMessage(msg),
                                         child: const Text(
@@ -1284,7 +1284,7 @@ class _ChatRoomPageState extends State<ChatRoomPage>
       context: context,
       barrierDismissible: true,
       barrierLabel: 'image-preview',
-      barrierColor: Colors.black.withOpacity(0.9),
+      barrierColor: Colors.black.withValues(alpha: 0.9),
       pageBuilder: (_, __, ___) {
         return GestureDetector(
           onTap: () => Navigator.pop(context),
@@ -1304,7 +1304,7 @@ class _ChatRoomPageState extends State<ChatRoomPage>
                   right: 20,
                   child: CupertinoButton(
                     padding: const EdgeInsets.all(10),
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(999),
                     onPressed: () => Navigator.pop(context),
                     child: const Icon(
@@ -1333,7 +1333,7 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1370,7 +1370,7 @@ class _DealBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF34C759).withOpacity(0.12),
+        color: const Color(0xFF34C759).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
@@ -1427,11 +1427,11 @@ class _ChatBubble extends StatelessWidget {
               color:
                   isMine
                       ? const Color(0xFF007AFF)
-                      : Colors.white.withOpacity(0.88),
+                      : Colors.white.withValues(alpha: 0.88),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 18,
                   offset: const Offset(0, 8),
                 ),
@@ -1520,11 +1520,11 @@ class _EtalaseBubble extends StatelessWidget {
         width: 280,
         margin: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -1651,8 +1651,8 @@ class _InputComposer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.72),
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.04))),
+        color: Colors.white.withValues(alpha: 0.72),
+        border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.04))),
       ),
       child: SafeArea(
         top: false,
@@ -1743,7 +1743,7 @@ class _ComposerAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoButton(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      minSize: 0,
+      minimumSize: Size.zero,
       onPressed: onTap,
       child: Icon(
         icon,
@@ -1770,9 +1770,9 @@ class _GlassBottomSheet extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.78),
+              color: Colors.white.withValues(alpha: 0.78),
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.white.withOpacity(0.65)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.65)),
             ),
             child: child,
           ),

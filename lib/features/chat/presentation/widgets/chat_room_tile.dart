@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/chat/chat_models.dart';
+import 'package:home_care/features/chat/data/models/chat_models.dart';
 import 'package:intl/intl.dart';
 
 class ChatRoomTile extends StatelessWidget {

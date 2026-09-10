@@ -1,4 +1,4 @@
-import 'package:home_care/chat/chat_models.dart';
+import 'package:home_care/features/chat/data/models/chat_models.dart';
 import 'package:home_care/core/network/api_client.dart';
 
 class ChatService {

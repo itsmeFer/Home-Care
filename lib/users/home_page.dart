@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/users/layanan_page.dart' hide kBaseUrl;
-import 'package:home_care/chat/pasien_chat_list_page.dart';
+import 'package:home_care/features/chat/presentation/screens/pasien_chat_list_page.dart';
 import 'package:home_care/users/lihat_histori_pemesanan.dart' hide kBaseUrl;
 import 'package:home_care/users/profile.dart';
 import 'package:home_care/users/widgets/home_bottom_nav.dart';

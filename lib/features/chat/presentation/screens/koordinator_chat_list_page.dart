@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/chat/chat_models.dart';
-import 'package:home_care/chat/chat_unread_counter.dart';
-import 'package:home_care/chat/services/chat_service.dart';
-import 'package:home_care/chat/widgets/chat_room_tile.dart';
-import 'package:home_care/chat/widgets/chat_state_views.dart';
+import 'package:home_care/features/chat/data/models/chat_models.dart';
+import 'package:home_care/features/chat/presentation/controllers/chat_unread_counter.dart';
+import 'package:home_care/features/chat/data/services/chat_service.dart';
+import 'package:home_care/features/chat/presentation/widgets/chat_room_tile.dart';
+import 'package:home_care/features/chat/presentation/widgets/chat_state_views.dart';
 import 'package:home_care/features/chat/presentation/screens/chat_room_page.dart';
 
 class KoordinatorChatListPage extends StatefulWidget {

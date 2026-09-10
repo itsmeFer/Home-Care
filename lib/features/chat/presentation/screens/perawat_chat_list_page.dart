@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/chat/chat_models.dart';
-import 'package:home_care/chat/chat_unread_counter.dart';
-import 'package:home_care/chat/services/chat_service.dart';
-import 'package:home_care/chat/widgets/chat_room_tile.dart';
-import 'package:home_care/chat/widgets/chat_state_views.dart';
+import 'package:home_care/features/chat/data/models/chat_models.dart';
+import 'package:home_care/features/chat/presentation/controllers/chat_unread_counter.dart';
+import 'package:home_care/features/chat/data/services/chat_service.dart';
+import 'package:home_care/features/chat/presentation/widgets/chat_room_tile.dart';
+import 'package:home_care/features/chat/presentation/widgets/chat_state_views.dart';
 import 'package:home_care/features/chat/presentation/screens/chat_room_page.dart';
 
-class PasienChatListPage extends StatefulWidget {
-  const PasienChatListPage({super.key});
+class PerawatChatListPage extends StatefulWidget {
+  const PerawatChatListPage({super.key});
 
   @override
-  State<PasienChatListPage> createState() => _PasienChatListPageState();
+  State<PerawatChatListPage> createState() => _PerawatChatListPageState();
 }
 
-class _PasienChatListPageState extends State<PasienChatListPage> {
+class _PerawatChatListPageState extends State<PerawatChatListPage> {
   final TextEditingController _searchC = TextEditingController();
   bool _isLoading = true;
   String? _error;
@@ -40,7 +40,7 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
     });
 
     try {
-      final rooms = await ChatService.fetchPasienChatRooms();
+      final rooms = await ChatService.fetchPerawatChatRooms();
 
       if (!mounted) return;
 
@@ -71,73 +71,16 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
     } else {
       setState(() {
         _filteredRooms = _allRooms.where((r) {
-          final titleMatch = r.displayTitle('pasien').toLowerCase().contains(query);
+          final titleMatch =
+              r.displayTitle('perawat').toLowerCase().contains(query);
           final msgMatch = r.lastMessage.toLowerCase().contains(query);
+          final pasienMatch =
+              r.pasienName?.toLowerCase().contains(query) ?? false;
           final layananMatch =
               r.layananName?.toLowerCase().contains(query) ?? false;
-          return titleMatch || msgMatch || layananMatch;
+          return titleMatch || msgMatch || pasienMatch || layananMatch;
         }).toList();
       });
-    }
-  }
-
-  Future<void> _deleteRoom(ChatRoom room) async {
-    final name = room.displayTitle('pasien');
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text('Hapus Chat'),
-          content: Text('Yakin ingin menghapus chat dengan $name?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Batal'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-              ),
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Hapus'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm != true) return;
-
-    try {
-      await ChatService.deletePasienChatRoom(room.id);
-
-      setState(() {
-        _allRooms.removeWhere((r) => r.id == room.id);
-      });
-      _onSearchChanged();
-
-      final totalUnread = _allRooms.fold<int>(
-        0,
-        (sum, item) => sum + item.unreadCount,
-      );
-      ChatUnreadCounter.setTotal(totalUnread);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chat berhasil dihapus')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-          ),
-        );
-      }
     }
   }
 
@@ -146,24 +89,16 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        elevation: 0,
-        centerTitle: false,
-        automaticallyImplyLeading: false,
+        title: const Text('Chat Pasien (Perawat)'),
         backgroundColor: const Color(0xFFF8FAFC),
         surfaceTintColor: Colors.transparent,
-        title: const Text(
-          'Chat',
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        elevation: 0,
       ),
       body: Column(
         children: [
           ChatSearchBar(
             controller: _searchC,
-            hintText: 'Cari nama perawat / koordinator / layanan...',
+            hintText: 'Cari nama pasien, layanan, atau pesan...',
           ),
           Expanded(
             child: RefreshIndicator(
@@ -205,8 +140,7 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
             child: const ChatEmptyStateView(
               icon: Icons.chat_bubble_outline_rounded,
               title: 'Belum ada chat',
-              subtitle:
-                  'Percakapan dengan koordinator atau perawat akan muncul di sini.',
+              subtitle: 'Percakapan dari pasien akan muncul di sini.',
             ),
           ),
         ],
@@ -235,26 +169,31 @@ class _PasienChatListPageState extends State<PasienChatListPage> {
       itemCount: _filteredRooms.length,
       itemBuilder: (context, index) {
         final room = _filteredRooms[index];
-        final title = room.displayTitle('pasien');
+        final title = room.displayTitle('perawat');
 
         return ChatRoomTile(
           room: room,
-          currentRole: 'pasien',
+          currentRole: 'perawat',
           onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatRoomPage(
-                  roomId: room.id,
-                  roomTitle: title,
-                  role: 'pasien',
-                  simpleChat: room.isPerawatChat,
+            try {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatRoomPage(
+                    roomId: room.id,
+                    roomTitle: title,
+                    role: 'perawat',
+                  ),
                 ),
-              ),
-            );
-            _loadRooms();
+              );
+              _loadRooms();
+            } catch (e) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Gagal membuka chat: $e')),
+              );
+            }
           },
-          onDelete: () => _deleteRoom(room),
         );
       },
     );
