@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ChatRoom {
   final int id;
@@ -186,3 +187,182 @@ class ChatMessage {
     );
   }
 }
+
+class EtalaseData {
+  final int id;
+  final String namaLayanan;
+  final int harga;
+  final String? deskripsi;
+  final String? gambar;
+  final String? kategori;
+  final int? durasiMenit;
+  final String? syaratPerawat;
+  final String? lokasiTersedia;
+
+  const EtalaseData({
+    required this.id,
+    required this.namaLayanan,
+    required this.harga,
+    this.deskripsi,
+    this.gambar,
+    this.kategori,
+    this.durasiMenit,
+    this.syaratPerawat,
+    this.lokasiTersedia,
+  });
+
+  factory EtalaseData.fromJson(Map<String, dynamic> json) {
+    final rawId = json['layanan_id'] ?? json['id'] ?? 0;
+    final int id = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
+    final rawHarga = json['harga'] ?? json['tarif'] ?? 0;
+    final int harga =
+        rawHarga is int ? rawHarga : int.tryParse(rawHarga.toString()) ?? 0;
+    final rawDurasi = json['durasi_menit'];
+    final int? durasi =
+        rawDurasi is int ? rawDurasi : int.tryParse(rawDurasi?.toString() ?? '');
+
+    return EtalaseData(
+      id: id,
+      namaLayanan:
+          (json['nama'] ?? json['nama_layanan'] ?? json['title'] ?? 'Layanan')
+              .toString(),
+      harga: harga,
+      deskripsi: json['deskripsi']?.toString(),
+      gambar: json['gambar']?.toString() ?? json['image_url']?.toString(),
+      kategori: json['kategori']?.toString(),
+      durasiMenit: durasi,
+      syaratPerawat: json['syarat_perawat']?.toString(),
+      lokasiTersedia: json['lokasi_tersedia']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'etalase': true,
+      'layanan_id': id,
+      'nama_layanan': namaLayanan,
+      'harga': harga,
+      'deskripsi': deskripsi,
+      'gambar': gambar,
+      'kategori': kategori,
+      'durasi_menit': durasiMenit,
+      'syarat_perawat': syaratPerawat,
+      'lokasi_tersedia': lokasiTersedia,
+    };
+  }
+}
+
+class ChatDealHelper {
+  ChatDealHelper._();
+
+  static bool isTawarHarga(String text) =>
+      text.trim().startsWith('[PENAWARAN HARGA]');
+
+  static bool isDealHarga(String text) => text.trim().startsWith('[DEAL HARGA]');
+
+  static String? extractNominal(String text) {
+    final lines = text.split('\n');
+    for (final line in lines) {
+      final lower = line.toLowerCase();
+      if (lower.startsWith('nominal:') || lower.startsWith('disepakati:')) {
+        final digits = line.replaceAll(RegExp(r'[^0-9]'), '');
+        if (digits.isNotEmpty) return digits;
+      }
+    }
+    return null;
+  }
+
+  static String formatTawarMessage({required String harga, String? catatan}) {
+    final buffer = StringBuffer()
+      ..writeln('[PENAWARAN HARGA]')
+      ..writeln('Nominal: Rp $harga');
+    if (catatan != null && catatan.trim().isNotEmpty) {
+      buffer.writeln('Catatan: ${catatan.trim()}');
+    }
+    return buffer.toString();
+  }
+
+  static String formatDealMessage({
+    required String nominal,
+    required String role,
+  }) {
+    final buffer = StringBuffer()
+      ..writeln('[DEAL HARGA]')
+      ..writeln('Disepakati: Rp $nominal')
+      ..writeln('Disepakati oleh: $role');
+    return buffer.toString();
+  }
+}
+
+class DealState {
+  final bool hasDeal;
+  final String? dealHargaDisplay;
+  final int? dealHarga;
+  final int? layananId;
+
+  const DealState({
+    required this.hasDeal,
+    this.dealHargaDisplay,
+    this.dealHarga,
+    this.layananId,
+  });
+
+  static DealState compute({
+    required List<ChatMessage> messages,
+    required bool negoEnabled,
+  }) {
+    if (!negoEnabled) return const DealState(hasDeal: false);
+
+    int? lastEtalaseIndex;
+    int? lastDealIndex;
+    String? dealNominal;
+
+    for (int i = 0; i < messages.length; i++) {
+      final m = messages[i];
+      if (m.isEtalase && m.etalaseData != null) lastEtalaseIndex = i;
+      if (ChatDealHelper.isDealHarga(m.text)) {
+        final nominal = ChatDealHelper.extractNominal(m.text);
+        if (nominal != null) {
+          dealNominal = nominal;
+          lastDealIndex = i;
+        }
+      }
+    }
+
+    if (lastEtalaseIndex != null &&
+        lastDealIndex != null &&
+        lastDealIndex > lastEtalaseIndex) {
+      final etalaseMsg = messages[lastEtalaseIndex];
+      final e = etalaseMsg.etalaseData!;
+      final rawId = e['layanan_id'] ?? e['id'];
+
+      int? layananId;
+      if (rawId is int) {
+        layananId = rawId;
+      } else if (rawId is String) {
+        layananId = int.tryParse(rawId);
+      }
+
+      int? dealHarga;
+      String? dealHargaDisplay;
+      if (dealNominal != null) {
+        dealHarga = int.tryParse(dealNominal);
+        final formatted = NumberFormat.decimalPattern(
+          'id_ID',
+        ).format(dealHarga ?? 0);
+        dealHargaDisplay = 'Rp $formatted';
+      }
+
+      return DealState(
+        hasDeal: true,
+        dealHargaDisplay: dealHargaDisplay,
+        dealHarga: dealHarga,
+        layananId: layananId,
+      );
+    }
+
+    return const DealState(hasDeal: false);
+  }
+}
+
+
