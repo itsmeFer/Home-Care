@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/fee_management/domain/fee_models.dart';
+import 'package:home_care/admin/fee/models/fee_models.dart';
 
 class UserFeeDistributionChart extends StatelessWidget {
   final List<FeeByLayanan> byLayanan;

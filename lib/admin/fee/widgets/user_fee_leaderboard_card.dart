@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/features/fee_management/domain/fee_models.dart';
+import 'package:home_care/admin/fee/models/fee_models.dart';
 
 class UserFeeLeaderboardCard extends StatelessWidget {
   final List<LeaderboardItem> leaderboard;

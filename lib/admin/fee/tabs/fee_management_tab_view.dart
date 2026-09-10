@@ -4,7 +4,7 @@ import 'package:home_care/admin/fee/widgets/fee_chart_section.dart';
 import 'package:home_care/admin/fee/widgets/fee_item_selector_card.dart';
 import 'package:home_care/admin/fee/widgets/fee_leaderboard_card.dart';
 import 'package:home_care/admin/fee/widgets/fee_recipient_card.dart';
-import 'package:home_care/features/fee_management/domain/fee_models.dart';
+import 'package:home_care/admin/fee/models/fee_models.dart';
 import 'package:home_care/admin/fee/widgets/fee_charts.dart';
 import 'package:home_care/admin/fee/widgets/fee_dialogs.dart';
 import 'package:home_care/admin/fee/widgets/fee_ui_components.dart';

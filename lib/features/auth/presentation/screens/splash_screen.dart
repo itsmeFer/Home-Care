@@ -1,7 +1,7 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:home_care/main.dart';
+import 'package:home_care/features/auth/presentation/screens/root_auth_gate.dart';
 import 'package:home_care/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

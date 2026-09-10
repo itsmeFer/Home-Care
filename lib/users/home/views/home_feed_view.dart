@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/features/home/home.dart';
+import '../widgets/widgets.dart';
 
 class HomeFeedView extends StatelessWidget {
   const HomeFeedView({super.key});

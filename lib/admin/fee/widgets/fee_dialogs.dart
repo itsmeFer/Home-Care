@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/fee_management/domain/fee_models.dart';
+import 'package:home_care/admin/fee/models/fee_models.dart';
 import 'package:home_care/admin/fee/widgets/fee_ui_components.dart';
 
 String get kFeeUsersUrl => ApiConstants.adminFeeUsers;
@@ -242,7 +240,7 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
       final list = extractList(res);
       _roleOptions =
           list
-              .map((e) => RoleOption.fromJson(e as Map<String, dynamic>))
+              .map((e) => RoleOption.fromJson(e))
               .toList();
 
       if (_roleOptions.isNotEmpty) {
