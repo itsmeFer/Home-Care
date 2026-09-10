@@ -30,26 +30,38 @@ class ServicesGridMenu extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: const [
           BoxShadow(
             blurRadius: 10,
-            offset: const Offset(0, 6),
-            color: Colors.black.withValues(alpha: 0.05),
+            offset: Offset(0, 4),
+            color: Color(0x0A000000),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(14),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: items.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          mainAxisExtent: 100,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 12,
-        ),
-        itemBuilder: (_, i) => _SvcItem(item: items[i]),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _SvcItem(item: items[0])),
+              Expanded(child: _SvcItem(item: items[1])),
+              Expanded(child: _SvcItem(item: items[2])),
+              Expanded(child: _SvcItem(item: items[3])),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _SvcItem(item: items[4])),
+              Expanded(child: _SvcItem(item: items[5])),
+              Expanded(child: _SvcItem(item: items[6])),
+              Expanded(child: _SvcItem(item: items[7])),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -61,46 +73,51 @@ class _SvcItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        if (item.isMore) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Kamu sudah di halaman More')),
-          );
-        } else {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Buka: ${item.title}')));
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE6FAFA),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(item.icon, color: const Color(0xFF088088)),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: Text(
-              item.title,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          if (item.isMore) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Kamu sudah di halaman More')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Buka: ${item.title}')),
+            );
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6FAFA),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(item.icon, color: const Color(0xFF088088), size: 22),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+              const SizedBox(height: 6),
+              Text(
+                item.title,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  height: 1.2,
+                  color: Color(0xFF334155),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

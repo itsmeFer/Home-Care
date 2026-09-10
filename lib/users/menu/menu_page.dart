@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
-import 'widgets/menu_group_section.dart';
-import 'widgets/services_grid_menu.dart';
-import 'widgets/settings_group_section.dart';
+import 'widgets/widgets.dart';
 
-export 'widgets/menu_group_section.dart';
-export 'widgets/services_grid_menu.dart';
-export 'widgets/settings_group_section.dart';
+export 'widgets/widgets.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
