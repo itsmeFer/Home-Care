@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 
 class LayananSearchCard extends StatelessWidget {
   final LayananSearchResult layanan;
   final VoidCallback onTap;
+  final EdgeInsetsGeometry? margin;
 
   const LayananSearchCard({
     super.key,
     required this.layanan,
     required this.onTap,
+    this.margin = const EdgeInsets.only(bottom: 12),
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: margin,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -38,16 +41,15 @@ class LayananSearchCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child:
-                    layanan.gambarUrl != null && layanan.gambarUrl!.isNotEmpty
-                        ? Image.network(
-                          layanan.gambarUrl!,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                        )
-                        : _buildPlaceholder(),
+                child: AppCachedImage(
+                  imageUrl: layanan.gambarUrl,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 240,
+                  memCacheHeight: 240,
+                  errorWidget: _buildPlaceholder(),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

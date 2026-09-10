@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import 'package:home_care/users/home_page.dart';
+import '../home_page.dart';
 
 class TestimonialsSection extends StatefulWidget {
   const TestimonialsSection({super.key});

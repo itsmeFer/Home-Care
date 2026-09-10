@@ -8,7 +8,7 @@ import 'package:home_care/perawat/dashboard.dart';
 import 'package:home_care/direktur/direktur_dashboard.dart';
 import 'package:home_care/ITDev/dashboard_it_page.dart';
 import 'package:home_care/features/auth/presentation/screens/forgot_password_screen.dart';
-import 'package:home_care/users/home_page.dart';
+import 'package:home_care/users/home.dart';
 
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/services/storage_service.dart';

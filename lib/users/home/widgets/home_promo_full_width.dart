@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:home_care/users/home_page.dart';
+import '../home_page.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';

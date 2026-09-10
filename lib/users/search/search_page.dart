@@ -6,9 +6,7 @@ import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/users/layanan_page.dart';
 import 'models/search_models.dart';
 import 'services/user_search_service.dart';
-import 'widgets/layanan_search_card.dart';
-import 'widgets/recent_viewed_card.dart';
-import 'widgets/search_history_tile.dart';
+import 'widgets/widgets.dart';
 
 export 'models/search_models.dart';
 export 'services/user_search_service.dart';
@@ -39,9 +37,6 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     _loadInitialData();
-    _searchController.addListener(() {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
@@ -163,13 +158,18 @@ class _SearchPageState extends State<SearchPage> {
                     IconlyLight.search,
                     color: Color(0xFF0BA5A7),
                   ),
-                  suffixIcon:
-                      _searchController.text.isNotEmpty
-                          ? IconButton(
-                            icon: const Icon(IconlyLight.closeSquare),
-                            onPressed: _clearSearch,
-                          )
-                          : null,
+                  suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _searchController,
+                    builder: (context, textValue, _) {
+                      if (textValue.text.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return IconButton(
+                        icon: const Icon(IconlyLight.closeSquare),
+                        onPressed: _clearSearch,
+                      );
+                    },
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -204,123 +204,165 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     if (_searchHistory.isEmpty && _recentViewedLayanan.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: _loadInitialData,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(24),
           children: [
-            Icon(IconlyLight.search, size: 72, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text(
-              'Cari layanan kesehatan',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.45,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      IconlyLight.search,
+                      size: 72,
+                      color: Colors.grey.shade300,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Cari layanan kesehatan',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Ketik kata kunci untuk mulai mencari',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Ketik kata kunci untuk mulai mencari',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
           ],
         ),
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (_searchHistory.isNotEmpty) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Pencarian Terakhir',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await _service.clearAllHistory();
-                  _loadSearchHistory();
-                },
-                child: const Text(
-                  'Hapus semua',
+    return RefreshIndicator(
+      onRefresh: _loadInitialData,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (_searchHistory.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Pencarian Terakhir',
                   style: TextStyle(
-                    color: Color(0xFF0BA5A7),
-                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
                   ),
                 ),
+                TextButton(
+                  onPressed: () async {
+                    await _service.clearAllHistory();
+                    _loadSearchHistory();
+                  },
+                  child: const Text(
+                    'Hapus semua',
+                    style: TextStyle(
+                      color: Color(0xFF0BA5A7),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ..._searchHistory.take(5).map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SearchHistoryTile(
+                  item: item,
+                  onTap: () => _useHistoryKeyword(item.keyword),
+                  onDelete: () async {
+                    await _service.deleteHistory(item.id);
+                    _loadSearchHistory();
+                  },
+                ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ..._searchHistory.take(5).map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: SearchHistoryTile(
+            ),
+            const SizedBox(height: 20),
+          ],
+          if (_recentViewedLayanan.isNotEmpty) ...[
+            const Text(
+              'Layanan Terakhir Dilihat',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._recentViewedLayanan.map(
+              (item) => RecentViewedCard(
                 item: item,
-                onTap: () => _useHistoryKeyword(item.keyword),
-                onDelete: () async {
-                  await _service.deleteHistory(item.id);
-                  _loadSearchHistory();
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PilihLayananPage(kategori: item.kategori),
+                    ),
+                  );
                 },
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+          ],
         ],
-        if (_recentViewedLayanan.isNotEmpty) ...[
-          const Text(
-            'Layanan Terakhir Dilihat',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ..._recentViewedLayanan.map(
-            (item) => RecentViewedCard(
-              item: item,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => PilihLayananPage(kategori: item.kategori),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ],
+      ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return RefreshIndicator(
+      onRefresh: () => _performSearch(_searchController.text.trim()),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(24),
         children: [
-          Icon(IconlyLight.search, size: 72, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'Tidak ada hasil',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.45,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    IconlyLight.search,
+                    size: 72,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Tidak ada hasil',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Coba kata kunci lain',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coba kata kunci lain',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -328,32 +370,37 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildResultsList() {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: _searchResults.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final item = _searchResults[index];
-        return LayananSearchCard(
-          layanan: item,
-          onTap: () async {
-            final query = _searchController.text.trim();
-            if (query.length >= 2) {
-              _service.saveSearchHistory(query);
-            }
-            final nav = Navigator.of(context);
-            await _service.saveRecentViewed(item.id);
-            _loadRecentViewed();
+    return RefreshIndicator(
+      onRefresh: () => _performSearch(_searchController.text.trim()),
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: _searchResults.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final item = _searchResults[index];
+          return LayananSearchCard(
+            layanan: item,
+            margin: EdgeInsets.zero,
+            onTap: () async {
+              final query = _searchController.text.trim();
+              if (query.length >= 2) {
+                _service.saveSearchHistory(query);
+              }
+              final nav = Navigator.of(context);
+              await _service.saveRecentViewed(item.id);
+              _loadRecentViewed();
 
-            if (!mounted) return;
-            nav.push(
-              MaterialPageRoute(
-                builder: (_) => PilihLayananPage(kategori: item.kategori),
-              ),
-            );
-          },
-        );
-      },
+              if (!mounted) return;
+              nav.push(
+                MaterialPageRoute(
+                  builder: (_) => PilihLayananPage(kategori: item.kategori),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

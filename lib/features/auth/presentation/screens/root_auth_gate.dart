@@ -10,7 +10,7 @@ import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'package:home_care/kordinator/dashboard.dart';
 import 'package:home_care/manager/manager_dashboard.dart';
 import 'package:home_care/perawat/dashboard.dart';
-import 'package:home_care/users/home_page.dart';
+import 'package:home_care/users/home.dart';
 
 /// RootAuthGate bertanggung jawab menentukan halaman awal pengguna:
 /// 1. Verifikasi validitas token sesi lokal.

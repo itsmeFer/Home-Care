@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import '../models/search_models.dart';
 
 class RecentViewedCard extends StatelessWidget {
@@ -27,33 +28,23 @@ class RecentViewedCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child:
-                    item.gambarUrl != null && item.gambarUrl!.isNotEmpty
-                        ? Image.network(
-                          item.gambarUrl!,
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (_, __, ___) => Container(
-                                width: 60,
-                                height: 60,
-                                color: Colors.grey.shade200,
-                                child: const Icon(
-                                  IconlyLight.activity,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                        )
-                        : Container(
-                          width: 60,
-                          height: 60,
-                          color: Colors.grey.shade200,
-                          child: const Icon(
-                            IconlyLight.activity,
-                            color: Colors.grey,
-                          ),
-                        ),
+                child: AppCachedImage(
+                  imageUrl: item.gambarUrl,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 180,
+                  memCacheHeight: 180,
+                  errorWidget: Container(
+                    width: 60,
+                    height: 60,
+                    color: Colors.grey.shade200,
+                    child: const Icon(
+                      IconlyLight.activity,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
