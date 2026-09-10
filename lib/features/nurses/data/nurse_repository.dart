@@ -37,7 +37,8 @@ class NurseRepository {
     }
     if (aktif != null) params['aktif'] = aktif ? '1' : '0';
 
-    final url = isAdmin ? ApiConstants.adminPerawat : ApiConstants.koordinatorPerawat;
+    final url =
+        isAdmin ? ApiConstants.adminPerawat : ApiConstants.koordinatorPerawat;
     final response = await ApiClient.get(
       url,
       queryParams: params.isNotEmpty ? params : null,
@@ -55,9 +56,10 @@ class NurseRepository {
     int perawatId, {
     bool isAdmin = false,
   }) async {
-    final url = isAdmin
-        ? ApiConstants.adminPerawatDetail(perawatId)
-        : ApiConstants.koordinatorPerawatDetail(perawatId);
+    final url =
+        isAdmin
+            ? ApiConstants.adminPerawatDetail(perawatId)
+            : ApiConstants.koordinatorPerawatDetail(perawatId);
 
     final response = await ApiClient.get(url);
     if (response is Map && response['data'] is Map) {
@@ -99,9 +101,10 @@ class NurseRepository {
     String? catatan,
     bool isAdmin = false,
   }) async {
-    final url = isAdmin
-        ? ApiConstants.adminPerawatCrudVerifikasi(perawatId)
-        : ApiConstants.koordinatorPerawatVerifikasi(perawatId);
+    final url =
+        isAdmin
+            ? ApiConstants.adminPerawatCrudVerifikasi(perawatId)
+            : ApiConstants.koordinatorPerawatVerifikasi(perawatId);
 
     await ApiClient.post(
       url,

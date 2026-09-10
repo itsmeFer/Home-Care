@@ -1,8 +1,7 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/crud_kategori.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -188,6 +187,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
         return Icons.person_pin_circle_rounded;
       case 'admin':
         return Icons.admin_panel_settings_rounded;
+      case 'direktur':
+        return Icons.corporate_fare_rounded;
+      case 'manager':
+        return Icons.manage_accounts_rounded;
+      case 'it':
+        return Icons.terminal_rounded;
+      case 'dokter':
+        return Icons.medical_services_rounded;
+      case 'bidan':
+        return Icons.child_friendly_rounded;
       default:
         return Icons.group_rounded;
     }
@@ -196,13 +205,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Color _roleColor(String slug) {
     switch (slug.toLowerCase()) {
       case 'pasien':
-        return const Color(0xFF3B82F6);
+        return const Color(0xFF2563EB); // Vibrant Royal Blue
       case 'perawat':
-        return const Color(0xFF10B981);
+        return const Color(0xFF059669); // Emerald Green
       case 'koordinator':
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFD97706); // Warm Amber
       case 'admin':
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFF7C3AED); // Purple
+      case 'direktur':
+        return const Color(0xFF4F46E5); // Indigo
+      case 'manager':
+        return const Color(0xFF0284C7); // Sky Blue
+      case 'it':
+        return const Color(0xFF0D9488); // Cyan Teal
+      case 'dokter':
+        return const Color(0xFFE11D48); // Rose
+      case 'bidan':
+        return const Color(0xFFDB2777); // Pink
       default:
         return const Color(0xFF64748B);
     }
@@ -1033,7 +1052,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                 crossAxisCount: crossAxisCount,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
-                                childAspectRatio: 1.08,
+                                childAspectRatio: 1.04,
                               ),
                           itemBuilder: (context, index) {
                             final item = menus[index];
@@ -1289,22 +1308,71 @@ class _RoleStatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int totalUsers = roleStats.fold<int>(
+      0,
+      (sum, item) =>
+          sum + (int.tryParse(item['total']?.toString() ?? '0') ?? 0),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Daftar Pengguna Berdasarkan Role',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1F2937),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Daftar Pengguna Berdasarkan Role',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                if (!isLoading && roleStats.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Total $totalUsers pengguna terdaftar',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            if (!isLoading && roleStats.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3.5,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Text(
+                  '${roleStats.length} Role',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF475569),
+                  ),
+                ),
+              ),
+          ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         if (isLoading)
           const Center(
             child: Padding(
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.all(24),
               child: CircularProgressIndicator(),
             ),
           )
@@ -1315,99 +1383,345 @@ class _RoleStatsSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE9EEF5)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Text(
               'Belum ada data role.',
-              style: TextStyle(color: Color(0xFF6B7280)),
+              style: TextStyle(color: Color(0xFF64748B)),
             ),
           )
-        else
-          GridView.builder(
-            itemCount: roleStats.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.18,
+        else ...[
+          // When role count is odd (e.g. 7 roles), render the primary first role (e.g. Pasien)
+          // as a wide Spotlight Featured Card. The remaining 6 roles form a perfect 2x3 grid.
+          // Result: 100% symmetrical, balanced ("merata"), with ZERO blank gaps or dangling cards!
+          if (roleStats.length % 2 != 0) ...[
+            _FeaturedRoleCard(
+              item: roleStats.first,
+              roleIcon: roleIcon,
+              roleColor: roleColor,
+              onTap: () {
+                final slug =
+                    (roleStats.first['role_slug'] ?? 'lainnya').toString();
+                final name =
+                    (roleStats.first['role_name'] ?? 'Tanpa Role').toString();
+                onTapRole(slug, name);
+              },
             ),
-            itemBuilder: (context, index) {
-              final item = roleStats[index];
-              final slug = (item['role_slug'] ?? 'lainnya').toString();
-              final roleName = (item['role_name'] ?? 'Tanpa Role').toString();
-              final total = item['total']?.toString() ?? '0';
-              final color = roleColor(slug);
+            const SizedBox(height: 12),
+            GridView.builder(
+              itemCount: roleStats.length - 1,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.02,
+              ),
+              itemBuilder: (context, index) {
+                final item = roleStats[index + 1];
+                final slug = (item['role_slug'] ?? 'lainnya').toString();
+                final roleName = (item['role_name'] ?? 'Tanpa Role').toString();
+                final total = item['total']?.toString() ?? '0';
+                final color = roleColor(slug);
 
-              return Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
+                return _RoleCard(
+                  slug: slug,
+                  roleName: roleName,
+                  total: total,
+                  color: color,
+                  icon: roleIcon(slug),
                   onTap: () => onTapRole(slug, roleName),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE9EEF5)),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0F000000),
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
+                );
+              },
+            ),
+          ] else ...[
+            // When role count is even, display all directly in the balanced 2-column grid
+            GridView.builder(
+              itemCount: roleStats.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.02,
+              ),
+              itemBuilder: (context, index) {
+                final item = roleStats[index];
+                final slug = (item['role_slug'] ?? 'lainnya').toString();
+                final roleName = (item['role_name'] ?? 'Tanpa Role').toString();
+                final total = item['total']?.toString() ?? '0';
+                final color = roleColor(slug);
+
+                return _RoleCard(
+                  slug: slug,
+                  roleName: roleName,
+                  total: total,
+                  color: color,
+                  icon: roleIcon(slug),
+                  onTap: () => onTapRole(slug, roleName),
+                );
+              },
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+class _FeaturedRoleCard extends StatelessWidget {
+  final dynamic item;
+  final IconData Function(String slug) roleIcon;
+  final Color Function(String slug) roleColor;
+  final VoidCallback onTap;
+
+  const _FeaturedRoleCard({
+    required this.item,
+    required this.roleIcon,
+    required this.roleColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final slug = (item['role_slug'] ?? 'lainnya').toString();
+    final roleName = (item['role_name'] ?? 'Tanpa Role').toString();
+    final total = item['total']?.toString() ?? '0';
+    final color = roleColor(slug);
+    final icon = roleIcon(slug);
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        splashColor: color.withOpacity(0.08),
+        highlightColor: color.withOpacity(0.04),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: color.withOpacity(0.25), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.07),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color, size: 23),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            roleName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Utama',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: color,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Icon(roleIcon(slug), color: color, size: 23),
-                        ),
-                        const Spacer(),
-                        Text(
-                          total,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          roleName,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF374151),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Tap untuk lihat daftar',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Ketuk untuk melihat daftar anggota',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    total,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                ),
-              );
-            },
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        'User',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
-      ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleCard extends StatelessWidget {
+  final String slug;
+  final String roleName;
+  final String total;
+  final Color color;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _RoleCard({
+    required this.slug,
+    required this.roleName,
+    required this.total,
+    required this.color,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        splashColor: color.withOpacity(0.08),
+        highlightColor: color.withOpacity(0.04),
+        child: Container(
+          padding: const EdgeInsets.all(13),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x080F172A),
+                blurRadius: 10,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: Icon(icon, color: color, size: 20),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    total,
+                    style: const TextStyle(
+                      fontSize: 23,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.6,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    roleName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF334155),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Lihat anggota ›',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1427,51 +1741,61 @@ class _MenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE9EEF5)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x0F000000),
+                color: Color(0x080F172A),
                 blurRadius: 10,
-                offset: Offset(0, 4),
+                offset: Offset(0, 3),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   color: HCColor.primary.withOpacity(0.10),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: HCColor.primary, size: 23),
+                child: Icon(icon, color: HCColor.primary, size: 22),
               ),
-              const Spacer(),
-              Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.3,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Buka menu',
-                style: TextStyle(fontSize: 12, color: Color(0xFF8A94A6)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  const Text(
+                    'Buka menu ›',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: HCColor.primary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -7,7 +7,7 @@ import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/utils/app_cached_image.dart';
 
 class CategoryIconsSection extends StatefulWidget {
-  const CategoryIconsSection();
+  const CategoryIconsSection({super.key});
 
   @override
   State<CategoryIconsSection> createState() => _CategoryIconsState();
@@ -24,11 +24,16 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Elegant portrait aspect ratio matching user reference image
+    final cardWidth = (screenWidth * 0.32).clamp(118.0, 136.0);
+    final cardHeight = (cardWidth * 1.34).clamp(158.0, 180.0);
+
     return FutureBuilder<List<LayananCategory>>(
       future: _futureKategori,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoading();
+          return _buildLoading(context);
         }
 
         if (snapshot.hasError) {
@@ -43,8 +48,8 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
         final displayedCategories = categories.take(8).toList();
 
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -79,26 +84,24 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                'Pilih layanan yang paling cocok untuk kebutuhan Anda di rumah.',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  color: Colors.black.withOpacity(0.58),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                padding: const EdgeInsets.only(bottom: 6),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children:
                       displayedCategories
                           .map(
                             (cat) => Padding(
-                              padding: const EdgeInsets.only(right: 18),
-                              child: _DynamicCategoryIconWidget(category: cat),
+                              padding: const EdgeInsets.only(right: 12),
+                              child: _DynamicCategoryIconWidget(
+                                category: cat,
+                                width: cardWidth,
+                                height: cardHeight,
+                                screenWidth: screenWidth,
+                              ),
                             ),
                           )
                           .toList(),
@@ -111,7 +114,11 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
     );
   }
 
-  Widget _buildLoading() {
+  Widget _buildLoading(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth * 0.32).clamp(118.0, 136.0);
+    final cardHeight = (cardWidth * 1.34).clamp(158.0, 180.0);
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
@@ -124,31 +131,38 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
                 child: Text(
                   'Layanan untuk Anda',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF2E2323),
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontFamilyFallback: ['Jakarta Sans', 'Poppins'],
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.2,
                   ),
                 ),
               ),
               Text(
                 'Lihat semua',
                 style: TextStyle(
-                  fontSize: 12,
+                  color: Color(0xFF0BA5A7),
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFB7A9A9),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
               children: List.generate(
                 4,
-                (_) => const Padding(
-                  padding: EdgeInsets.only(right: 18),
-                  child: _CategoryLoadingItem(),
+                (_) => Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _CategoryLoadingItem(
+                    width: cardWidth,
+                    height: cardHeight,
+                  ),
                 ),
               ),
             ),
@@ -161,98 +175,173 @@ class _CategoryIconsState extends State<CategoryIconsSection> {
 
 class _DynamicCategoryIconWidget extends StatelessWidget {
   final LayananCategory category;
+  final double width;
+  final double height;
+  final double screenWidth;
 
-  const _DynamicCategoryIconWidget({required this.category});
+  const _DynamicCategoryIconWidget({
+    required this.category,
+    required this.width,
+    required this.height,
+    required this.screenWidth,
+  });
 
-  String _formatLabel(String text) {
-    if (text.trim().isEmpty) return '-';
-
-    final words = text.trim().split(' ');
-    if (words.length == 1) return words.first;
-
-    if (text.length <= 12) return text;
-
-    if (words.length >= 2) {
-      final first = words.first;
-      final second = words.skip(1).join(' ');
-      return '$first\n$second';
+  String _formatCategoryTitle(String rawTitle) {
+    var title = rawTitle.trim().replaceAll(RegExp(r'[:;,]+$'), '').trim();
+    if (title.length > 15) {
+      title = title.replaceAll(RegExp(r'\s+dan\s+', caseSensitive: false), ' & ');
     }
-
-    return text;
+    return title;
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PilihLayananPage(kategori: category.namaKategori),
+    final displayName = _formatCategoryTitle(category.namaKategori);
+    final subtitleText = category.jumlahLayanan > 0
+        ? '${category.jumlahLayanan} Layanan'
+        : 'Layanan';
+    final isSmall = screenWidth < 360;
+
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140F172A),
+            blurRadius: 10,
+            offset: Offset(0, 4),
           ),
-        );
-      },
-      child: SizedBox(
-        width: 82,
-        child: Column(
-          children: [
-            Container(
-              width: 74,
-              height: 74,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFE0F7F7),
-                border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (_) =>
+                        PilihLayananPage(kategori: category.namaKategori),
+              ),
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. Category Full Background Image
+                (category.gambarUrl != null &&
+                        category.gambarUrl!.trim().isNotEmpty)
+                    ? AppCachedImage(
+                      imageUrl: category.gambarUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: _buildFallback(),
+                    )
+                    : _buildFallback(),
+
+                // 2. Smooth Dark Gradient from Mid to Bottom (allows photo to shine on top)
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.05),
+                        Colors.black.withOpacity(0.65),
+                        Colors.black.withOpacity(0.90),
+                      ],
+                      stops: const [0.35, 0.55, 0.82, 1.0],
+                    ),
                   ),
-                ],
-              ),
-              child: ClipOval(
-                child:
-                    (category.gambarUrl != null &&
-                            category.gambarUrl!.trim().isNotEmpty)
-                        ? AppCachedImage(
-                          imageUrl: category.gambarUrl!,
-                          fit: BoxFit.cover,
-                          errorWidget: Container(
-                            color: const Color(0xFFE0F7F7),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              IconlyLight.activity,
-                              color: Color(0xFF0BA5A7),
-                              size: 30,
+                ),
+
+                // 3. Subtle Glass Border
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.16),
+                      width: 1.0,
+                    ),
+                  ),
+                ),
+
+                // 4. Bottom-Left Typography (Title + Subtitle Badge)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        displayName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamilyFallback: const ['Jakarta Sans', 'Poppins'],
+                          fontSize: isSmall ? 13.0 : 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          height: 1.2,
+                          letterSpacing: -0.2,
+                          shadows: const [
+                            Shadow(
+                              color: Color(0x80000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 1),
                             ),
-                          ),
-                        )
-                        : Container(
-                          color: const Color(0xFFE0F7F7),
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            IconlyLight.activity,
-                            color: Color(0xFF0BA5A7),
-                            size: 30,
-                          ),
+                          ],
                         ),
-              ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitleText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamilyFallback: const ['Jakarta Sans', 'Poppins'],
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white.withOpacity(0.85),
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              _formatLabel(category.namaKategori),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF2E2323),
-                height: 1.15,
-              ),
-            ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallback() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0BA5A7), Color(0xFF065E64)],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          IconlyLight.activity,
+          color: Colors.white.withOpacity(0.18),
+          size: 44,
         ),
       ),
     );
@@ -260,18 +349,33 @@ class _DynamicCategoryIconWidget extends StatelessWidget {
 }
 
 class _CategoryLoadingItem extends StatelessWidget {
-  const _CategoryLoadingItem();
+  final double width;
+  final double height;
+
+  const _CategoryLoadingItem({
+    required this.width,
+    required this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 82,
-      child: Column(
-        children: const [
-          AppSkeleton.circle(size: 74),
-          SizedBox(height: 10),
-          AppSkeleton(width: 56, height: 12, borderRadius: 6),
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x080F172A),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
         ],
+      ),
+      child: AppSkeleton(
+        width: width,
+        height: height,
+        borderRadius: 20,
       ),
     );
   }

@@ -671,9 +671,7 @@ class _LihatHistoriPemesananPageState extends State<LihatHistoriPemesananPage>
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const SingleChildScrollView(
-        child: OrderListSkeleton(),
-      );
+      return const SingleChildScrollView(child: OrderListSkeleton());
     }
 
     if (_error != null) {

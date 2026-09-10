@@ -632,18 +632,14 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     if (_isLoadingDraft) {
       return Scaffold(
         backgroundColor: backgroundColor,
-        body: const SafeArea(
-          child: OrderDetailSkeleton(),
-        ),
+        body: const SafeArea(child: OrderDetailSkeleton()),
       );
     }
 
     if (_draftError != null) {
       return Scaffold(
         backgroundColor: backgroundColor,
-        appBar: const PatientAppBar(
-          title: 'Pembayaran',
-        ),
+        appBar: const PatientAppBar(title: 'Pembayaran'),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),

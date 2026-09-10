@@ -18,7 +18,6 @@ export 'package:home_care/features/services_catalog/domain/service_model.dart';
 
 String get kBaseUrl => ApiConstants.apiBase;
 
-
 class PilihLayananPage extends StatefulWidget {
   final String? kategori;
 
@@ -458,7 +457,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                     context,
                     MaterialPageRoute(builder: (_) => const ProfilePage()),
                   ).then((_) {
-
                     _fetchProfileData();
                   });
                 },
@@ -482,7 +480,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
   }
 
   Future<void> _handleLayananTap(Layanan layanan) async {
-
     if (!_isProfileComplete()) {
       _showIncompleteProfileDialog();
       return;
@@ -640,12 +637,9 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColor.bg,
-      appBar: const PatientAppBar(
-        title: 'Pilih Layanan',
-      ),
+      appBar: const PatientAppBar(title: 'Pilih Layanan'),
       body: Column(
         children: [
-
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -696,11 +690,12 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: 5,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (_, index) => AppSkeleton(
-                    width: index == 0 ? 70 : 100,
-                    height: 36,
-                    borderRadius: 20,
-                  ),
+                  itemBuilder:
+                      (_, index) => AppSkeleton(
+                        width: index == 0 ? 70 : 100,
+                        height: 36,
+                        borderRadius: 20,
+                      ),
                 ),
               ),
             )
@@ -831,7 +826,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Stack(
                 children: [
                   _buildImageHeader(layanan),
@@ -874,7 +868,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Text(
                       layanan.namaLayanan,
                       style: const TextStyle(
@@ -934,7 +927,6 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,10 +968,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
-                              onTap:
-                                  () => _handleLayananTap(
-                                    layanan,
-                                  ),
+                              onTap: () => _handleLayananTap(layanan),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24,
@@ -1031,11 +1020,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
           ),
         ),
         child: Center(
-          child: Icon(
-            IconlyLight.activity,
-            size: 64,
-            color: HCColor.primary,
-          ),
+          child: Icon(IconlyLight.activity, size: 64, color: HCColor.primary),
         ),
       );
     }
@@ -1061,11 +1046,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
               ),
             ),
             child: Center(
-              child: Icon(
-                IconlyLight.image,
-                size: 64,
-                color: HCColor.primary,
-              ),
+              child: Icon(IconlyLight.image, size: 64, color: HCColor.primary),
             ),
           );
         },

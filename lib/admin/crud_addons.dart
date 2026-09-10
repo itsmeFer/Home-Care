@@ -21,7 +21,6 @@ class CrudAddOnsPage extends StatefulWidget {
 
 class _CrudAddOnsPageState extends State<CrudAddOnsPage>
     with SingleTickerProviderStateMixin {
-
   String get baseUrl => ApiConstants.apiBase;
 
   late TabController _tab;
@@ -293,7 +292,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
           _fetchCategoriesDropdown(),
         ]);
       } else {
-
         _toast(
           body?["message"]?.toString() ?? "Gagal hapus (${res.statusCode})",
         );
@@ -805,7 +803,6 @@ class _CrudAddOnsPageState extends State<CrudAddOnsPage>
                                       ? null
                                       : descCtrl.text.trim(),
                               "is_active": isActive,
-
                             };
 
                             Navigator.pop(ctx);
