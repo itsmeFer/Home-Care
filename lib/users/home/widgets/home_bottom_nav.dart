@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/features/chat/data/services/chat_service.dart';
+import 'package:home_care/features/chat/presentation/controllers/chat_unread_counter.dart';
 import 'package:home_care/users/home_page.dart';
 
 class HCBottomNav extends StatefulWidget {
@@ -25,43 +26,46 @@ class _HCBottomNavState extends State<HCBottomNav> {
   @override
   void initState() {
     super.initState();
+    _chatUnreadCount = ChatUnreadCounter.totalUnread.value;
+    ChatUnreadCounter.totalUnread.addListener(_onCounterChanged);
     _loadChatUnread();
     _startBadgePolling();
   }
 
   @override
   void dispose() {
+    ChatUnreadCounter.totalUnread.removeListener(_onCounterChanged);
     _badgeTimer?.cancel();
     super.dispose();
   }
 
+  void _onCounterChanged() {
+    final v = ChatUnreadCounter.totalUnread.value;
+    if (mounted && _chatUnreadCount != v) {
+      setState(() {
+        _chatUnreadCount = v;
+      });
+    }
+  }
+
   void _startBadgePolling() {
     _badgeTimer?.cancel();
-    _badgeTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _badgeTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _loadChatUnread();
     });
   }
 
   Future<void> _loadChatUnread() async {
     try {
-      final body = await ApiClient.get('/chat/unread-summary');
-      if (body is! Map || body['success'] != true) return;
-
-      final data = body['data'] ?? {};
-      final totalUnread = data['total_unread'];
-
-      int parsedUnread = 0;
-      if (totalUnread is int) {
-        parsedUnread = totalUnread;
-      } else {
-        parsedUnread = int.tryParse(totalUnread.toString()) ?? 0;
-      }
-
+      final parsedUnread = await ChatService.fetchUnreadSummary();
       if (!mounted) return;
 
-      setState(() {
-        _chatUnreadCount = parsedUnread;
-      });
+      ChatUnreadCounter.setTotal(parsedUnread);
+      if (_chatUnreadCount != parsedUnread) {
+        setState(() {
+          _chatUnreadCount = parsedUnread;
+        });
+      }
     } catch (_) {}
   }
 
@@ -75,7 +79,7 @@ class _HCBottomNavState extends State<HCBottomNav> {
 
   @override
   Widget build(BuildContext context) {
-    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+    final double bottomPadding = MediaQuery.paddingOf(context).bottom;
     const double barHeight = 62.0;
     const double floatOverhang = 18.0;
     final double totalHeight = barHeight + floatOverhang + bottomPadding;

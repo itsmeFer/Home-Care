@@ -44,4 +44,25 @@ class NotifikasiService {
       return false;
     }
   }
+
+  Future<int> fetchUnreadCount() async {
+    try {
+      final res = await ApiClient.get('/notifications');
+      if (res is Map && res['success'] == true) {
+        if (res['meta'] is Map && res['meta']['unread_count'] != null) {
+          final raw = res['meta']['unread_count'];
+          return raw is int ? raw : int.tryParse(raw.toString()) ?? 0;
+        }
+        if (res['data'] is List) {
+          final List list = res['data'] as List;
+          return list.where((e) => e is Map && e['is_read'] != true).length;
+        }
+      }
+      return 0;
+    } catch (e) {
+      debugPrint('Error fetching unread notification count: $e');
+      return 0;
+    }
+  }
 }
+

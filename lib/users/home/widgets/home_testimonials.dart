@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
@@ -242,7 +243,11 @@ class _TestimonialCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundImage: NetworkImage(testimonial.avatarUrl),
+                backgroundImage: CachedNetworkImageProvider(
+                  testimonial.avatarUrl,
+                  maxHeight: 100,
+                  maxWidth: 100,
+                ),
                 backgroundColor: const Color(0xFF0BA5A7),
               ),
               const SizedBox(width: 12),

@@ -39,17 +39,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late int _currentIndex;
+  final Set<int> _activatedTabs = {};
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _activatedTabs.add(_currentIndex);
   }
 
   void setTab(int index) {
     if (_currentIndex != index) {
       setState(() {
         _currentIndex = index;
+        _activatedTabs.add(index);
       });
     }
   }
@@ -69,23 +72,28 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: HCColor.bg,
         body: IndexedStack(
           index: _currentIndex,
-          children: const [
-            HomeFeedView(),
-            PilihLayananPage(),
-            PasienChatListPage(),
-            LihatHistoriPemesananPage(),
-            ProfilePage(),
+          children: [
+            const HomeFeedView(),
+            _activatedTabs.contains(1)
+                ? const PilihLayananPage()
+                : const SizedBox.shrink(),
+            _activatedTabs.contains(2)
+                ? const PasienChatListPage()
+                : const SizedBox.shrink(),
+            _activatedTabs.contains(3)
+                ? const LihatHistoriPemesananPage()
+                : const SizedBox.shrink(),
+            _activatedTabs.contains(4)
+                ? const ProfilePage()
+                : const SizedBox.shrink(),
           ],
         ),
         bottomNavigationBar: HCBottomNav(
           currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+          onTap: setTab,
         ),
       ),
     );
   }
 }
+

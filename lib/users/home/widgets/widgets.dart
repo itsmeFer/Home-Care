@@ -1,6 +1,7 @@
 export 'home_bottom_nav.dart';
 export 'home_category_icons.dart';
 export 'home_health_tips.dart';
+export 'home_hero_search_bar.dart';
 export 'home_immersive_hero_header.dart';
 export 'home_landscape_banners.dart';
 export 'home_promo_full_width.dart';

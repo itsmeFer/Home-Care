@@ -212,4 +212,20 @@ class ChatService {
       currentUserId: currentUserId,
     );
   }
+
+  static Future<int> fetchUnreadSummary() async {
+    try {
+      final body = await ApiClient.get('/chat/unread-summary');
+      if (body is Map && body['success'] == true) {
+        final data = body['data'] ?? {};
+        final totalUnread = data['total_unread'];
+        if (totalUnread is int) return totalUnread;
+        return int.tryParse(totalUnread?.toString() ?? '0') ?? 0;
+      }
+      return 0;
+    } catch (_) {
+      return 0;
+    }
+  }
 }
+

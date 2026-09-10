@@ -1,16 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:http/http.dart' as http;
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/users/layanan_page.dart';
 import 'package:home_care/users/notifikasi_page.dart';
 import 'package:home_care/users/profile.dart';
-import 'package:home_care/users/search_page.dart';
+import 'package:home_care/users/profile/services/user_profile_service.dart';
+import 'home_hero_search_bar.dart';
 
+/// Immersive Hero Header untuk Beranda Pasien.
+/// Menampilkan greeting lokasi, badge notifikasi, headline hero, CTA, dan floating search bar.
 class HomeImmersiveHeroHeader extends StatefulWidget {
   const HomeImmersiveHeroHeader({super.key});
 
@@ -20,25 +20,13 @@ class HomeImmersiveHeroHeader extends StatefulWidget {
 }
 
 class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
+  final _notifService = const NotifikasiService();
+  final _profileService = const UserProfileService();
+
   String? _nama;
   String? _lokasi;
   int _notifUnreadCount = 0;
   Timer? _notifTimer;
-
-  // Typing animation in search bar
-  final List<String> _searchTexts = [
-    'Lagi butuh layanan kesehatan apa?',
-    'Cari perawat siap datang ke rumah...',
-    'Butuh fisioterapi nyaman di rumah?',
-    'Cari medical check-up tanpa ribet...',
-    'Mau konsultasi dokter lebih tenang?',
-  ];
-  int _currentTextIndex = 0;
-  String _displayedText = '';
-  Timer? _typingTimer;
-  bool _isTyping = true;
-
-  static String get baseUrl => ApiConstants.apiBase;
 
   @override
   void initState() {
@@ -46,134 +34,36 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
     _loadProfileData();
     _loadNotifUnread();
     _startNotifPolling();
-    _startTypingAnimation();
   }
 
   @override
   void dispose() {
     _notifTimer?.cancel();
-    _typingTimer?.cancel();
     super.dispose();
   }
 
   void _startNotifPolling() {
     _notifTimer?.cancel();
-    _notifTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+    _notifTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _loadNotifUnread();
-    });
-  }
-
-  void _startTypingAnimation() {
-    int charIndex = 0;
-    final currentText = _searchTexts[_currentTextIndex];
-
-    _typingTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      setState(() {
-        if (_isTyping) {
-          if (charIndex <= currentText.length) {
-            _displayedText = currentText.substring(0, charIndex);
-            charIndex++;
-          } else {
-            timer.cancel();
-            Future.delayed(const Duration(seconds: 2), () {
-              if (mounted) {
-                _isTyping = false;
-                _startDeletingAnimation();
-              }
-            });
-          }
-        }
-      });
-    });
-  }
-
-  void _startDeletingAnimation() {
-    final currentText = _searchTexts[_currentTextIndex];
-    int charIndex = currentText.length;
-
-    _typingTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      setState(() {
-        if (charIndex > 0) {
-          _displayedText = currentText.substring(0, charIndex);
-          charIndex--;
-        } else {
-          timer.cancel();
-          _currentTextIndex = (_currentTextIndex + 1) % _searchTexts.length;
-          _isTyping = true;
-          Future.delayed(const Duration(milliseconds: 400), () {
-            if (mounted) {
-              _startTypingAnimation();
-            }
-          });
-        }
-      });
     });
   }
 
   Future<void> _loadNotifUnread() async {
     try {
-      final token = await StorageService.getToken();
-      if (token == null || token.isEmpty) return;
-
-      final res = await http.get(
-        Uri.parse('$baseUrl/notifications'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (res.statusCode != 200) return;
-
-      final body = json.decode(res.body);
-      if (body is! Map || body['success'] != true) return;
-
-      int unreadCount = 0;
-      if (body['meta'] is Map && body['meta']['unread_count'] != null) {
-        final raw = body['meta']['unread_count'];
-        unreadCount = raw is int ? raw : int.tryParse(raw.toString()) ?? 0;
-      } else {
-        final List data = (body['data'] ?? []) as List;
-        unreadCount =
-            data.where((e) => e is Map && e['is_read'] != true).length;
-      }
-
+      final unread = await _notifService.fetchUnreadCount();
       if (!mounted) return;
       setState(() {
-        _notifUnreadCount = unreadCount;
+        _notifUnreadCount = unread;
       });
     } catch (_) {}
   }
 
   Future<void> _loadProfileData() async {
     try {
-      final token = await StorageService.getToken();
-      if (token == null || token.isEmpty) return;
+      final data = await _profileService.fetchProfile();
+      if (!mounted || data == null) return;
 
-      final res = await http.get(
-        Uri.parse('$baseUrl/me'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (res.statusCode != 200) return;
-
-      final body = json.decode(res.body);
-      if (body is! Map || body['success'] != true) return;
-
-      final data = body['data'] ?? {};
       final pasien = data['pasien'] as Map<String, dynamic>?;
       final user = data['user'] as Map<String, dynamic>?;
 
@@ -183,7 +73,6 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
         lokasi = kota;
       }
 
-      if (!mounted) return;
       setState(() {
         _nama = (pasien?['nama_lengkap'] ?? user?['name'])?.toString();
         _lokasi = lokasi;
@@ -193,14 +82,13 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final topPadding = MediaQuery.paddingOf(context).top;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final bool isTablet = screenWidth >= 600;
 
-    // Header image height based on screen size
     final double bannerHeight = isTablet ? 410.0 : 365.0;
     const double searchBarHeight = 52.0;
-    final double totalHeight = bannerHeight + (searchBarHeight / 2); // 26px overlap for search bar
+    final double totalHeight = bannerHeight + (searchBarHeight / 2);
 
     return SizedBox(
       height: totalHeight,
@@ -217,8 +105,9 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: NetworkImage(
+                  image: CachedNetworkImageProvider(
                     'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&auto=format&fit=crop&q=80',
+                    maxHeight: 800,
                   ),
                   fit: BoxFit.cover,
                 ),
@@ -240,7 +129,7 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
                   isTablet ? 32 : 18,
                   topPadding + 10,
                   isTablet ? 32 : 18,
-                  54, // 26px search bar overlap + 28px airy breathing room
+                  54,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +247,7 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
 
                     const Spacer(),
 
-                    // Center Headline: Elegant, clean & balanced (not overly bold)
+                    // Center Headline
                     Text(
                       'Layanan Medis &\nPerawatan Terbaik\nLangsung di Rumah!',
                       style: TextStyle(
@@ -373,11 +262,11 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
 
                     const SizedBox(height: 14),
 
-                    // Bottom Row on Image: CTA Pill Button (Left) + Promo Sticker Badge (Right)
+                    // Bottom Row on Image: CTA Pill Button + Promo Sticker Badge
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // CTA Pill Button (Matching "Order Now" from reference)
+                        // CTA Pill Button
                         Container(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
@@ -438,7 +327,7 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
 
                         const Spacer(),
 
-                        // Circular Discount / Promo Badge (Matching "35% Discount" from reference)
+                        // Circular Discount Badge
                         Transform.rotate(
                           angle: 0.06,
                           child: Container(
@@ -459,9 +348,9 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
                                 ),
                               ],
                             ),
-                            child: Column(
+                            child: const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
+                              children: [
                                 Text(
                                   'DISKON',
                                   style: TextStyle(
@@ -494,80 +383,8 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
             ),
           ),
 
-          // 2. Floating Overlapping Rounded Search Bar with Filter Button
-          Positioned(
-            left: isTablet ? 32 : 18,
-            right: isTablet ? 32 : 18,
-            bottom: 0,
-            height: searchBarHeight,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SearchPage()),
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(26),
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 18,
-                      offset: const Offset(0, 4),
-                      color: Colors.black.withValues(alpha: 0.08),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.only(left: 18, right: 6),
-                child: Row(
-                  children: [
-                    const Icon(
-                      IconlyLight.search,
-                      color: Color(0xFF94A3B8),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _displayedText.isNotEmpty
-                            ? _displayedText
-                            : 'Cari layanan medis, perawat...',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          color: Color(0xFF94A3B8),
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                    // Filter slider button
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: HCColor.primaryLight,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: HCColor.primary.withValues(alpha: 0.25),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          IconlyLight.filter,
-                          color: HCColor.primary,
-                          size: 19,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          // 2. Floating Search Bar with Isolated Micro-Animation
+          HomeHeroSearchBar(isTablet: isTablet),
         ],
       ),
     );
