@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/detail_layanan/services/detail_layanan_service.dart';
+import 'package:home_care/admin/detail_layanan/widgets/detail_layanan_action_buttons.dart';
 import 'package:home_care/admin/detail_layanan/widgets/detail_layanan_info_card.dart';
 import 'package:home_care/admin/detail_layanan/widgets/detail_layanan_koordinator_card.dart';
+import 'package:home_care/admin/detail_layanan/widgets/detail_layanan_skeleton.dart';
 import 'package:home_care/admin/detail_layanan/widgets/koordinator_multiselect_dialog.dart';
 import 'package:home_care/admin/detail_layanan/widgets/layanan_edit_form_dialog.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/core/utils/app_image_compressor.dart';
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:image_picker/image_picker.dart';
 
 class DetailLayananPage extends StatefulWidget {
@@ -28,7 +30,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
   bool _hasChanged = false;
 
   List<KoordinatorItem> _koordinatorLayanan = [];
-  List<KoordinatorItem> _allKoordinator = [];
   bool _isLoadingKoordinator = false;
   bool _isSavingKoordinator = false;
 
@@ -85,7 +86,7 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       if (mounted) {
         setState(() {
           _isError = true;
-          _errorMessage = e.toString();
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
         });
       }
     } finally {
@@ -113,7 +114,6 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
     try {
       setState(() => _isSavingKoordinator = true);
       final all = await DetailLayananService.fetchAllKoordinator();
-      _allKoordinator = all;
       final selectedIds = _koordinatorLayanan.map((e) => e.id).toSet();
       setState(() => _isSavingKoordinator = false);
 
@@ -122,7 +122,7 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
         context: context,
         barrierDismissible: false,
         builder: (_) => KoordinatorMultiSelectDialog(
-          allKoordinator: _allKoordinator,
+          allKoordinator: all,
           selectedIds: selectedIds,
         ),
       );
@@ -141,7 +141,10 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
   }
 
   Future<void> _updateKoordinatorPivot(
-      int koordinatorId, bool aktif, String? catatan) async {
+    int koordinatorId,
+    bool aktif,
+    String? catatan,
+  ) async {
     if (_layanan == null) return;
     try {
       await DetailLayananService.updateKoordinatorPivot(
@@ -176,8 +179,10 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus Layanan',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Hapus Layanan',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: Text(
           'Yakin ingin menghapus layanan "${_layanan!.namaLayanan}"?',
         ),
@@ -292,6 +297,7 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
+              tooltip: 'Muat ulang',
               onPressed: () async {
                 PaintingBinding.instance.imageCache.clear();
                 PaintingBinding.instance.imageCache.clearLiveImages();
@@ -302,21 +308,50 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
           ],
         ),
         body: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: HCColor.primary))
+            ? const DetailLayananSkeleton()
             : _isError
                 ? Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        _errorMessage ?? 'Terjadi kesalahan',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.red),
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red.shade400,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _errorMessage ??
+                                'Terjadi kesalahan saat memuat data',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _fetchDetail,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HCColor.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: const Text('Coba Lagi'),
+                          ),
+                        ],
                       ),
                     ),
                   )
                 : _layanan == null
-                    ? const Center(child: Text('Data layanan tidak ditemukan'))
+                    ? const Center(
+                        child: Text('Data layanan tidak ditemukan'),
+                      )
                     : SingleChildScrollView(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -324,7 +359,8 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
                           children: [
                             DetailLayananInfoCard(
                               layanan: _layanan!,
-                              kategoriLabel: _kategoriLabel(_layanan!.kategori),
+                              kategoriLabel:
+                                  _kategoriLabel(_layanan!.kategori),
                               onToggleActive: (val) {
                                 _updateLayanan({'aktif': val});
                               },
@@ -334,75 +370,16 @@ class _DetailLayananPageState extends State<DetailLayananPage> {
                               koordinatorLayanan: _koordinatorLayanan,
                               isLoading: _isLoadingKoordinator,
                               isSaving: _isSavingKoordinator,
-                              onManageKoordinator: _openKelolaKoordinatorDialog,
+                              onManageKoordinator:
+                                  _openKelolaKoordinatorDialog,
                               onTogglePivot: _updateKoordinatorPivot,
                             ),
                             const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: _deleteLayanan,
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.red,
-                                      side: const BorderSide(color: Colors.red),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    icon: const Icon(Icons.delete_outline),
-                                    label: const Text('Hapus'),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: _openEditForm,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: HCColor.primary,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    icon: const Icon(Icons.edit),
-                                    label: const Text('Edit'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed:
-                                  _isUploadingImage ? null : _pickAndUploadImage,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: HCColor.primaryDark,
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              icon: _isUploadingImage
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.image),
-                              label: Text(
-                                _isUploadingImage
-                                    ? 'Mengupload...'
-                                    : 'Ubah Gambar Layanan',
-                              ),
+                            DetailLayananActionButtons(
+                              isUploadingImage: _isUploadingImage,
+                              onDelete: _deleteLayanan,
+                              onEdit: _openEditForm,
+                              onUploadImage: _pickAndUploadImage,
                             ),
                           ],
                         ),

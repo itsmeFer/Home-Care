@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
@@ -70,22 +71,26 @@ Widget avatarCircle({
   if (url == null || url.trim().isEmpty) {
     return CircleAvatar(
       radius: radius,
-      backgroundColor: kPrimary.withOpacity(0.10),
+      backgroundColor: kPrimary.withValues(alpha: 0.10),
       child: Icon(fallback, color: kPrimary),
     );
   }
 
   return CircleAvatar(
     radius: radius,
-    backgroundColor: kPrimary.withOpacity(0.10),
-    backgroundImage: NetworkImage(url),
+    backgroundColor: kPrimary.withValues(alpha: 0.10),
+    backgroundImage: CachedNetworkImageProvider(
+      url,
+      maxWidth: 120,
+      maxHeight: 120,
+    ),
     onBackgroundImageError: (_, __) {},
     child: null,
   );
 }
 
 class R {
-  static double w(BuildContext c) => MediaQuery.of(c).size.width;
+  static double w(BuildContext c) => MediaQuery.sizeOf(c).width;
 
   static bool isPhone(BuildContext c) => w(c) < 600;
   static bool isTablet(BuildContext c) => w(c) >= 600 && w(c) < 1024;
@@ -112,7 +117,7 @@ class R {
   }
 
   static double dialogHeight(BuildContext c, {double max = 620}) {
-    final h = MediaQuery.of(c).size.height;
+    final h = MediaQuery.sizeOf(c).height;
     final v = (h * 0.86).clamp(420, max);
     return v.toDouble();
   }
@@ -228,8 +233,8 @@ class MiniChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = color ?? kPrimary;
-    final bg = c.withOpacity(0.10);
-    final bd = c.withOpacity(0.28);
+    final bg = c.withValues(alpha: 0.10);
+    final bd = c.withValues(alpha: 0.28);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -285,9 +290,9 @@ class ErrorBox extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: kDanger.withOpacity(0.10),
+        color: kDanger.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: kDanger.withOpacity(0.28)),
+        border: Border.all(color: kDanger.withValues(alpha: 0.28)),
       ),
       child: Text(
         message,
@@ -339,7 +344,7 @@ class MiniCard extends StatelessWidget {
         border: Border.all(color: kBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),

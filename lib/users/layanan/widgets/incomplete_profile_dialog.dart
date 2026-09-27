@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/users/profile.dart';
+import 'package:home_care/users/profile/profile_page.dart';
 
 class IncompleteProfileDialog {
   static bool isProfileComplete(Map<String, dynamic>? profileData) {

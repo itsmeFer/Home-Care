@@ -39,6 +39,42 @@ class ServiceModel {
     this.updatedAt,
   });
 
+  ServiceModel copyWith({
+    int? id,
+    String? kodeLayanan,
+    String? namaLayanan,
+    String? deskripsi,
+    String? kategori,
+    String? tipeLayanan,
+    int? jumlahVisit,
+    double? hargaFix,
+    int? durasiMenit,
+    String? syaratPerawat,
+    String? lokasiTersedia,
+    bool? aktif,
+    String? gambarUrl,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return ServiceModel(
+      id: id ?? this.id,
+      kodeLayanan: kodeLayanan ?? this.kodeLayanan,
+      namaLayanan: namaLayanan ?? this.namaLayanan,
+      deskripsi: deskripsi ?? this.deskripsi,
+      kategori: kategori ?? this.kategori,
+      tipeLayanan: tipeLayanan ?? this.tipeLayanan,
+      jumlahVisit: jumlahVisit ?? this.jumlahVisit,
+      hargaFix: hargaFix ?? this.hargaFix,
+      durasiMenit: durasiMenit ?? this.durasiMenit,
+      syaratPerawat: syaratPerawat ?? this.syaratPerawat,
+      lokasiTersedia: lokasiTersedia ?? this.lokasiTersedia,
+      aktif: aktif ?? this.aktif,
+      gambarUrl: gambarUrl ?? this.gambarUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   /// Kompatibilitas untuk admin modul yang menggunakan hargaDasar
   double get hargaDasar => hargaFix;
 

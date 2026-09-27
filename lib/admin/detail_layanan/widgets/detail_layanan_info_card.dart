@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
@@ -57,6 +57,8 @@ class DetailLayananInfoCard extends StatelessWidget {
                 width: double.infinity,
                 borderRadius: BorderRadius.circular(12),
                 fit: BoxFit.cover,
+                memCacheWidth: 800,
+                memCacheHeight: 400,
               ),
               const SizedBox(height: 14),
             ],

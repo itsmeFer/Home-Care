@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/users/chat/pasien_chat_list_page.dart';
-import 'package:home_care/users/layanan_page.dart';
-import 'package:home_care/users/lihat_histori_pemesanan.dart';
-import 'package:home_care/users/profile.dart';
+import 'package:home_care/users/histori_pemesanan/lihat_histori_pemesanan_page.dart';
+import 'package:home_care/users/layanan/layanan_page.dart';
+import 'package:home_care/users/profile/profile_page.dart';
 import 'views/home_feed_view.dart';
 import 'widgets/home_bottom_nav.dart';
 

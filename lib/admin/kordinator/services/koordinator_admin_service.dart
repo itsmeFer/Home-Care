@@ -1,135 +1,67 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:home_care/admin/kordinator/models/koordinator_admin_model.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:http/http.dart' as http;
+import 'package:home_care/core/network/api_client.dart';
 
 class KoordinatorAdminService {
-  static const Duration _timeout = Duration(seconds: 15);
-  static String get baseUrl => ApiConstants.apiBase;
-
-  static Future<String> _requireToken() async {
-    final token = await StorageService.getToken();
-    if (token == null || token.trim().isEmpty) {
-      throw 'Sesi login telah berakhir. Silakan login ulang.';
+  /// Mengambil daftar akun koordinator dengan dukungan pencarian server-side.
+  static Future<List<Koordinator>> fetchKoordinator({String? search}) async {
+    final queryParams = <String, String>{};
+    if (search != null && search.trim().isNotEmpty) {
+      queryParams['search'] = search.trim();
     }
-    return token;
-  }
 
-  static Future<Map<String, String>> _headers({bool jsonBody = false}) async {
-    final token = await _requireToken();
-    return {
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/json',
-      if (jsonBody) 'Content-Type': 'application/json',
-    };
-  }
+    final url = queryParams.isEmpty
+        ? '/admin/koordinator'
+        : '/admin/koordinator?${Uri(queryParameters: queryParams).query}';
 
-  static String _extractErrorMessage(String responseBody, String fallback) {
-    try {
-      final body = json.decode(responseBody);
-      if (body is Map) {
-        if (body['errors'] != null) {
-          final errors = body['errors'] as Map<String, dynamic>;
-          final buffer = StringBuffer();
-          errors.forEach((key, value) {
-            if (value is List && value.isNotEmpty) {
-              buffer.writeln('$key: ${value.first}');
-            }
-          });
-          if (buffer.isNotEmpty) {
-            return buffer.toString().trim();
-          }
-        } else if (body['message'] != null) {
-          return body['message'].toString();
-        }
-      }
-    } catch (_) {}
-    return fallback;
-  }
+    final res = await ApiClient.get(url);
 
-  static Future<List<Koordinator>> fetchKoordinator() async {
-    try {
-      final url = Uri.parse('$baseUrl/admin/koordinator');
-      final res = await http.get(url, headers: await _headers()).timeout(_timeout);
-
-      if (res.statusCode != 200) {
-        throw _extractErrorMessage(
-          res.body,
-          'Gagal mengambil data koordinator (kode ${res.statusCode})',
-        );
-      }
-
-      final body = json.decode(res.body);
-      if (body is Map && body['success'] == true && body['data'] != null) {
-        final List<dynamic> data = body['data'];
-        return data.map((e) => Koordinator.fromJson(e as Map<String, dynamic>)).toList();
-      } else {
-        throw body['message'] ?? 'Gagal mengambil data koordinator dari server.';
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat memuat data koordinator.';
+    if (res is Map && res['data'] is List) {
+      final List<dynamic> list = res['data'];
+      return list
+          .map((e) => Koordinator.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
-  }
-
-  static Future<void> createKoordinator(Map<String, dynamic> payload) async {
-    try {
-      final url = Uri.parse('$baseUrl/admin/koordinator');
-      final res = await http
-          .post(
-            url,
-            headers: await _headers(jsonBody: true),
-            body: json.encode(payload),
-          )
-          .timeout(_timeout);
-
-      if (res.statusCode != 201 && res.statusCode != 200) {
-        throw _extractErrorMessage(
-          res.body,
-          'Gagal menambah koordinator (kode ${res.statusCode})',
-        );
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat menambah koordinator.';
+    if (res is List) {
+      return res
+          .map((e) => Koordinator.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
+    return [];
   }
 
-  static Future<void> updateKoordinator(int id, Map<String, dynamic> payload) async {
-    try {
-      final url = Uri.parse('$baseUrl/admin/koordinator/$id');
-      final res = await http
-          .put(
-            url,
-            headers: await _headers(jsonBody: true),
-            body: json.encode(payload),
-          )
-          .timeout(_timeout);
+  /// Menambah akun koordinator baru dan mengembalikan model data terbaru.
+  static Future<Koordinator> createKoordinator(
+    Map<String, dynamic> payload,
+  ) async {
+    final res = await ApiClient.post(
+      '/admin/koordinator',
+      body: payload,
+    );
 
-      if (res.statusCode != 200) {
-        throw _extractErrorMessage(
-          res.body,
-          'Gagal mengupdate koordinator (kode ${res.statusCode})',
-        );
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat mengupdate koordinator.';
+    if (res is Map && res['data'] is Map) {
+      return Koordinator.fromJson(res['data'] as Map<String, dynamic>);
     }
+    throw 'Gagal menambah data koordinator';
   }
 
+  /// Mengupdate data koordinator dan mengembalikan model data yang diperbarui.
+  static Future<Koordinator> updateKoordinator(
+    int id,
+    Map<String, dynamic> payload,
+  ) async {
+    final res = await ApiClient.put(
+      '/admin/koordinator/$id',
+      body: payload,
+    );
+
+    if (res is Map && res['data'] is Map) {
+      return Koordinator.fromJson(res['data'] as Map<String, dynamic>);
+    }
+    throw 'Gagal memperbarui data koordinator';
+  }
+
+  /// Menghapus akun koordinator berdasarkan User ID.
   static Future<void> deleteKoordinator(int id) async {
-    try {
-      final url = Uri.parse('$baseUrl/admin/koordinator/$id');
-      final res = await http.delete(url, headers: await _headers()).timeout(_timeout);
-
-      if (res.statusCode != 200 && res.statusCode != 204) {
-        throw _extractErrorMessage(
-          res.body,
-          'Gagal menghapus koordinator (kode ${res.statusCode})',
-        );
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat menghapus koordinator.';
-    }
+    await ApiClient.delete('/admin/koordinator/$id');
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/chat/data/services/chat_service.dart';
 import 'package:home_care/features/chat/presentation/controllers/chat_unread_counter.dart';
-import 'package:home_care/users/home_page.dart';
+import 'package:home_care/users/home/home_page.dart';
 
 class HCBottomNav extends StatefulWidget {
   final int currentIndex;

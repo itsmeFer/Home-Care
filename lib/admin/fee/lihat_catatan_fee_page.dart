@@ -7,6 +7,7 @@ import 'package:home_care/admin/fee/widgets/user_fee_picker_card.dart';
 import 'package:home_care/admin/fee/widgets/user_fee_summary_card.dart';
 import 'package:home_care/admin/fee/widgets/user_fee_timeline_chart.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
 import 'package:home_care/admin/fee/models/fee_models.dart';
 
 class LihatCatatanFeePage extends StatefulWidget {
@@ -198,10 +199,16 @@ class _LihatCatatanFeePageState extends State<LihatCatatanFeePage> {
 
   Widget _buildMainContent() {
     if (_isLoadingData) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        alignment: Alignment.center,
-        child: const CircularProgressIndicator(),
+      return Column(
+        children: const [
+          AppSkeleton(height: 120, width: double.infinity, borderRadius: 16),
+          SizedBox(height: 16),
+          AppSkeleton(height: 200, width: double.infinity, borderRadius: 16),
+          SizedBox(height: 16),
+          AppSkeleton(height: 200, width: double.infinity, borderRadius: 16),
+          SizedBox(height: 16),
+          AppSkeleton(height: 160, width: double.infinity, borderRadius: 16),
+        ],
       );
     }
 

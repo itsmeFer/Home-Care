@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:home_care/admin/addons/models/addon_admin_model.dart';
 import 'package:home_care/admin/addons/services/addon_admin_service.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 
 class CategoryFormSheet extends StatefulWidget {
-  final Map<String, dynamic>? item;
+  final AddonCategoryItem? item;
   final VoidCallback onSuccess;
 
   const CategoryFormSheet({
@@ -29,9 +31,9 @@ class _CategoryFormSheetState extends State<CategoryFormSheet> {
   void initState() {
     super.initState();
     final item = widget.item;
-    _nameCtrl = TextEditingController(text: item?["name"] ?? "");
-    _descCtrl = TextEditingController(text: item?["description"] ?? "");
-    _isActive = isEdit ? (item?["is_active"] == true) : true;
+    _nameCtrl = TextEditingController(text: item?.name ?? '');
+    _descCtrl = TextEditingController(text: item?.description ?? '');
+    _isActive = isEdit ? item!.isActive : true;
   }
 
   @override
@@ -46,28 +48,38 @@ class _CategoryFormSheetState extends State<CategoryFormSheet> {
 
     setState(() => _isSubmitting = true);
     final payload = {
-      "name": _nameCtrl.text.trim(),
-      "description": _descCtrl.text.trim(),
-      "is_active": _isActive,
+      'name': _nameCtrl.text.trim(),
+      'description': _descCtrl.text.trim(),
+      'is_active': _isActive,
     };
 
     try {
       final String msg;
       if (isEdit) {
-        msg = await AddonAdminService.updateCategory(widget.item?["id"], payload);
+        msg = await AddonAdminService.updateCategory(widget.item!.id, payload);
       } else {
         msg = await AddonAdminService.createCategory(payload);
       }
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
       widget.onSuccess();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))),
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -77,81 +89,144 @@ class _CategoryFormSheetState extends State<CategoryFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
     return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomInset),
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Drag Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              // Title Header
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      isEdit ? "Edit Kategori Add-on" : "Tambah Kategori Add-on",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  Text(
+                    isEdit ? 'Edit Kategori Add-on' : 'Tambah Kategori Add-on',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   IconButton(
+                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const Divider(height: 20),
 
+              // Nama Kategori
               TextFormField(
                 controller: _nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: "Nama Kategori",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'Nama Kategori *',
+                  hintText: 'Misal: Alat Medis, Tindakan Khusus',
+                  prefixIcon: const Icon(Icons.category_outlined, color: AppColors.primary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
                 ),
-                validator: (v) => (v ?? "").trim().isEmpty ? "Nama wajib diisi" : null,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Nama kategori wajib diisi';
+                  return null;
+                },
               ),
-              const SizedBox(height: 12),
-
-              TextFormField(
-                controller: _descCtrl,
-                minLines: 2,
-                maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: "Deskripsi (opsional)",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text("Aktif"),
-                value: _isActive,
-                onChanged: (v) => setState(() => _isActive = v),
-              ),
-
               const SizedBox(height: 16),
 
+              // Deskripsi Kategori
+              TextFormField(
+                controller: _descCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Deskripsi (Opsional)',
+                  hintText: 'Keterangan detail kategori ini...',
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Status Switch
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Status Aktif',
+                          style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        ),
+                        Text(
+                          _isActive ? 'Kategori dapat dipilih di form' : 'Kategori dinonaktifkan sementara',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    Switch(
+                      value: _isActive,
+                      activeTrackColor: AppColors.primary,
+                      onChanged: (v) => setState(() => _isActive = v),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Submit Button
               SizedBox(
-                width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   child: _isSubmitting
                       ? const SizedBox(
                           width: 22,
                           height: 22,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : Text(isEdit ? "Simpan Perubahan" : "Tambah Kategori"),
+                      : Text(
+                          isEdit ? 'Simpan Perubahan' : 'Buat Kategori',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
                 ),
               ),
             ],

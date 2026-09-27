@@ -6,7 +6,12 @@ class SectionHeader extends StatelessWidget {
   final String subtitle;
   final Widget? trailing;
 
-  const SectionHeader({super.key, required this.title, required this.subtitle, this.trailing});
+  const SectionHeader({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+  });
 
   static const Color kText = Color(0xFF0F172A);
   static const Color kMuted = Color(0xFF64748B);
@@ -52,7 +57,12 @@ class XCard extends StatelessWidget {
   final String subtitle;
   final Widget child;
 
-  const XCard({super.key, required this.title, required this.subtitle, required this.child});
+  const XCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
 
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
@@ -84,11 +94,22 @@ class XCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(color: kText, fontWeight: FontWeight.w900, fontSize: 13.8)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: kText,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13.8,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(color: kMuted, fontWeight: FontWeight.w600, fontSize: 12.2),
+                      style: const TextStyle(
+                        color: kMuted,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.2,
+                      ),
                     ),
                   ],
                 ),
@@ -119,7 +140,11 @@ class DotMenu extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           color: const Color(0xFFF8FAFC),
         ),
-        child: const Icon(Icons.more_horiz_rounded, size: 18, color: Color(0xFF64748B)),
+        child: const Icon(
+          Icons.more_horiz_rounded,
+          size: 18,
+          color: Color(0xFF64748B),
+        ),
       ),
     );
   }
@@ -179,14 +204,32 @@ class KpiCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: kMuted, fontSize: 12.3, fontWeight: FontWeight.w700)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: kMuted,
+                    fontSize: 12.3,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(color: kText, fontSize: 16.8, fontWeight: FontWeight.w900),
+                  style: const TextStyle(
+                    color: kText,
+                    fontSize: 16.8,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text(hint, style: const TextStyle(color: kMuted, fontSize: 12.0, fontWeight: FontWeight.w600)),
+                Text(
+                  hint,
+                  style: const TextStyle(
+                    color: kMuted,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -201,7 +244,12 @@ class ResponsiveGrid extends StatelessWidget {
   final double gap;
   final List<Widget> children;
 
-  const ResponsiveGrid({super.key, required this.columns, required this.gap, required this.children});
+  const ResponsiveGrid({
+    super.key,
+    required this.columns,
+    required this.gap,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -213,12 +261,13 @@ class ResponsiveGrid extends StatelessWidget {
         return Wrap(
           spacing: gap,
           runSpacing: gap,
-          children: children
-              .map((e) => SizedBox(
-                    width: itemW.isFinite ? itemW : w,
-                    child: e,
-                  ))
-              .toList(),
+          children:
+              children
+                  .map(
+                    (e) =>
+                        SizedBox(width: itemW.isFinite ? itemW : w, child: e),
+                  )
+                  .toList(),
         );
       },
     );
@@ -230,18 +279,17 @@ class ResponsiveSplit extends StatelessWidget {
   final Widget right;
   final bool isDesktop;
 
-  const ResponsiveSplit({super.key, required this.left, required this.right, required this.isDesktop});
+  const ResponsiveSplit({
+    super.key,
+    required this.left,
+    required this.right,
+    required this.isDesktop,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (!isDesktop) {
-      return Column(
-        children: [
-          left,
-          const SizedBox(height: 12),
-          right,
-        ],
-      );
+      return Column(children: [left, const SizedBox(height: 12), right]);
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +325,10 @@ class ChartPlaceholder extends StatelessWidget {
         child: const Center(
           child: Text(
             'Chart Placeholder',
-            style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w700),
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),
@@ -304,7 +355,10 @@ class PiePlaceholder extends StatelessWidget {
         child: const Center(
           child: Text(
             'Pie Placeholder',
-            style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w700),
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),
@@ -315,22 +369,30 @@ class PiePlaceholder extends StatelessWidget {
 class _WavesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint1 = Paint()
-      ..color = const Color(0xFF0EA5E9).withOpacity(.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+    final paint1 =
+        Paint()
+          ..color = const Color(0xFF0EA5E9).withOpacity(.12)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2;
 
-    final paint2 = Paint()
-      ..color = const Color(0xFF22C55E).withOpacity(.10)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+    final paint2 =
+        Paint()
+          ..color = const Color(0xFF22C55E).withOpacity(.10)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2;
 
     final p1 = Path();
     final p2 = Path();
 
     for (double x = 0; x <= size.width; x += 10) {
-      final y1 = size.height * 0.58 + (12 * (x / size.width) * (1 - (x / size.width))) * (x % 30 < 15 ? 1 : -1);
-      final y2 = size.height * 0.42 + (10 * (x / size.width) * (1 - (x / size.width))) * (x % 40 < 20 ? -1 : 1);
+      final y1 =
+          size.height * 0.58 +
+          (12 * (x / size.width) * (1 - (x / size.width))) *
+              (x % 30 < 15 ? 1 : -1);
+      final y2 =
+          size.height * 0.42 +
+          (10 * (x / size.width) * (1 - (x / size.width))) *
+              (x % 40 < 20 ? -1 : 1);
       if (x == 0) {
         p1.moveTo(x, y1);
         p2.moveTo(x, y2);
@@ -343,9 +405,10 @@ class _WavesPainter extends CustomPainter {
     canvas.drawPath(p1, paint1);
     canvas.drawPath(p2, paint2);
 
-    final grid = Paint()
-      ..color = const Color(0xFFE2E8F0)
-      ..strokeWidth = 1;
+    final grid =
+        Paint()
+          ..color = const Color(0xFFE2E8F0)
+          ..strokeWidth = 1;
     for (double x = 0; x < size.width; x += size.width / 8) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
     }
@@ -361,23 +424,43 @@ class _PiePainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.shortestSide / 2) - 18;
 
-    final p = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 18;
+    final p =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 18;
 
     p.color = const Color(0xFF0EA5E9).withOpacity(.35);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -1.2, 2.0, false, p);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -1.2,
+      2.0,
+      false,
+      p,
+    );
 
     p.color = const Color(0xFF22C55E).withOpacity(.30);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 0.9, 1.4, false, p);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      0.9,
+      1.4,
+      false,
+      p,
+    );
 
     p.color = const Color(0xFFF59E0B).withOpacity(.28);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 2.4, 1.1, false, p);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      2.4,
+      1.1,
+      false,
+      p,
+    );
 
-    final inner = Paint()
-      ..color = const Color(0xFFE2E8F0)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
+    final inner =
+        Paint()
+          ..color = const Color(0xFFE2E8F0)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2;
     canvas.drawCircle(center, radius - 18, inner);
   }
 
@@ -412,11 +495,22 @@ class LegendDot extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(99))),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(99),
+          ),
+        ),
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w700, fontSize: 12.2),
+          style: const TextStyle(
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w700,
+            fontSize: 12.2,
+          ),
         ),
       ],
     );
@@ -437,49 +531,52 @@ class SimpleBarList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: items
-          .map(
-            (e) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Column(
-                children: [
-                  Row(
+      children:
+          items
+              .map(
+                (e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Text(
-                          e.name,
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13.0,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              e.name,
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13.0,
+                              ),
+                            ),
                           ),
-                        ),
+                          Text(
+                            e.value,
+                            style: const TextStyle(
+                              color: Color(0xFF334155),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12.6,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        e.value,
-                        style: const TextStyle(
-                          color: Color(0xFF334155),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12.6,
+                      const SizedBox(height: 7),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: e.pct,
+                          minHeight: 8,
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          valueColor: const AlwaysStoppedAnimation(
+                            Color(0xFF0EA5E9),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 7),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(
-                      value: e.pct,
-                      minHeight: 8,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFF0EA5E9)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
+                ),
+              )
+              .toList(),
     );
   }
 }
@@ -505,20 +602,21 @@ class TableCard extends StatelessWidget {
               color: const Color(0xFFF8FAFC),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Row(
-                children: columns
-                    .map(
-                      (c) => Expanded(
-                        child: Text(
-                          c,
-                          style: const TextStyle(
-                            color: Color(0xFF475569),
-                            fontWeight: FontWeight.w900,
-                            fontSize: 12.2,
+                children:
+                    columns
+                        .map(
+                          (c) => Expanded(
+                            child: Text(
+                              c,
+                              style: const TextStyle(
+                                color: Color(0xFF475569),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12.2,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    )
-                    .toList(),
+                        )
+                        .toList(),
               ),
             ),
             const Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -526,24 +624,34 @@ class TableCard extends StatelessWidget {
               (r) => Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                     child: Row(
-                      children: r
-                          .asMap()
-                          .entries
-                          .map(
-                            (entry) => Expanded(
-                              child: Text(
-                                entry.value,
-                                style: TextStyle(
-                                  color: entry.key == 0 ? const Color(0xFF0F172A) : const Color(0xFF334155),
-                                  fontWeight: entry.key == 0 ? FontWeight.w900 : FontWeight.w700,
-                                  fontSize: 12.8,
+                      children:
+                          r
+                              .asMap()
+                              .entries
+                              .map(
+                                (entry) => Expanded(
+                                  child: Text(
+                                    entry.value,
+                                    style: TextStyle(
+                                      color:
+                                          entry.key == 0
+                                              ? const Color(0xFF0F172A)
+                                              : const Color(0xFF334155),
+                                      fontWeight:
+                                          entry.key == 0
+                                              ? FontWeight.w900
+                                              : FontWeight.w700,
+                                      fontSize: 12.8,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          )
-                          .toList(),
+                              )
+                              .toList(),
                     ),
                   ),
                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
@@ -564,34 +672,39 @@ class BulletList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: items
-          .map(
-            (t) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Icon(Icons.circle, size: 8, color: Color(0xFF94A3B8)),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      t,
-                      style: const TextStyle(
-                        color: Color(0xFF334155),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12.8,
-                        height: 1.35,
+      children:
+          items
+              .map(
+                (t) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Icon(
+                          Icons.circle,
+                          size: 8,
+                          color: Color(0xFF94A3B8),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          t,
+                          style: const TextStyle(
+                            color: Color(0xFF334155),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.8,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
+                ),
+              )
+              .toList(),
     );
   }
 }
@@ -601,7 +714,12 @@ class ActionChipX extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const ActionChipX({super.key, required this.icon, required this.label, required this.onTap});
+  const ActionChipX({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -640,7 +758,12 @@ class OutlineButtonX extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const OutlineButtonX({super.key, required this.icon, required this.label, required this.onTap});
+  const OutlineButtonX({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -661,7 +784,11 @@ class OutlineButtonX extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w900, fontSize: 12.6),
+              style: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w900,
+                fontSize: 12.6,
+              ),
             ),
           ],
         ),
@@ -723,7 +850,10 @@ class LoadingCard extends StatelessWidget {
           Expanded(
             child: Text(
               'Loading...',
-              style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -736,7 +866,12 @@ class ErrorCard extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback onRetry;
-  const ErrorCard({super.key, required this.title, required this.message, required this.onRetry});
+  const ErrorCard({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -751,7 +886,10 @@ class ErrorCard extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: Color(0xFF334155), fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                color: Color(0xFF334155),
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -767,7 +905,10 @@ class ErrorCard extends StatelessWidget {
               ),
               child: const Text(
                 'Retry',
-                style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0F172A),
+                ),
               ),
             ),
           ),

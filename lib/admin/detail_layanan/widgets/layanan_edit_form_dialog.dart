@@ -19,11 +19,11 @@ class LayananEditFormDialog extends StatefulWidget {
 class _LayananEditFormDialogState extends State<LayananEditFormDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  late TextEditingController _namaC;
-  late TextEditingController _deskripsiC;
-  late TextEditingController _jumlahVisitC;
-  late TextEditingController _hargaC;
-  late TextEditingController _durasiC;
+  late final TextEditingController _namaC;
+  late final TextEditingController _deskripsiC;
+  late final TextEditingController _jumlahVisitC;
+  late final TextEditingController _hargaC;
+  late final TextEditingController _durasiC;
 
   String? _selectedKategoriSlug;
   String _tipeLayanan = 'single';
@@ -75,20 +75,15 @@ class _LayananEditFormDialogState extends State<LayananEditFormDialog> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedKategoriSlug == null || _selectedKategoriSlug!.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori wajib dipilih')),
-      );
-      return;
-    }
-
     final harga = double.tryParse(_hargaC.text.replaceAll('.', ''));
     final durasi =
-        _durasiC.text.isEmpty ? null : int.tryParse(_durasiC.text.trim());
+        _durasiC.text.trim().isEmpty ? null : int.tryParse(_durasiC.text.trim());
     final jVisit =
-        _jumlahVisitC.text.isEmpty ? null : int.tryParse(_jumlahVisitC.text);
+        _jumlahVisitC.text.trim().isEmpty
+            ? null
+            : int.tryParse(_jumlahVisitC.text.trim());
 
-    final payload = {
+    final payload = <String, dynamic>{
       'nama_layanan': _namaC.text.trim(),
       'deskripsi':
           _deskripsiC.text.trim().isEmpty ? null : _deskripsiC.text.trim(),
@@ -278,7 +273,9 @@ class _LayananEditFormDialogState extends State<LayananEditFormDialog> {
                           child: Text('Perawat Anak'),
                         ),
                         DropdownMenuItem(
-                            value: 'lainnya', child: Text('Lainnya')),
+                          value: 'lainnya',
+                          child: Text('Lainnya'),
+                        ),
                       ],
                       onChanged: (val) {
                         setState(() => _syaratPerawat = val ?? 'umum');
@@ -329,6 +326,7 @@ class _LayananEditFormDialogState extends State<LayananEditFormDialog> {
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Aktif'),
                   value: _aktif,
+                  activeThumbColor: HCColor.primary,
                   onChanged: (val) {
                     setState(() => _aktif = val);
                   },

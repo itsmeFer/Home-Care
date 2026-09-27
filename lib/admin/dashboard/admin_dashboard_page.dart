@@ -1,9 +1,6 @@
-﻿import 'package:flutter/material.dart';
-import 'package:home_care/admin/crud_addons.dart';
-import 'package:home_care/admin/crud_banner.dart';
-import 'package:home_care/admin/crud_kategori.dart';
-import 'package:home_care/admin/crud_perawat.dart';
-import 'package:home_care/admin/crud_role.dart';
+import 'package:flutter/material.dart';
+import 'package:home_care/admin/addons/crud_addons_page.dart';
+import 'package:home_care/admin/banners/crud_banner_page.dart';
 import 'package:home_care/admin/dashboard/models/admin_dashboard_models.dart';
 import 'package:home_care/admin/dashboard/services/admin_dashboard_service.dart';
 import 'package:home_care/admin/dashboard/widgets/admin_dashboard_header.dart';
@@ -11,13 +8,17 @@ import 'package:home_care/admin/dashboard/widgets/dashboard_menu_card.dart';
 import 'package:home_care/admin/dashboard/widgets/dashboard_summary_card.dart';
 import 'package:home_care/admin/dashboard/widgets/role_stats_section.dart';
 import 'package:home_care/admin/dashboard/widgets/role_users_sheet.dart';
-import 'package:home_care/admin/kelola_fee.dart';
-import 'package:home_care/admin/kelola_kordinator.dart';
-import 'package:home_care/admin/kelola_layanan.dart';
-import 'package:home_care/admin/lapor_it.dart';
-import 'package:home_care/admin/lihat_catatan_fee.dart';
-import 'package:home_care/admin/lihat_layanan_masuk.dart' as admin;
-import 'package:home_care/admin/lihat_perawat.dart';
+import 'package:home_care/admin/fee/kelola_fee_page.dart';
+import 'package:home_care/admin/fee/lihat_catatan_fee_page.dart';
+import 'package:home_care/admin/kategori/crud_kategori_page.dart';
+import 'package:home_care/admin/kordinator/crud_kordinator_page.dart';
+import 'package:home_care/admin/layanan/kelola_layanan_page.dart';
+import 'package:home_care/admin/layanan_masuk/lihat_layanan_masuk_page.dart' as admin;
+import 'package:home_care/admin/perawat/crud_perawat_page.dart';
+import 'package:home_care/admin/perawat/lihat_perawat_page.dart';
+import 'package:home_care/admin/role/crud_role_page.dart';
+import 'package:home_care/admin/support_it/lapor_it_page.dart';
+import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/auth/presentation/screens/login.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -120,7 +121,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString();
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
           _isLoadingStats = false;
         });
       }
@@ -134,18 +135,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text('Logout'),
-        content: const Text('Yakin ingin keluar?'),
+        title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Yakin ingin keluar dari akun admin?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
+              backgroundColor: AppColors.danger,
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Logout'),
           ),
@@ -176,73 +178,85 @@ class _AdminDashboardState extends State<AdminDashboard> {
             AdminDashboardHeader(onLogout: () => _logout(context)),
             Expanded(
               child: RefreshIndicator(
+                color: AppColors.primary,
                 onRefresh: _fetchStatistics,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                  children: [
-                    DashboardSummaryCard(
-                      isLoading: _isLoadingStats,
-                      errorMessage: _errorMessage,
-                      summary: _summary,
-                      onRefresh: _fetchStatistics,
-                    ),
-                    const SizedBox(height: 14),
-                    RoleStatsSection(
-                      isLoading: _isLoadingStats,
-                      roleStats: _roleStats,
-                      onTapRole: (slug, name) {
-                        RoleUsersSheet.show(
-                          context,
-                          roleSlug: slug,
-                          roleName: name,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Menu Admin',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2937),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        int crossAxisCount = 2;
-                        if (constraints.maxWidth >= 700) {
-                          crossAxisCount = 3;
-                        }
-
-                        return GridView.builder(
-                          itemCount: _menus.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 1.04,
-                          ),
-                          itemBuilder: (context, index) {
-                            final item = _menus[index];
-                            return DashboardMenuCard(
-                              title: item.title,
-                              icon: item.icon,
-                              onTap: () {
-                                Navigator.push(
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DashboardSummaryCard(
+                              isLoading: _isLoadingStats,
+                              errorMessage: _errorMessage,
+                              summary: _summary,
+                              onRefresh: _fetchStatistics,
+                            ),
+                            const SizedBox(height: 14),
+                            RoleStatsSection(
+                              isLoading: _isLoadingStats,
+                              roleStats: _roleStats,
+                              onTapRole: (slug, name) {
+                                RoleUsersSheet.show(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => item.page,
-                                  ),
+                                  roleSlug: slug,
+                                  roleName: name,
                                 );
                               },
-                            );
-                          },
-                        );
-                      },
+                            ),
+                            const SizedBox(height: 18),
+                            const Text(
+                              'Menu Admin',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1F2937),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      sliver: SliverLayoutBuilder(
+                        builder: (context, constraints) {
+                          final int crossAxisCount =
+                              constraints.crossAxisExtent >= 700 ? 3 : 2;
+
+                          return SliverGrid(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 1.04,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final item = _menus[index];
+                                return DashboardMenuCard(
+                                  title: item.title,
+                                  icon: item.icon,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => item.page,
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              childCount: _menus.length,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),

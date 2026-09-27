@@ -6,9 +6,9 @@ import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:home_care/users/histori_pemesanan/services/histori_pemesanan_service.dart';
 import 'package:home_care/users/histori_pemesanan/widgets/widgets.dart';
-import 'package:home_care/users/lihat_detail_draft_pemesanan_page.dart';
-import 'package:home_care/users/lihat_detail_histori_pemesanan.dart';
-import 'package:home_care/users/payment_method_page.dart';
+import 'package:home_care/users/histori_pemesanan/lihat_detail_draft_pemesanan_page.dart';
+import 'package:home_care/users/histori_pemesanan/lihat_detail_histori_pemesanan_page.dart';
+import 'package:home_care/users/pemesanan/payment_method_page.dart';
 
 export 'package:home_care/features/orders/domain/order_models.dart';
 

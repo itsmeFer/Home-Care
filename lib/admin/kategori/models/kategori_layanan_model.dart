@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class KategoriLayanan {
@@ -15,7 +14,7 @@ class KategoriLayanan {
   final int? createdBy;
   final int? updatedBy;
 
-  KategoriLayanan({
+  const KategoriLayanan({
     this.id,
     this.namaKategori,
     this.slug,
@@ -71,17 +70,45 @@ class KategoriLayanan {
       'updated_by': updatedBy,
     };
   }
+
+  KategoriLayanan copyWith({
+    int? id,
+    String? namaKategori,
+    String? slug,
+    String? deskripsi,
+    String? gambar,
+    String? gambarUrl,
+    String? icon,
+    String? warna,
+    int? urutan,
+    bool? aktif,
+    int? createdBy,
+    int? updatedBy,
+  }) {
+    return KategoriLayanan(
+      id: id ?? this.id,
+      namaKategori: namaKategori ?? this.namaKategori,
+      slug: slug ?? this.slug,
+      deskripsi: deskripsi ?? this.deskripsi,
+      gambar: gambar ?? this.gambar,
+      gambarUrl: gambarUrl ?? this.gambarUrl,
+      icon: icon ?? this.icon,
+      warna: warna ?? this.warna,
+      urutan: urutan ?? this.urutan,
+      aktif: aktif ?? this.aktif,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+    );
+  }
 }
 
 class KategoriFormResult {
   final Map<String, dynamic> payload;
-  final File? imageFile;
   final Uint8List? imageBytes;
   final String? imageName;
 
-  KategoriFormResult({
+  const KategoriFormResult({
     required this.payload,
-    this.imageFile,
     this.imageBytes,
     this.imageName,
   });

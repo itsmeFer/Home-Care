@@ -1,8 +1,9 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/kordinator/models/koordinator_admin_model.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -25,8 +26,10 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
   late final TextEditingController _wilayahC;
   late final TextEditingController _alamatC;
   late final TextEditingController _nikC;
+  late final TextEditingController _jabatanC;
 
   bool _isActive = true;
+  bool _isCompressing = false;
 
   final ImagePicker _picker = ImagePicker();
   Uint8List? _pickedBytes;
@@ -43,7 +46,8 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
     _noHpC = TextEditingController(text: k?.noHp ?? '');
     _wilayahC = TextEditingController(text: k?.wilayah ?? '');
     _alamatC = TextEditingController(text: k?.alamat ?? '');
-    _nikC = TextEditingController();
+    _nikC = TextEditingController(text: k?.nik ?? '');
+    _jabatanC = TextEditingController(text: k?.jabatan ?? '');
 
     _isActive = k?.isActive ?? true;
   }
@@ -57,25 +61,39 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
     _wilayahC.dispose();
     _alamatC.dispose();
     _nikC.dispose();
+    _jabatanC.dispose();
     super.dispose();
   }
 
   Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 75,
-    );
-    if (picked == null) return;
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      if (picked == null) return;
 
-    final bytes = await picked.readAsBytes();
+      setState(() => _isCompressing = true);
+      final compressedBytes = await AppImageCompressor.compressXFile(picked);
 
-    if (mounted) {
-      setState(() {
-        _pickedBytes = bytes;
-        _fotoBase64 = base64Encode(bytes);
-      });
+      if (mounted) {
+        setState(() {
+          _pickedBytes = compressedBytes;
+          _fotoBase64 = base64Encode(compressedBytes);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih foto: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isCompressing = false);
     }
   }
 
@@ -91,6 +109,7 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
       'no_hp': _noHpC.text.trim(),
       'wilayah': _wilayahC.text.trim(),
       'alamat': _alamatC.text.trim(),
+      'jabatan': _jabatanC.text.trim().isEmpty ? null : _jabatanC.text.trim(),
       'is_active': _isActive,
     };
 
@@ -110,6 +129,24 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
   }
 
   Widget _buildFotoPreview() {
+    if (_isCompressing) {
+      return Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          shape: BoxShape.circle,
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
     if (_pickedBytes != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(40),
@@ -143,7 +180,11 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
     final isEdit = widget.koordinator != null;
 
     return AlertDialog(
-      title: Text(isEdit ? 'Edit Koordinator' : 'Tambah Koordinator'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        isEdit ? 'Edit Koordinator' : 'Tambah Koordinator',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 380,
@@ -158,7 +199,7 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
                       _buildFotoPreview(),
                       const SizedBox(height: 8),
                       TextButton.icon(
-                        onPressed: _pickImage,
+                        onPressed: _isCompressing ? null : _pickImage,
                         icon: const Icon(Icons.camera_alt_outlined),
                         label: const Text('Pilih Foto Profil'),
                       ),
@@ -166,22 +207,25 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _nikC,
                   decoration: const InputDecoration(
                     labelText: 'NIK',
+                    hintText: '16 digit nomor induk kependudukan',
                     border: OutlineInputBorder(),
                   ),
+                  keyboardType: TextInputType.number,
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
                       return 'NIK wajib diisi';
+                    }
+                    if (v.trim().length < 8) {
+                      return 'NIK minimal 8 digit';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _namaC,
                   decoration: const InputDecoration(
@@ -196,7 +240,6 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
                   },
                 ),
                 const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _emailC,
                   decoration: const InputDecoration(
@@ -215,17 +258,21 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
                   },
                 ),
                 const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _noHpC,
                   decoration: const InputDecoration(
-                    labelText: 'No HP',
+                    labelText: 'No HP / WhatsApp',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.phone,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Nomor HP wajib diisi';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _wilayahC,
                   decoration: const InputDecoration(
@@ -234,25 +281,30 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
+                TextFormField(
+                  controller: _jabatanC,
+                  decoration: const InputDecoration(
+                    labelText: 'Jabatan (contoh: Koordinator Lapangan)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _alamatC,
                   decoration: const InputDecoration(
-                    labelText: 'Alamat',
+                    labelText: 'Alamat Domisili',
                     border: OutlineInputBorder(),
                   ),
                   minLines: 2,
-                  maxLines: 4,
+                  maxLines: 3,
                 ),
                 const SizedBox(height: 10),
-
                 TextFormField(
                   controller: _passwordC,
                   decoration: InputDecoration(
-                    labelText:
-                        isEdit
-                            ? 'Password baru (opsional)'
-                            : 'Password (akun login)',
+                    labelText: isEdit
+                        ? 'Password baru (kosongkan jika tidak diganti)'
+                        : 'Password (akun login)',
                     border: const OutlineInputBorder(),
                   ),
                   obscureText: true,
@@ -264,15 +316,24 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
                       if (v.trim().length < 6) {
                         return 'Minimal 6 karakter';
                       }
+                    } else if (v != null &&
+                        v.trim().isNotEmpty &&
+                        v.trim().length < 6) {
+                      return 'Minimal 6 karakter jika ingin mengganti';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 10),
-
                 SwitchListTile(
                   value: _isActive,
-                  title: const Text('Aktif'),
+                  title: const Text('Status Aktif'),
+                  subtitle: Text(
+                    _isActive
+                        ? 'Koordinator dapat ditugaskan layanan'
+                        : 'Koordinator nonaktif sementara',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
                   contentPadding: EdgeInsets.zero,
                   activeThumbColor: HCColor.primary,
                   onChanged: (val) {
@@ -295,7 +356,7 @@ class _KoordinatorFormDialogState extends State<KoordinatorFormDialog> {
             backgroundColor: HCColor.primary,
             foregroundColor: Colors.white,
           ),
-          child: Text(isEdit ? 'Simpan' : 'Tambah'),
+          child: Text(isEdit ? 'Simpan Perubahan' : 'Tambah Koordinator'),
         ),
       ],
     );

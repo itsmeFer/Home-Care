@@ -3,9 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/users/layanan_page.dart';
-import 'package:home_care/users/notifikasi_page.dart';
-import 'package:home_care/users/profile.dart';
+import 'package:home_care/users/layanan/layanan_page.dart';
+import 'package:home_care/users/notifikasi/notifikasi_page.dart';
+import 'package:home_care/users/profile/profile_page.dart';
 import 'package:home_care/users/profile/services/user_profile_service.dart';
 import 'home_hero_search_bar.dart';
 

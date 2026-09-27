@@ -1,63 +1,15 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:home_care/admin/kategori/models/kategori_layanan_model.dart';
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 
 class KategoriAdminService {
-  static const Duration _timeout = Duration(seconds: 15);
-  static const Duration _uploadTimeout = Duration(seconds: 25);
-
-  static String get baseUrl => ApiConstants.apiBase;
-
-  static Future<String> _requireToken() async {
-    final token = await StorageService.getToken();
-    if (token == null || token.trim().isEmpty) {
-      throw 'Sesi login telah berakhir. Silakan login ulang.';
-    }
-    return token;
-  }
-
-  static Map<String, String> _headers(String token) => {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      };
-
-  static String _extractValidationMessage(String rawBody, String defaultMsg) {
-    try {
-      final body = json.decode(rawBody);
-      if (body is Map) {
-        final msg = body['message'];
-        if (msg is String && msg.isNotEmpty) return msg;
-
-        if (body['errors'] is Map) {
-          final errors = body['errors'] as Map;
-          final List<String> all = [];
-          errors.forEach((key, value) {
-            if (value is List) {
-              for (var v in value) {
-                all.add('$key: $v');
-              }
-            } else if (value is String) {
-              all.add('$key: $value');
-            }
-          });
-          if (all.isNotEmpty) return all.join('\n');
-        }
-      }
-    } catch (_) {}
-    return defaultMsg;
-  }
-
+  /// Mengambil daftar kategori layanan dengan opsional pencarian dan filter aktif.
   static Future<List<KategoriLayanan>> fetchKategori({
     String? search,
     bool? aktif,
   }) async {
-    final token = await _requireToken();
     final queryParams = <String, String>{};
     if (search != null && search.trim().isNotEmpty) {
       queryParams['search'] = search.trim();
@@ -66,217 +18,101 @@ class KategoriAdminService {
       queryParams['aktif'] = aktif.toString();
     }
 
-    final uri = Uri.parse('$baseUrl/admin/kategori-layanan')
-        .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+    final url = queryParams.isEmpty
+        ? ApiConstants.adminKategoriLayanan
+        : '${ApiConstants.adminKategoriLayanan}?${Uri(queryParameters: queryParams).query}';
 
-    try {
-      final res = await http.get(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      }).timeout(_timeout);
+    final res = await ApiClient.get(url);
 
-      if (res.statusCode != 200) {
-        throw 'Gagal mengambil data kategori (kode ${res.statusCode})';
-      }
-
-      final body = json.decode(res.body);
-      if (body['success'] != true) {
-        throw body['message'] ?? 'Gagal mengambil data kategori.';
-      }
-
-      final List<dynamic> data = body['data'] ?? [];
-      return data.map((e) => KategoriLayanan.fromJson(e)).toList();
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat memuat kategori.';
+    if (res is Map && res['data'] is List) {
+      return (res['data'] as List)
+          .map((e) => KategoriLayanan.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
+    if (res is List) {
+      return res
+          .map((e) => KategoriLayanan.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
   }
 
-  static Future<void> createKategori(Map<String, dynamic> payload) async {
-    final token = await _requireToken();
-    final uri = Uri.parse('$baseUrl/admin/kategori-layanan');
+  /// Membuat kategori baru dan mengembalikan model data yang berhasil dibuat.
+  static Future<KategoriLayanan> createKategori(Map<String, dynamic> payload) async {
+    final res = await ApiClient.post(
+      ApiConstants.adminKategoriLayanan,
+      body: payload,
+    );
 
-    try {
-      final res = await http
-          .post(uri, headers: _headers(token), body: json.encode(payload))
-          .timeout(_timeout);
-
-      if (res.statusCode != 201 && res.statusCode != 200) {
-        String msg = 'Gagal membuat kategori (kode ${res.statusCode})';
-        if (res.statusCode == 422) {
-          msg = _extractValidationMessage(res.body, msg);
-        } else {
-          try {
-            final body = json.decode(res.body);
-            if (body is Map && body['message'] != null) {
-              msg = body['message'];
-            }
-          } catch (_) {}
-        }
-        throw msg;
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat membuat kategori.';
+    if (res is Map && res['data'] is Map) {
+      return KategoriLayanan.fromJson(res['data'] as Map<String, dynamic>);
     }
+    throw 'Gagal membuat kategori layanan';
   }
 
-  static Future<void> updateKategori(int id, Map<String, dynamic> payload) async {
-    final token = await _requireToken();
-    final uri = Uri.parse('$baseUrl/admin/kategori-layanan/$id');
+  /// Mengupdate data kategori dan mengembalikan data terbaru.
+  static Future<KategoriLayanan> updateKategori(
+    int id,
+    Map<String, dynamic> payload,
+  ) async {
+    final res = await ApiClient.put(
+      ApiConstants.adminKategoriLayananDetail(id),
+      body: payload,
+    );
 
-    try {
-      final res = await http
-          .put(uri, headers: _headers(token), body: json.encode(payload))
-          .timeout(_timeout);
-
-      if (res.statusCode != 200) {
-        String msg = 'Gagal mengupdate kategori (kode ${res.statusCode})';
-        if (res.statusCode == 422) {
-          msg = _extractValidationMessage(res.body, msg);
-        } else {
-          try {
-            final body = json.decode(res.body);
-            if (body is Map && body['message'] != null) {
-              msg = body['message'];
-            }
-          } catch (_) {}
-        }
-        throw msg;
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat mengupdate kategori.';
+    if (res is Map && res['data'] is Map) {
+      return KategoriLayanan.fromJson(res['data'] as Map<String, dynamic>);
     }
+    throw 'Gagal memperbarui kategori layanan';
   }
 
+  /// Mengubah status aktif / nonaktif kategori.
   static Future<void> toggleKategori(int id) async {
-    final token = await _requireToken();
-    final uri = Uri.parse('$baseUrl/admin/kategori-layanan/$id/toggle');
-
-    try {
-      final res = await http.patch(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      }).timeout(_timeout);
-
-      if (res.statusCode != 200) {
-        String msg = 'Gagal mengubah status kategori (${res.statusCode})';
-        try {
-          final body = json.decode(res.body);
-          if (body is Map && body['message'] != null) {
-            msg = body['message'];
-          }
-        } catch (_) {}
-        throw msg;
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat mengubah status kategori.';
-    }
+    await ApiClient.patch(ApiConstants.adminKategoriLayananToggle(id));
   }
 
+  /// Menghapus kategori layanan berdasarkan ID.
   static Future<void> deleteKategori(int id) async {
-    final token = await _requireToken();
-    final uri = Uri.parse('$baseUrl/admin/kategori-layanan/$id');
-
-    try {
-      final res = await http.delete(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      }).timeout(_timeout);
-
-      if (res.statusCode != 200) {
-        String msg = 'Gagal menghapus kategori (kode ${res.statusCode})';
-        if (res.statusCode == 422) {
-          msg = _extractValidationMessage(res.body, msg);
-        } else {
-          try {
-            final body = json.decode(res.body);
-            if (body is Map && body['message'] != null) {
-              msg = body['message'];
-            }
-          } catch (_) {}
-        }
-        throw msg;
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat menghapus kategori.';
-    }
+    await ApiClient.delete(ApiConstants.adminKategoriLayananDetail(id));
   }
 
+  /// Menghapus foto/gambar dari kategori layanan.
   static Future<void> deleteGambar(int id) async {
-    final token = await _requireToken();
-    final uri = Uri.parse('$baseUrl/admin/kategori-layanan/$id/gambar');
-
-    try {
-      final res = await http.delete(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      }).timeout(_timeout);
-
-      if (res.statusCode != 200) {
-        String msg = 'Gagal menghapus gambar (kode ${res.statusCode})';
-        try {
-          final body = json.decode(res.body);
-          if (body is Map && body['message'] != null) {
-            msg = body['message'];
-          }
-        } catch (_) {}
-        throw msg;
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat menghapus gambar.';
-    }
+    await ApiClient.delete(ApiConstants.adminKategoriLayananGambar(id));
   }
 
+  /// Mengunggah gambar kategori layanan (bytes terkompresi).
   static Future<void> uploadGambar({
     required int kategoriId,
-    File? imageFile,
-    Uint8List? imageBytes,
+    required Uint8List imageBytes,
     String? fileName,
   }) async {
-    final token = await _requireToken();
-    final url = Uri.parse('$baseUrl/admin/kategori-layanan/$kategoriId/gambar');
-    final request = http.MultipartRequest('POST', url);
+    final url = ApiConstants.adminKategoriLayananGambar(kategoriId);
+    final request = http.MultipartRequest('POST', Uri.parse(url));
 
-    request.headers.addAll({
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/json',
-    });
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'gambar',
+        imageBytes,
+        filename: fileName ?? 'kategori.jpg',
+      ),
+    );
 
-    if (kIsWeb) {
-      if (imageBytes == null) throw 'File gambar web tidak ditemukan.';
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'gambar',
-          imageBytes,
-          filename: fileName ?? 'kategori.jpg',
-        ),
-      );
-    } else {
-      if (imageFile == null) throw 'File gambar tidak ditemukan.';
-      request.files.add(
-        await http.MultipartFile.fromPath('gambar', imageFile.path),
-      );
-    }
+    await ApiClient.sendMultipart(request);
+  }
 
-    try {
-      final streamed = await request.send().timeout(_uploadTimeout);
-      final res = await http.Response.fromStream(streamed);
+  /// Mengatur ulang prioritas urutan tampil kategori di aplikasi.
+  static Future<void> aturUrutan(List<int> kategoriIds) async {
+    final payload = kategoriIds.asMap().entries.map((e) {
+      return {
+        'id': e.value,
+        'urutan': e.key,
+      };
+    }).toList();
 
-      if (res.statusCode != 200) {
-        String msg = 'Gagal upload gambar (kode ${res.statusCode})';
-        if (res.statusCode == 422) {
-          msg = _extractValidationMessage(res.body, msg);
-        } else {
-          try {
-            final body = json.decode(res.body);
-            if (body is Map && body['message'] != null) {
-              msg = body['message'];
-            }
-          } catch (_) {}
-        }
-        throw msg;
-      }
-    } on TimeoutException {
-      throw 'Koneksi waktu habis saat mengunggah gambar kategori.';
-    }
+    await ApiClient.patch(
+      ApiConstants.adminKategoriLayananUrutan,
+      body: {'urutan': payload},
+    );
   }
 }

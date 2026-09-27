@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:home_care/admin/kordinator/models/koordinator_admin_model.dart';
 import 'package:home_care/admin/kordinator/services/koordinator_admin_service.dart';
 import 'package:home_care/admin/kordinator/widgets/koordinator_card.dart';
+import 'package:home_care/admin/kordinator/widgets/koordinator_filter_bar.dart';
 import 'package:home_care/admin/kordinator/widgets/koordinator_form_dialog.dart';
+import 'package:home_care/admin/kordinator/widgets/koordinator_skeleton.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 
 class CrudKordinatorPage extends StatefulWidget {
@@ -17,7 +19,9 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
   bool _isError = false;
   String? _errorMessage;
 
-  List<Koordinator> _list = [];
+  final TextEditingController _searchC = TextEditingController();
+  List<Koordinator> _rawList = [];
+  bool? _filterAktif;
 
   @override
   void initState() {
@@ -25,12 +29,20 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     _fetchKoordinator();
   }
 
+  @override
+  void dispose() {
+    _searchC.dispose();
+    super.dispose();
+  }
+
   void _showSnack(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        content: Text(message.replaceAll('Exception: ', '')),
+        backgroundColor: isError ? Colors.red : HCColor.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -43,17 +55,19 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     });
 
     try {
-      final list = await KoordinatorAdminService.fetchKoordinator();
+      final list = await KoordinatorAdminService.fetchKoordinator(
+        search: _searchC.text.trim(),
+      );
       if (mounted) {
         setState(() {
-          _list = list;
+          _rawList = list;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isError = true;
-          _errorMessage = e.toString();
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
         });
       }
     } finally {
@@ -61,6 +75,11 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  List<Koordinator> get _filteredList {
+    if (_filterAktif == null) return _rawList;
+    return _rawList.where((k) => (k.isActive ?? true) == _filterAktif).toList();
   }
 
   Future<void> _createKoordinator(Map<String, dynamic> payload) async {
@@ -83,26 +102,57 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     }
   }
 
+  Future<void> _toggleActive(Koordinator k, bool val) async {
+    if (k.id == null) return;
+    final oldState = k.isActive;
+
+    setState(() {
+      final index = _rawList.indexWhere((e) => e.id == k.id);
+      if (index != -1) {
+        _rawList[index] = _rawList[index].copyWith(isActive: val);
+      }
+    });
+
+    try {
+      await KoordinatorAdminService.updateKoordinator(k.id!, {'is_active': val});
+      _showSnack(val ? 'Koordinator diaktifkan' : 'Koordinator dinonaktifkan');
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          final index = _rawList.indexWhere((e) => e.id == k.id);
+          if (index != -1) {
+            _rawList[index] = _rawList[index].copyWith(isActive: oldState);
+          }
+        });
+      }
+      _showSnack('Gagal mengubah status: $e', isError: true);
+    }
+  }
+
   Future<void> _deleteKoordinator(Koordinator k) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Hapus Koordinator'),
-            content: Text(
-              'Yakin ingin menghapus koordinator "${k.namaLengkap ?? '-'}"?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Hapus Koordinator',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Yakin ingin menghapus koordinator "${k.namaLengkap ?? '-'}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
           ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
     );
 
     if (confirm != true || k.id == null) return;
@@ -112,7 +162,7 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
       _showSnack('Koordinator berhasil dihapus');
       if (mounted) {
         setState(() {
-          _list.removeWhere((e) => e.id == k.id);
+          _rawList.removeWhere((e) => e.id == k.id);
         });
       }
     } catch (e) {
@@ -136,22 +186,165 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
     }
   }
 
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const KoordinatorSkeleton();
+    }
+
+    if (_isError) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  size: 48,
+                  color: Colors.red.shade600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Gagal Memuat Koordinator',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage ?? 'Terjadi kesalahan saat memuat data',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _fetchKoordinator,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HCColor.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final list = _filteredList;
+
+    if (list.isEmpty) {
+      final isFiltering =
+          _searchC.text.trim().isNotEmpty || _filterAktif != null;
+
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: HCColor.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_search_outlined,
+                  size: 48,
+                  color: HCColor.primary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                isFiltering
+                    ? 'Koordinator Tidak Ditemukan'
+                    : 'Belum Ada Akun Koordinator',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isFiltering
+                    ? 'Tidak ada koordinator yang cocok dengan kriteria pencarian.'
+                    : 'Tambahkan koordinator untuk mengelola penugasan layanan medis.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              ),
+              const SizedBox(height: 20),
+              if (isFiltering)
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _searchC.clear();
+                    setState(() => _filterAktif = null);
+                    _fetchKoordinator();
+                  },
+                  icon: const Icon(Icons.filter_alt_off_rounded, size: 18),
+                  label: const Text('Reset Filter'),
+                )
+              else
+                ElevatedButton.icon(
+                  onPressed: () => _openForm(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HCColor.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Tambah Koordinator'),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchKoordinator,
+      color: HCColor.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(top: 4, bottom: 80),
+        itemCount: list.length,
+        itemBuilder: (_, i) {
+          final k = list[i];
+          return KoordinatorCard(
+            koordinator: k,
+            onToggleActive: (val) => _toggleActive(k, val),
+            onEdit: () => _openForm(koordinator: k),
+            onDelete: () => _deleteKoordinator(k),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HCColor.bg,
       appBar: AppBar(
         backgroundColor: HCColor.primary,
+        elevation: 0,
         title: const Text(
           'Kelola Koordinator',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             onPressed: _fetchKoordinator,
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: 'Segarkan',
           ),
         ],
       ),
@@ -160,46 +353,29 @@ class _CrudKordinatorPageState extends State<CrudKordinatorPage> {
         foregroundColor: Colors.white,
         onPressed: () => _openForm(),
         icon: const Icon(Icons.add),
-        label: const Text('Tambah Koordinator'),
+        label: const Text(
+          'Tambah Koordinator',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _isError
-              ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    _errorMessage ?? 'Terjadi kesalahan',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              )
-              : _list.isEmpty
-              ? const Center(
-                child: Text('Belum ada koordinator, tambahkan dulu.'),
-              )
-              : RefreshIndicator(
-                onRefresh: _fetchKoordinator,
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: _list.length,
-                  itemBuilder: (_, i) {
-                    final k = _list[i];
-                    return KoordinatorCard(
-                      koordinator: k,
-                      onToggleActive: (val) {
-                        if (k.id != null) {
-                          _updateKoordinator(k.id!, {'is_active': val});
-                        }
-                      },
-                      onEdit: () => _openForm(koordinator: k),
-                      onDelete: () => _deleteKoordinator(k),
-                    );
-                  },
-                ),
-              ),
+      body: Column(
+        children: [
+          KoordinatorFilterBar(
+            searchController: _searchC,
+            filterAktif: _filterAktif,
+            onFilterChanged: (val) {
+              setState(() => _filterAktif = val);
+            },
+            onSearchSubmitted: _fetchKoordinator,
+            onClearSearch: () {
+              _searchC.clear();
+              _fetchKoordinator();
+            },
+            onRefresh: _fetchKoordinator,
+          ),
+          Expanded(child: _buildBody()),
+        ],
+      ),
     );
   }
 }

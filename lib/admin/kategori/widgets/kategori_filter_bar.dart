@@ -8,6 +8,7 @@ class KategoriFilterBar extends StatelessWidget {
   final VoidCallback onSearchSubmitted;
   final VoidCallback onClearSearch;
   final VoidCallback onRefresh;
+  final VoidCallback? onReorder;
 
   const KategoriFilterBar({
     super.key,
@@ -17,6 +18,7 @@ class KategoriFilterBar extends StatelessWidget {
     required this.onSearchSubmitted,
     required this.onClearSearch,
     required this.onRefresh,
+    this.onReorder,
   });
 
   @override
@@ -26,24 +28,33 @@ class KategoriFilterBar extends StatelessWidget {
         : (filterAktif == true ? 'aktif' : 'nonaktif');
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
       child: Column(
         children: [
           TextField(
             controller: searchController,
+            textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: 'Cari nama kategori atau slug...',
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search, size: 20),
               suffixIcon: searchController.text.isEmpty
                   ? null
                   : IconButton(
-                      icon: const Icon(Icons.clear),
+                      icon: const Icon(Icons.clear, size: 18),
                       onPressed: onClearSearch,
                     ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: HCColor.primary, width: 1.5),
               ),
             ),
             onSubmitted: (_) => onSearchSubmitted(),
@@ -56,9 +67,15 @@ class KategoriFilterBar extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: 'Filter Status',
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 4),
+                      horizontal: 14,
+                      vertical: 4,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                   ),
                   child: DropdownButtonHideUnderline(
@@ -66,10 +83,12 @@ class KategoriFilterBar extends StatelessWidget {
                       value: filterValue,
                       isExpanded: true,
                       items: const [
-                        DropdownMenuItem(value: 'semua', child: Text('Semua')),
-                        DropdownMenuItem(value: 'aktif', child: Text('Aktif')),
+                        DropdownMenuItem(value: 'semua', child: Text('Semua Status')),
+                        DropdownMenuItem(value: 'aktif', child: Text('Aktif Saja')),
                         DropdownMenuItem(
-                            value: 'nonaktif', child: Text('Nonaktif')),
+                          value: 'nonaktif',
+                          child: Text('Nonaktif Saja'),
+                        ),
                       ],
                       onChanged: (val) {
                         if (val == 'aktif') {
@@ -84,22 +103,40 @@ class KategoriFilterBar extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              ElevatedButton.icon(
+              if (onReorder != null) ...[
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: onReorder,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: HCColor.primary,
+                    side: const BorderSide(color: HCColor.primary),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.swap_vert_rounded, size: 20),
+                  label: const Text('Urutan'),
+                ),
+              ],
+              const SizedBox(width: 8),
+              ElevatedButton(
                 onPressed: onRefresh,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HCColor.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 14,
                     vertical: 14,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                icon: const Icon(Icons.refresh, size: 20),
-                label: const Text('Muat'),
+                child: const Icon(Icons.refresh, size: 20),
               ),
             ],
           ),

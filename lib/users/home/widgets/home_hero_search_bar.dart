@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/users/search_page.dart';
+import 'package:home_care/users/search/search_page.dart';
 
 /// Floating rounded search bar with isolated typing micro-animation.
 /// Isolates the 100ms timer rebuilds so parent hero header does not re-render.

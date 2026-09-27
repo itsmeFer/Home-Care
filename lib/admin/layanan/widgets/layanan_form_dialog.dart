@@ -42,7 +42,9 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
       text: l?.jumlahVisit != null ? l!.jumlahVisit.toString() : '',
     );
     _hargaC = TextEditingController(
-      text: (l != null && l.hargaDasar > 0) ? l.hargaDasar.toStringAsFixed(0) : '',
+      text: (l != null && l.hargaDasar > 0)
+          ? l.hargaDasar.toStringAsFixed(0)
+          : '',
     );
     _durasiC = TextEditingController(
       text: l?.durasiMenit != null ? l!.durasiMenit.toString() : '',
@@ -75,13 +77,18 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    final harga = double.tryParse(_hargaC.text.replaceAll('.', ''));
-    final durasi =
-        _durasiC.text.trim().isEmpty ? null : int.tryParse(_durasiC.text.trim());
-    final jVisit =
-        _jumlahVisitC.text.trim().isEmpty
-            ? null
-            : int.tryParse(_jumlahVisitC.text.trim());
+    final cleanHarga = _hargaC.text
+        .replaceAll('.', '')
+        .replaceAll(',', '.')
+        .replaceAll('Rp', '')
+        .replaceAll(' ', '');
+    final harga = double.tryParse(cleanHarga);
+    final durasi = _durasiC.text.trim().isEmpty
+        ? null
+        : int.tryParse(_durasiC.text.trim());
+    final jVisit = _jumlahVisitC.text.trim().isEmpty
+        ? null
+        : int.tryParse(_jumlahVisitC.text.trim());
 
     final payload = <String, dynamic>{
       'nama_layanan': _namaC.text.trim(),
@@ -105,7 +112,11 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
     final isEdit = widget.layanan != null;
 
     return AlertDialog(
-      title: Text(isEdit ? 'Edit Layanan' : 'Tambah Layanan'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        isEdit ? 'Edit Layanan' : 'Tambah Layanan',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 380,
@@ -140,16 +151,15 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
                       value: _selectedKategoriSlug,
                       isExpanded: true,
                       hint: const Text('Pilih Kategori'),
-                      items:
-                          widget.kategoriList
-                              .where((e) => e.slug.trim().isNotEmpty)
-                              .map(
-                                (e) => DropdownMenuItem<String>(
-                                  value: e.slug,
-                                  child: Text(e.namaKategori),
-                                ),
-                              )
-                              .toList(),
+                      items: widget.kategoriList
+                          .where((e) => e.slug.trim().isNotEmpty)
+                          .map(
+                            (e) => DropdownMenuItem<String>(
+                              value: e.slug,
+                              child: Text(e.namaKategori),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (val) {
                         setState(() {
                           _selectedKategoriSlug = val;
@@ -216,13 +226,19 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Harga Dasar (Rp)',
+                    hintText: 'contoh: 150000',
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
                       return 'Harga wajib diisi';
                     }
-                    if (double.tryParse(v.replaceAll('.', '')) == null) {
+                    final clean = v
+                        .replaceAll('.', '')
+                        .replaceAll(',', '.')
+                        .replaceAll('Rp', '')
+                        .replaceAll(' ', '');
+                    if (double.tryParse(clean) == null) {
                       return 'Format harga tidak valid';
                     }
                     return null;
@@ -234,6 +250,7 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Durasi standar (menit, opsional)',
+                    hintText: 'contoh: 60',
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) {
@@ -323,7 +340,13 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
                 const SizedBox(height: 10),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Aktif'),
+                  title: const Text('Status Aktif'),
+                  subtitle: Text(
+                    _aktif
+                        ? 'Layanan dapat dilihat dan dipesan oleh pasien'
+                        : 'Layanan disembunyikan dari aplikasi pasien',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
                   value: _aktif,
                   activeThumbColor: HCColor.primary,
                   onChanged: (val) {
@@ -346,7 +369,7 @@ class _LayananFormDialogState extends State<LayananFormDialog> {
             backgroundColor: HCColor.primary,
             foregroundColor: Colors.white,
           ),
-          child: Text(isEdit ? 'Simpan' : 'Tambah'),
+          child: Text(isEdit ? 'Simpan Perubahan' : 'Tambah Layanan'),
         ),
       ],
     );

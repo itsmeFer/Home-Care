@@ -1,237 +1,238 @@
 import 'dart:async';
-import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:home_care/admin/addons/models/addon_admin_model.dart';
+import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
 
+/// Service tersentralisasi untuk manajemen Add-ons dan Kategori di Admin Panel.
+/// Menggunakan `ApiClient` (terintegrasi token otomatis, 401 auto-logout, timeout 25s).
 class AddonAdminService {
-  static String get baseUrl => ApiConstants.apiBase;
-
-  static Future<Map<String, String>> _authHeaders({bool jsonContent = true}) async {
-    final token = await StorageService.getToken();
-    if (token == null || token.trim().isEmpty) {
-      throw Exception("Token login tidak ditemukan. Silakan login ulang.");
-    }
-
-    final headers = <String, String>{
-      "Accept": "application/json",
-      "Authorization": "Bearer $token",
-    };
-
-    if (jsonContent) {
-      headers["Content-Type"] = "application/json";
-    }
-
-    return headers;
-  }
-
-  static Map<String, dynamic>? _safeJson(String source) {
-    try {
-      return jsonDecode(source) as Map<String, dynamic>;
-    } catch (_) {
-      return null;
-    }
-  }
+  AddonAdminService._();
 
   // -------------------------------------------------------------
   // ADD-ONS ENDPOINTS
   // -------------------------------------------------------------
 
-  static Future<List<dynamic>> fetchCategoriesDropdown() async {
-    final uri = Uri.parse("$baseUrl/admin/addon-categories/all");
-    final res = await http
-        .get(uri, headers: await _authHeaders())
-        .timeout(const Duration(seconds: 15));
-
-    if (res.statusCode == 200) {
-      final body = jsonDecode(res.body);
-      return body["data"] ?? [];
+  /// Mengambil daftar kategori untuk dropdown form.
+  static Future<List<AddonCategoryItem>> fetchCategoriesDropdown() async {
+    final res = await ApiClient.get('/admin/addon-categories/all');
+    if (res is Map && res['data'] is List) {
+      final List list = res['data'] as List;
+      return list
+          .whereType<Map>()
+          .map((e) => AddonCategoryItem.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     }
-    throw Exception("Gagal ambil kategori dropdown (${res.statusCode})");
+    return [];
   }
 
-  static Future<Map<String, dynamic>> fetchAddons({
+  /// Mengambil list add-on dengan filter dan pagination strongly-typed.
+  static Future<AddonPaginationResult<AddonItem>> fetchAddons({
     int page = 1,
     int perPage = 15,
     String? q,
     int? categoryId,
     int? isActive,
   }) async {
-    final params = <String, String>{
-      "per_page": perPage.toString(),
-      "page": page.toString(),
+    final queryParams = <String, dynamic>{
+      'per_page': perPage.toString(),
+      'page': page.toString(),
     };
-    if (q != null && q.trim().isNotEmpty) params["q"] = q.trim();
-    if (categoryId != null) params["category_id"] = categoryId.toString();
-    if (isActive != null) params["is_active"] = isActive.toString();
+    if (q != null && q.trim().isNotEmpty) queryParams['q'] = q.trim();
+    if (categoryId != null) queryParams['category_id'] = categoryId.toString();
+    if (isActive != null) queryParams['is_active'] = isActive.toString();
 
-    final uri = Uri.parse("$baseUrl/admin/addons").replace(queryParameters: params);
-    final res = await http
-        .get(uri, headers: await _authHeaders())
-        .timeout(const Duration(seconds: 15));
+    final res = await ApiClient.get(
+      '/admin/addons',
+      queryParams: queryParams,
+    );
 
-    if (res.statusCode == 200) {
-      final body = jsonDecode(res.body);
-      return body["data"] ?? {};
+    if (res is Map && res['data'] is Map) {
+      final pageData = res['data'] as Map<String, dynamic>;
+      final rawList = pageData['data'] as List? ?? [];
+      final items = rawList
+          .whereType<Map>()
+          .map((e) => AddonItem.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+
+      return AddonPaginationResult<AddonItem>(
+        items: items,
+        currentPage: int.tryParse(pageData['current_page']?.toString() ?? '1') ?? 1,
+        lastPage: int.tryParse(pageData['last_page']?.toString() ?? '1') ?? 1,
+        total: int.tryParse(pageData['total']?.toString() ?? '0') ?? 0,
+        perPage: int.tryParse(pageData['per_page']?.toString() ?? '$perPage') ?? perPage,
+      );
     }
-    throw Exception("Gagal ambil add-ons (${res.statusCode})");
+
+    return AddonPaginationResult<AddonItem>(
+      items: [],
+      currentPage: 1,
+      lastPage: 1,
+      total: 0,
+      perPage: perPage,
+    );
   }
 
+  /// Mengubah status aktif/nonaktif add-on.
   static Future<void> toggleAddon(int id, bool newValue) async {
-    final uri = Uri.parse("$baseUrl/admin/addons/$id/toggle");
-    final res = await http
-        .patch(
-          uri,
-          headers: await _authHeaders(),
-          body: jsonEncode({"aktif": newValue}),
-        )
-        .timeout(const Duration(seconds: 15));
-
-    if (res.statusCode != 200) {
-      throw Exception("Gagal toggle status (${res.statusCode})");
-    }
+    await ApiClient.patch(
+      '/admin/addons/$id/toggle',
+      body: {'aktif': newValue},
+    );
   }
 
+  /// Menghapus add-on berdasarkan ID.
   static Future<void> deleteAddon(int id) async {
-    final uri = Uri.parse("$baseUrl/admin/addons/$id");
-    final res = await http
-        .delete(uri, headers: await _authHeaders())
-        .timeout(const Duration(seconds: 15));
-
-    if (res.statusCode != 200) {
-      throw Exception("Gagal hapus add-on (${res.statusCode})");
-    }
+    await ApiClient.delete('/admin/addons/$id');
   }
 
+  /// Membuat atau memperbarui Add-on (mendukung multipart foto dan kompresi byte).
   static Future<String> submitAddon({
     required bool isEdit,
     int? id,
     required Map<String, String> fields,
     bool removeGambar = false,
-    XFile? pickedImage,
+    Uint8List? compressedImageBytes,
+    String? fileName,
+    XFile? fallbackFile,
   }) async {
-    final uri = Uri.parse(isEdit ? "$baseUrl/admin/addons/$id" : "$baseUrl/admin/addons");
-    final req = http.MultipartRequest("POST", uri);
-    if (isEdit) req.fields["_method"] = "PUT";
+    final path = isEdit ? '/admin/addons/$id' : '/admin/addons';
+    final uri = Uri.parse('${ApiConstants.apiBase}$path');
+    final req = http.MultipartRequest('POST', uri);
+
+    if (isEdit) {
+      req.fields['_method'] = 'PUT';
+      req.fields['remove_gambar'] = removeGambar ? '1' : '0';
+    }
 
     req.fields.addAll(fields);
-    if (isEdit) {
-      req.fields["remove_gambar"] = removeGambar ? "1" : "0";
+
+    // Lampirkan gambar (prioritaskan byte terkompresi)
+    if (compressedImageBytes != null && fileName != null) {
+      req.files.add(
+        http.MultipartFile.fromBytes(
+          'gambar',
+          compressedImageBytes,
+          filename: fileName,
+        ),
+      );
+    } else if (fallbackFile != null) {
+      final bytes = await fallbackFile.readAsBytes();
+      req.files.add(
+        http.MultipartFile.fromBytes(
+          'gambar',
+          bytes,
+          filename: fallbackFile.name,
+        ),
+      );
     }
 
-    if (pickedImage != null) {
-      req.files.add(await http.MultipartFile.fromPath("gambar", pickedImage.path));
+    final res = await ApiClient.sendMultipart(req);
+    if (res is Map) {
+      return res['message']?.toString() ?? 'Data Add-on berhasil disimpan';
     }
-
-    final headers = await _authHeaders(jsonContent: false);
-    req.headers.addAll(headers);
-
-    final streamed = await req.send().timeout(const Duration(seconds: 25));
-    final res = await http.Response.fromStream(streamed).timeout(const Duration(seconds: 25));
-    final body = _safeJson(res.body);
-
-    if (res.statusCode == 200 || res.statusCode == 201) {
-      return body?["message"]?.toString() ?? "Sukses";
-    }
-    throw Exception(body?["message"]?.toString() ?? "Gagal simpan (${res.statusCode})");
+    return 'Data Add-on berhasil disimpan';
   }
 
   // -------------------------------------------------------------
   // CATEGORIES ENDPOINTS
   // -------------------------------------------------------------
 
-  static Future<Map<String, dynamic>> fetchCategoryCrud({
+  /// Mengambil daftar kategori dengan pagination dan pencarian.
+  static Future<AddonPaginationResult<AddonCategoryItem>> fetchCategoryCrud({
     int page = 1,
     int perPage = 15,
     String? q,
     int? isActive,
   }) async {
-    final params = <String, String>{
-      "per_page": perPage.toString(),
-      "page": page.toString(),
+    final queryParams = <String, dynamic>{
+      'per_page': perPage.toString(),
+      'page': page.toString(),
     };
-    if (q != null && q.trim().isNotEmpty) params["q"] = q.trim();
-    if (isActive != null) params["is_active"] = isActive.toString();
+    if (q != null && q.trim().isNotEmpty) queryParams['q'] = q.trim();
+    if (isActive != null) queryParams['is_active'] = isActive.toString();
 
-    final uri = Uri.parse("$baseUrl/admin/addon-categories").replace(queryParameters: params);
-    final res = await http
-        .get(uri, headers: await _authHeaders())
-        .timeout(const Duration(seconds: 15));
+    final res = await ApiClient.get(
+      '/admin/addon-categories',
+      queryParams: queryParams,
+    );
 
-    if (res.statusCode == 200) {
-      final body = jsonDecode(res.body);
-      return body["data"] ?? {};
+    if (res is Map && res['data'] is Map) {
+      final pageData = res['data'] as Map<String, dynamic>;
+      final rawList = pageData['data'] as List? ?? [];
+      final items = rawList
+          .whereType<Map>()
+          .map((e) => AddonCategoryItem.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+
+      return AddonPaginationResult<AddonCategoryItem>(
+        items: items,
+        currentPage: int.tryParse(pageData['current_page']?.toString() ?? '1') ?? 1,
+        lastPage: int.tryParse(pageData['last_page']?.toString() ?? '1') ?? 1,
+        total: int.tryParse(pageData['total']?.toString() ?? '0') ?? 0,
+        perPage: int.tryParse(pageData['per_page']?.toString() ?? '$perPage') ?? perPage,
+      );
     }
-    throw Exception("Gagal ambil kategori (${res.statusCode})");
+
+    return AddonPaginationResult<AddonCategoryItem>(
+      items: [],
+      currentPage: 1,
+      lastPage: 1,
+      total: 0,
+      perPage: perPage,
+    );
   }
 
+  /// Membuat kategori baru.
   static Future<String> createCategory(Map<String, dynamic> payload) async {
-    final uri = Uri.parse("$baseUrl/admin/addon-categories");
-    final res = await http
-        .post(uri, headers: await _authHeaders(), body: jsonEncode(payload))
-        .timeout(const Duration(seconds: 15));
-    final body = _safeJson(res.body);
-
-    if (res.statusCode == 201 || res.statusCode == 200) {
-      return body?["message"]?.toString() ?? "Kategori dibuat";
+    final res = await ApiClient.post('/admin/addon-categories', body: payload);
+    if (res is Map) {
+      return res['message']?.toString() ?? 'Kategori berhasil dibuat';
     }
-    throw Exception(body?["message"]?.toString() ?? "Gagal create (${res.statusCode})");
+    return 'Kategori berhasil dibuat';
   }
 
+  /// Memperbarui kategori yang ada.
   static Future<String> updateCategory(int id, Map<String, dynamic> payload) async {
-    final uri = Uri.parse("$baseUrl/admin/addon-categories/$id");
-    final res = await http
-        .put(uri, headers: await _authHeaders(), body: jsonEncode(payload))
-        .timeout(const Duration(seconds: 15));
-    final body = _safeJson(res.body);
-
-    if (res.statusCode == 200) {
-      return body?["message"]?.toString() ?? "Kategori diupdate";
+    final res = await ApiClient.put('/admin/addon-categories/$id', body: payload);
+    if (res is Map) {
+      return res['message']?.toString() ?? 'Kategori berhasil diperbarui';
     }
-    throw Exception(body?["message"]?.toString() ?? "Gagal update (${res.statusCode})");
+    return 'Kategori berhasil diperbarui';
   }
 
+  /// Menghapus kategori.
   static Future<String> deleteCategory(int id) async {
-    final uri = Uri.parse("$baseUrl/admin/addon-categories/$id");
-    final res = await http
-        .delete(uri, headers: await _authHeaders())
-        .timeout(const Duration(seconds: 15));
-    final body = _safeJson(res.body);
-
-    if (res.statusCode == 200) {
-      return body?["message"]?.toString() ?? "Kategori dihapus";
+    final res = await ApiClient.delete('/admin/addon-categories/$id');
+    if (res is Map) {
+      return res['message']?.toString() ?? 'Kategori berhasil dihapus';
     }
-    throw Exception(body?["message"]?.toString() ?? "Gagal hapus (${res.statusCode})");
+    return 'Kategori berhasil dihapus';
   }
 
+  /// Mengubah status aktif kategori.
   static Future<String> toggleCategory(int id, bool newValue) async {
-    final uri = Uri.parse("$baseUrl/admin/addon-categories/$id/toggle");
-    final res = await http
-        .patch(
-          uri,
-          headers: await _authHeaders(),
-          body: jsonEncode({"is_active": newValue}),
-        )
-        .timeout(const Duration(seconds: 15));
-    final body = _safeJson(res.body);
-
-    if (res.statusCode == 200) {
-      return body?["message"]?.toString() ?? "Status kategori diubah";
+    final res = await ApiClient.patch(
+      '/admin/addon-categories/$id/toggle',
+      body: {'is_active': newValue},
+    );
+    if (res is Map) {
+      return res['message']?.toString() ?? 'Status kategori berhasil diubah';
     }
-    throw Exception(body?["message"]?.toString() ?? "Gagal toggle (${res.statusCode})");
+    return 'Status kategori berhasil diubah';
   }
 
+  /// Menyimpan urutan baru kategori (Reorder).
   static Future<String> reorderCategories(List<Map<String, dynamic>> items) async {
-    final uri = Uri.parse("$baseUrl/admin/addon-categories/reorder");
-    final res = await http
-        .post(uri, headers: await _authHeaders(), body: jsonEncode({"items": items}))
-        .timeout(const Duration(seconds: 15));
-    final body = _safeJson(res.body);
-
-    if (res.statusCode == 200) {
-      return body?["message"]?.toString() ?? "Urutan kategori diupdate";
+    final res = await ApiClient.post(
+      '/admin/addon-categories/reorder',
+      body: {'items': items},
+    );
+    if (res is Map) {
+      return res['message']?.toString() ?? 'Urutan kategori berhasil disimpan';
     }
-    throw Exception(body?["message"]?.toString() ?? "Gagal reorder (${res.statusCode})");
+    return 'Urutan kategori berhasil disimpan';
   }
 }

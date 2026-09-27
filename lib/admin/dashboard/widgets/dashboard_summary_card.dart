@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/dashboard/models/admin_dashboard_models.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
 
 class DashboardSummaryCard extends StatelessWidget {
   final bool isLoading;
@@ -47,6 +48,28 @@ class DashboardSummaryCard extends StatelessWidget {
     );
   }
 
+  Widget _buildSkeletonLoading() {
+    return Column(
+      children: [
+        Row(
+          children: const [
+            Expanded(child: AppSkeleton(height: 85, borderRadius: 16)),
+            SizedBox(width: 10),
+            Expanded(child: AppSkeleton(height: 85, borderRadius: 16)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: const [
+            Expanded(child: AppSkeleton(height: 85, borderRadius: 16)),
+            SizedBox(width: 10),
+            Expanded(child: AppSkeleton(height: 85, borderRadius: 16)),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -87,18 +110,18 @@ class DashboardSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           if (isLoading)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            )
+            _buildSkeletonLoading()
           else if (errorMessage != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Column(
                   children: [
-                    const Icon(Icons.error_outline_rounded,
-                        color: Colors.redAccent, size: 36),
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: Colors.redAccent,
+                      size: 36,
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       errorMessage!,
@@ -150,14 +173,14 @@ class DashboardSummaryCard extends StatelessWidget {
                   'Frozen',
                   '${summary.totalFrozen}',
                   Icons.ac_unit_rounded,
-                  const Color(0xFFDC2626),
+                  const Color(0xFFEF4444),
                 ),
                 const SizedBox(width: 10),
                 _buildItem(
                   'Verified',
                   '${summary.totalVerified}',
-                  Icons.verified_rounded,
-                  const Color(0xFF2563EB),
+                  Icons.verified_user_rounded,
+                  const Color(0xFFF59E0B),
                 ),
               ],
             ),

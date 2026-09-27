@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/kategori/models/kategori_layanan_model.dart';
@@ -25,7 +24,6 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
 
   bool _aktif = true;
 
-  File? _selectedImageFile;
   Uint8List? _selectedImageBytes;
   String? _selectedImageName;
   String? _imageError;
@@ -65,8 +63,7 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
   }
 
   void _submit() {
-    final hasImage = _selectedImageFile != null ||
-        _selectedImageBytes != null ||
+    final hasImage = _selectedImageBytes != null ||
         (widget.item?.gambarUrl != null &&
             widget.item!.gambarUrl!.trim().isNotEmpty);
 
@@ -103,7 +100,6 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
       context,
       KategoriFormResult(
         payload: payload,
-        imageFile: _selectedImageFile,
         imageBytes: _selectedImageBytes,
         imageName: _selectedImageName,
       ),
@@ -131,11 +127,9 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
                 KategoriImagePickerField(
                   initialImageUrl: widget.item?.gambarUrl,
                   imageError: _imageError,
-                  selectedImageFile: _selectedImageFile,
                   selectedImageBytes: _selectedImageBytes,
-                  onImageSelected: ({file, bytes, name}) {
+                  onImageSelected: ({bytes, name}) {
                     setState(() {
-                      _selectedImageFile = file;
                       _selectedImageBytes = bytes;
                       _selectedImageName = name;
                       _imageError = null;
@@ -143,7 +137,6 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
                   },
                   onImageRemoved: () {
                     setState(() {
-                      _selectedImageFile = null;
                       _selectedImageBytes = null;
                       _selectedImageName = null;
                       if (widget.item?.gambarUrl == null ||
@@ -195,7 +188,7 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
                   controller: _urutanC,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Urutan',
+                    labelText: 'Urutan Tampil',
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) {
@@ -211,14 +204,20 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
                   controller: _deskripsiC,
                   maxLines: 3,
                   decoration: const InputDecoration(
-                    labelText: 'Deskripsi',
+                    labelText: 'Deskripsi (Opsional)',
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 10),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Aktif'),
+                  title: const Text('Status Aktif'),
+                  subtitle: Text(
+                    _aktif
+                        ? 'Kategori akan tampil di aplikasi pengguna'
+                        : 'Kategori disembunyikan dari aplikasi pengguna',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
                   value: _aktif,
                   onChanged: (val) {
                     setState(() => _aktif = val);
@@ -240,7 +239,7 @@ class _KategoriFormDialogState extends State<KategoriFormDialog> {
             backgroundColor: HCColor.primary,
             foregroundColor: Colors.white,
           ),
-          child: Text(isEdit ? 'Simpan' : 'Tambah'),
+          child: Text(isEdit ? 'Simpan Perubahan' : 'Tambah Kategori'),
         ),
       ],
     );

@@ -1,16 +1,14 @@
-﻿import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:image_picker/image_picker.dart';
 
 class KategoriImagePickerField extends StatefulWidget {
   final String? initialImageUrl;
   final String? imageError;
-  final File? selectedImageFile;
   final Uint8List? selectedImageBytes;
   final void Function({
-    File? file,
     Uint8List? bytes,
     String? name,
   }) onImageSelected;
@@ -20,7 +18,6 @@ class KategoriImagePickerField extends StatefulWidget {
     super.key,
     this.initialImageUrl,
     this.imageError,
-    this.selectedImageFile,
     this.selectedImageBytes,
     required this.onImageSelected,
     required this.onImageRemoved,
@@ -32,6 +29,8 @@ class KategoriImagePickerField extends StatefulWidget {
 }
 
 class _KategoriImagePickerFieldState extends State<KategoriImagePickerField> {
+  bool _isCompressing = false;
+
   Future<void> _pickImage() async {
     try {
       final picker = ImagePicker();
@@ -39,23 +38,17 @@ class _KategoriImagePickerFieldState extends State<KategoriImagePickerField> {
         source: ImageSource.gallery,
         maxWidth: 1024,
         maxHeight: 1024,
-        imageQuality: 80,
       );
 
       if (picked == null) return;
 
-      if (kIsWeb) {
-        final bytes = await picked.readAsBytes();
-        widget.onImageSelected(
-          bytes: bytes,
-          name: picked.name,
-        );
-      } else {
-        widget.onImageSelected(
-          file: File(picked.path),
-          name: picked.name,
-        );
-      }
+      setState(() => _isCompressing = true);
+      final compressedBytes = await AppImageCompressor.compressXFile(picked);
+
+      widget.onImageSelected(
+        bytes: compressedBytes,
+        name: picked.name,
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,27 +57,45 @@ class _KategoriImagePickerFieldState extends State<KategoriImagePickerField> {
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) setState(() => _isCompressing = false);
     }
   }
 
   Widget _buildPreview() {
+    if (_isCompressing) {
+      return Container(
+        height: 130,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Mengompres gambar...',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (widget.selectedImageBytes != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.memory(
           widget.selectedImageBytes!,
-          height: 130,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    if (widget.selectedImageFile != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.file(
-          widget.selectedImageFile!,
           height: 130,
           width: double.infinity,
           fit: BoxFit.cover,
@@ -139,8 +150,7 @@ class _KategoriImagePickerFieldState extends State<KategoriImagePickerField> {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = widget.selectedImageFile != null ||
-        widget.selectedImageBytes != null;
+    final hasImage = widget.selectedImageBytes != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +200,7 @@ class _KategoriImagePickerFieldState extends State<KategoriImagePickerField> {
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: _pickImage,
+                onPressed: _isCompressing ? null : _pickImage,
                 icon: const Icon(Icons.image),
                 label: Text(hasImage ? 'Ganti Gambar' : 'Pilih Gambar'),
               ),

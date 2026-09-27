@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/dashboard/models/admin_dashboard_models.dart';
 import 'package:home_care/admin/dashboard/widgets/role_card.dart';
-
-export 'package:home_care/admin/dashboard/widgets/role_card.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
 
 class RoleStatsSection extends StatelessWidget {
   final bool isLoading;
@@ -15,6 +14,22 @@ class RoleStatsSection extends StatelessWidget {
     required this.roleStats,
     required this.onTapRole,
   });
+
+  Widget _buildSkeletonLoading() {
+    return Column(
+      children: [
+        const AppSkeleton(height: 72, borderRadius: 18),
+        const SizedBox(height: 12),
+        Row(
+          children: const [
+            Expanded(child: AppSkeleton(height: 110, borderRadius: 18)),
+            SizedBox(width: 12),
+            Expanded(child: AppSkeleton(height: 110, borderRadius: 18)),
+          ],
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +94,7 @@ class RoleStatsSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (isLoading)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          )
+          _buildSkeletonLoading()
         else if (roleStats.isEmpty)
           Container(
             width: double.infinity,

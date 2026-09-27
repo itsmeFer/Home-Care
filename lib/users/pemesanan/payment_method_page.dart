@@ -4,7 +4,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import 'package:home_care/users/lihat_detail_histori_pemesanan.dart';
+import 'package:home_care/users/histori_pemesanan/lihat_detail_histori_pemesanan_page.dart';
 import 'package:home_care/users/pemesanan/services/payment_service.dart';
 import 'package:home_care/users/pemesanan/widgets/widgets.dart';
 

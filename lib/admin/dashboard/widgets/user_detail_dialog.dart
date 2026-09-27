@@ -3,6 +3,8 @@ import 'package:home_care/admin/dashboard/models/admin_dashboard_models.dart';
 import 'package:home_care/admin/dashboard/services/admin_dashboard_service.dart';
 import 'package:home_care/admin/dashboard/widgets/user_detail_widgets.dart';
 
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
+
 class UserDetailDialog extends StatelessWidget {
   final int userId;
 
@@ -30,10 +32,19 @@ class UserDetailDialog extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Padding(
-              padding: EdgeInsets.all(30),
+              padding: EdgeInsets.all(28),
               child: SizedBox(
-                height: 120,
-                child: Center(child: CircularProgressIndicator()),
+                height: 140,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AppSkeleton(width: 54, height: 54, borderRadius: 27),
+                    SizedBox(height: 14),
+                    AppSkeleton.text(width: 140, height: 16),
+                    SizedBox(height: 8),
+                    AppSkeleton.text(width: 190, height: 12),
+                  ],
+                ),
               ),
             );
           }

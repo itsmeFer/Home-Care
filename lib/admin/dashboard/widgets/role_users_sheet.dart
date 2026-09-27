@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/dashboard/models/admin_dashboard_models.dart';
 import 'package:home_care/admin/dashboard/services/admin_dashboard_service.dart';
+import 'package:home_care/admin/dashboard/widgets/role_user_card.dart';
 import 'package:home_care/admin/dashboard/widgets/user_detail_dialog.dart';
-import 'package:home_care/admin/dashboard/widgets/user_detail_widgets.dart';
+import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
 
 class RoleUsersSheet extends StatefulWidget {
   final String roleSlug;
@@ -39,6 +42,7 @@ class RoleUsersSheet extends StatefulWidget {
 
 class _RoleUsersSheetState extends State<RoleUsersSheet> {
   final TextEditingController _searchC = TextEditingController();
+  Timer? _searchDebounce;
   List<AdminUserItem> _allUsers = [];
   List<AdminUserItem> _filteredUsers = [];
   bool _isLoading = true;
@@ -48,11 +52,11 @@ class _RoleUsersSheetState extends State<RoleUsersSheet> {
   void initState() {
     super.initState();
     _loadUsers();
-    _searchC.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchC.dispose();
     super.dispose();
   }
@@ -68,33 +72,42 @@ class _RoleUsersSheetState extends State<RoleUsersSheet> {
       if (mounted) {
         setState(() {
           _allUsers = list;
-          _filteredUsers = list;
+          _filterUsers(_searchC.text);
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString();
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
           _isLoading = false;
         });
       }
     }
   }
 
-  void _onSearchChanged() {
-    final query = _searchC.text.trim().toLowerCase();
-    if (query.isEmpty) {
-      setState(() => _filteredUsers = _allUsers);
+  void _filterUsers(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) {
+      _filteredUsers = List.from(_allUsers);
     } else {
-      setState(() {
-        _filteredUsers = _allUsers.where((u) {
-          final nameMatch = u.name.toLowerCase().contains(query);
-          final emailMatch = u.email.toLowerCase().contains(query);
-          return nameMatch || emailMatch;
-        }).toList();
-      });
+      _filteredUsers = _allUsers.where((u) {
+        final nameMatch = u.name.toLowerCase().contains(query);
+        final emailMatch = u.email.toLowerCase().contains(query);
+        return nameMatch || emailMatch;
+      }).toList();
     }
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _filterUsers(value);
+        });
+      }
+    });
   }
 
   @override
@@ -141,13 +154,17 @@ class _RoleUsersSheetState extends State<RoleUsersSheet> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: TextField(
                 controller: _searchC,
+                onChanged: _onSearchChanged,
                 decoration: InputDecoration(
                   hintText: 'Cari nama atau email pengguna...',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _searchC.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18),
-                          onPressed: () => _searchC.clear(),
+                          onPressed: () {
+                            _searchC.clear();
+                            setState(() => _filterUsers(''));
+                          },
                         )
                       : null,
                   filled: true,
@@ -177,9 +194,43 @@ class _RoleUsersSheetState extends State<RoleUsersSheet> {
     );
   }
 
+  Widget _buildSkeletonList() {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      itemCount: 5,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (_, __) => Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE9EEF5)),
+        ),
+        child: Row(
+          children: [
+            const AppSkeleton(width: 48, height: 48, borderRadius: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  AppSkeleton.text(width: 140, height: 16),
+                  SizedBox(height: 6),
+                  AppSkeleton.text(width: 180, height: 12),
+                  SizedBox(height: 8),
+                  AppSkeleton(width: 90, height: 22, borderRadius: 6),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBody(ScrollController scrollController) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return _buildSkeletonList();
     }
 
     if (_errorMessage != null) {
@@ -202,6 +253,11 @@ class _RoleUsersSheetState extends State<RoleUsersSheet> {
                 onPressed: _loadUsers,
                 icon: const Icon(Icons.refresh_rounded, size: 16),
                 label: const Text('Coba Lagi'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
               ),
             ],
           ),
@@ -229,134 +285,23 @@ class _RoleUsersSheetState extends State<RoleUsersSheet> {
 
     final roleColor = AdminRoleStyle.color(widget.roleSlug);
 
-    return ListView.builder(
-      controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-      itemCount: _filteredUsers.length,
-      itemBuilder: (context, index) {
-        final user = _filteredUsers[index];
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Material(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () {
-                UserDetailDialog.show(context, user.id);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE9EEF5)),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x0A000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: roleColor.withValues(alpha: 0.12),
-                      child: Text(
-                        user.name.trim().isNotEmpty
-                            ? user.name.trim()[0].toUpperCase()
-                            : 'U',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: roleColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF111827),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user.email,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            user.roleName,
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF374151),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: [
-                              UserMiniChip(
-                                label: user.isActive ? 'Aktif' : 'Tidak Aktif',
-                                bg: user.isActive
-                                    ? const Color(0xFFE8FFF1)
-                                    : const Color(0xFFF3F4F6),
-                                fg: user.isActive
-                                    ? const Color(0xFF15803D)
-                                    : const Color(0xFF6B7280),
-                              ),
-                              UserMiniChip(
-                                label: user.isFrozen ? 'Frozen' : 'Normal',
-                                bg: user.isFrozen
-                                    ? const Color(0xFFFFEAEA)
-                                    : const Color(0xFFEFF6FF),
-                                fg: user.isFrozen
-                                    ? const Color(0xFFDC2626)
-                                    : const Color(0xFF2563EB),
-                              ),
-                              UserMiniChip(
-                                label: user.isVerified ? 'Verified' : 'Belum Verify',
-                                bg: user.isVerified
-                                    ? const Color(0xFFEEFDF3)
-                                    : const Color(0xFFFFF7ED),
-                                fg: user.isVerified
-                                    ? const Color(0xFF16A34A)
-                                    : const Color(0xFFEA580C),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: Color(0xFF9CA3AF),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: _loadUsers,
+      child: ListView.builder(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        itemCount: _filteredUsers.length,
+        itemBuilder: (context, index) {
+          final user = _filteredUsers[index];
+          return RoleUserCard(
+            user: user,
+            roleColor: roleColor,
+            onTap: () => UserDetailDialog.show(context, user.id),
+          );
+        },
+      ),
     );
   }
 }

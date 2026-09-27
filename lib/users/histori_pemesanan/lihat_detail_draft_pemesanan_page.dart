@@ -6,7 +6,7 @@ import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/users/histori_pemesanan/services/histori_pemesanan_service.dart';
 import 'package:home_care/users/histori_pemesanan/widgets/widgets.dart';
-import 'package:home_care/users/payment_method_page.dart';
+import 'package:home_care/users/pemesanan/payment_method_page.dart';
 
 class LihatDetailDraftPemesananPage extends StatefulWidget {
   final int draftId;

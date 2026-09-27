@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:home_care/admin/kategori/models/kategori_layanan_model.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
@@ -59,8 +59,11 @@ class KategoriCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -92,7 +95,7 @@ class KategoriCard extends StatelessWidget {
                   Text(
                     item.namaKategori ?? '-',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -106,15 +109,15 @@ class KategoriCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         item.deskripsi!,
-                        style: const TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
                       _buildChip(
                         label: item.aktif == true ? 'Aktif' : 'Nonaktif',
@@ -143,10 +146,10 @@ class KategoriCard extends StatelessWidget {
                     TextButton.icon(
                       onPressed: onDeleteImage,
                       icon: const Icon(Icons.delete_outline,
-                          color: Colors.red, size: 18),
+                          color: Colors.red, size: 16),
                       label: const Text(
                         'Hapus Gambar',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
+                        style: TextStyle(color: Colors.red, fontSize: 11),
                       ),
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.zero,
@@ -166,6 +169,7 @@ class KategoriCard extends StatelessWidget {
                   onChanged: onToggle,
                 ),
                 PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, color: Colors.grey),
                   onSelected: (value) {
                     switch (value) {
                       case 'edit':
@@ -180,14 +184,35 @@ class KategoriCard extends StatelessWidget {
                     }
                   },
                   itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 18),
+                          SizedBox(width: 8),
+                          Text('Edit Kategori'),
+                        ],
+                      ),
+                    ),
                     PopupMenuItem(
                       value: 'upload',
-                      child: Text('Upload Gambar'),
+                      child: Row(
+                        children: [
+                          Icon(Icons.upload_file_outlined, size: 18),
+                          SizedBox(width: 8),
+                          Text('Upload Gambar'),
+                        ],
+                      ),
                     ),
                     PopupMenuItem(
                       value: 'delete',
-                      child: Text('Hapus', style: TextStyle(color: Colors.red)),
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                          SizedBox(width: 8),
+                          Text('Hapus', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -205,10 +230,10 @@ class KategoriCard extends StatelessWidget {
     required Color textColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Text(
         label,

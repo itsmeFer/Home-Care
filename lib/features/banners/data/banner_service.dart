@@ -168,4 +168,11 @@ class BannerService {
   static Future<void> delete(int id) async {
     await ApiClient.delete('${ApiConstants.adminBanners}/$id');
   }
+
+  static Future<void> aturUrutan(List<int> bannerIds) async {
+    await ApiClient.put(
+      ApiConstants.adminBannersUrutan,
+      body: {'urutan': bannerIds},
+    );
+  }
 }

@@ -12,6 +12,7 @@ class FeeChartSwitcher extends StatelessWidget {
   final bool isGlobal;
 
   const FeeChartSwitcher({
+    super.key,
     required this.items,
     required this.totalNominal,
     required this.chartType,
@@ -57,7 +58,11 @@ class FeeBarChart extends StatelessWidget {
   final List<FeeSimItem> items;
   final num totalNominal;
 
-  const FeeBarChart({required this.items, required this.totalNominal});
+  const FeeBarChart({
+    super.key,
+    required this.items,
+    required this.totalNominal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +136,7 @@ class FeeBarChart extends StatelessWidget {
                                     height: 12,
                                     width: barWidth,
                                     decoration: BoxDecoration(
-                                      color: kPrimary.withOpacity(0.85),
+                                      color: kPrimary.withValues(alpha: 0.85),
                                       borderRadius: BorderRadius.circular(999),
                                     ),
                                   ),
@@ -164,7 +169,11 @@ class FeePieChart extends StatelessWidget {
   final List<FeeSimItem> items;
   final num totalNominal;
 
-  const FeePieChart({required this.items, required this.totalNominal});
+  const FeePieChart({
+    super.key,
+    required this.items,
+    required this.totalNominal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +233,7 @@ class FeePieChart extends StatelessWidget {
                             width: 10,
                             height: 10,
                             decoration: BoxDecoration(
-                              color: kPrimary.withOpacity(0.8),
+                              color: kPrimary.withValues(alpha: 0.8),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -265,7 +274,11 @@ class FeeAreaChart extends StatelessWidget {
   final List<FeeSimItem> items;
   final num totalNominal;
 
-  const FeeAreaChart({required this.items, required this.totalNominal});
+  const FeeAreaChart({
+    super.key,
+    required this.items,
+    required this.totalNominal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +310,7 @@ class FeeAreaChart extends StatelessWidget {
           maxX: (items.length - 1).toDouble(),
           minY: 0,
           maxY: maxY,
-          gridData: FlGridData(show: true),
+          gridData: const FlGridData(show: true),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
             bottomTitles: AxisTitles(
@@ -306,8 +319,9 @@ class FeeAreaChart extends StatelessWidget {
                 interval: 1,
                 getTitlesWidget: (value, meta) {
                   final idx = value.toInt();
-                  if (idx < 0 || idx >= items.length)
+                  if (idx < 0 || idx >= items.length) {
                     return const SizedBox.shrink();
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
@@ -342,13 +356,13 @@ class FeeAreaChart extends StatelessWidget {
               spots: spots,
               isCurved: true,
               barWidth: 3,
-              dotData: FlDotData(show: true),
+              dotData: const FlDotData(show: true),
               belowBarData: BarAreaData(
                 show: true,
                 gradient: LinearGradient(
                   colors: [
-                    kPrimary.withOpacity(0.35),
-                    kPrimary.withOpacity(0.05),
+                    kPrimary.withValues(alpha: 0.35),
+                    kPrimary.withValues(alpha: 0.05),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,

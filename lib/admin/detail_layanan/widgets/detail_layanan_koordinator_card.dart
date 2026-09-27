@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 
 class DetailLayananKoordinatorCard extends StatelessWidget {
@@ -69,10 +70,17 @@ class DetailLayananKoordinatorCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(color: HCColor.primary),
+              Column(
+                children: List.generate(
+                  2,
+                  (index) => const Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: AppSkeleton(
+                      height: 72,
+                      width: double.infinity,
+                      borderRadius: 12,
+                    ),
+                  ),
                 ),
               )
             else if (koordinatorLayanan.isEmpty)
@@ -106,7 +114,7 @@ class DetailLayananKoordinatorCard extends StatelessWidget {
                         CircleAvatar(
                           backgroundColor:
                               HCColor.primary.withValues(alpha: 0.1),
-                          child: Icon(
+                          child: const Icon(
                             Icons.person,
                             color: HCColor.primaryDark,
                           ),
