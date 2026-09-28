@@ -6,6 +6,7 @@ import 'package:home_care/core/widgets/patient_app_bar.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/pemesanan/pesan_layanan_page.dart';
+import 'package:home_care/users/profile/models/user_profile_models.dart';
 import 'services/layanan_service.dart';
 import 'widgets/widgets.dart';
 
@@ -37,7 +38,7 @@ class _PilihLayananPageState extends State<PilihLayananPage> {
   List<Layanan> _filteredList = [];
   List<KategoriLayananItem> _kategoriList = [];
   KategoriLayananItem? _selectedKategori;
-  Map<String, dynamic>? _profileData;
+  PasienModel? _profileData;
 
   @override
   void initState() {

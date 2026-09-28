@@ -278,8 +278,9 @@ class _LihatOrderanMasukPerawatPageState
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final horizontalPadding = size.width >= 900 ? 28.0 : 16.0;
+    final size = MediaQuery.sizeOf(context);
+    final isDesktop = size.width >= 900;
+    final horizontalPadding = isDesktop ? 28.0 : 16.0;
 
     return Scaffold(
       backgroundColor: HCColor.bg,
@@ -293,19 +294,40 @@ class _LihatOrderanMasukPerawatPageState
       body: RefreshIndicator(
         onRefresh: _fetchOrders,
         color: HCColor.primary,
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            horizontalPadding,
-            16,
-            horizontalPadding,
-            20,
-          ),
-          children: [
-            _buildStatsSection(),
-            const SizedBox(height: 14),
-            _buildFilterSection(),
-            const SizedBox(height: 14),
-            _buildBody(),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                16,
+                horizontalPadding,
+                14,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: _buildStatsSection(),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                0,
+                horizontalPadding,
+                14,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: _buildFilterSection(),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                0,
+                horizontalPadding,
+                24,
+              ),
+              sliver: _buildOrdersSliver(isDesktop),
+            ),
           ],
         ),
       ),
@@ -572,122 +594,114 @@ class _LihatOrderanMasukPerawatPageState
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildOrdersSliver(bool isDesktop) {
     if (_isLoading) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            CircularProgressIndicator(color: HCColor.primary),
-            SizedBox(height: 16),
-            Text(
-              'Memuat data orderan...',
-              style: TextStyle(color: HCColor.textMuted),
-            ),
-          ],
+      return SliverToBoxAdapter(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 60),
+          alignment: Alignment.center,
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: HCColor.primary),
+              SizedBox(height: 16),
+              Text(
+                'Memuat data orderan...',
+                style: TextStyle(color: HCColor.textMuted),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (_error != null) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              _error!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _fetchOrders,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: HCColor.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
+      return SliverToBoxAdapter(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _fetchOrders,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Coba Lagi'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HCColor.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (_orders.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            const Text(
-              'Belum ada orderan',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+      return SliverToBoxAdapter(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            children: [
+              Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
+              const SizedBox(height: 16),
+              const Text(
+                'Belum ada orderan',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Orderan yang ditugaskan ke Anda akan muncul di sini',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: HCColor.textMuted),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Orderan yang ditugaskan ke Anda akan muncul di sini',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: HCColor.textMuted),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isGrid = constraints.maxWidth >= 900;
+    if (isDesktop) {
+      return SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 1.5,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => _buildOrderCard(_orders[index]),
+          childCount: _orders.length,
+        ),
+      );
+    }
 
-        if (isGrid) {
-          return GridView.builder(
-            itemCount: _orders.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.5,
-            ),
-            itemBuilder: (context, index) {
-              return _buildOrderCard(_orders[index]);
-            },
-          );
-        }
-
-        return ListView.builder(
-          itemCount: _orders.length,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildOrderCard(_orders[index]),
-            );
-          },
-        );
-      },
+    return SliverList.separated(
+      itemCount: _orders.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => _buildOrderCard(_orders[index]),
     );
   }
 

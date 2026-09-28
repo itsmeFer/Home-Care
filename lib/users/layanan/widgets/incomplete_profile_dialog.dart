@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/users/profile/models/user_profile_models.dart';
 import 'package:home_care/users/profile/profile_page.dart';
 
 class IncompleteProfileDialog {
-  static bool isProfileComplete(Map<String, dynamic>? profileData) {
+  static bool isProfileComplete(dynamic profileData) {
     if (profileData == null) return false;
+    if (profileData is PasienModel) {
+      return profileData.isComplete;
+    }
+    final map = profileData is Map ? profileData : <dynamic, dynamic>{};
     const requiredFields = [
       'nama_lengkap',
       'no_hp',
@@ -18,7 +23,7 @@ class IncompleteProfileDialog {
     ];
 
     for (final field in requiredFields) {
-      final value = profileData[field];
+      final value = map[field];
       if (value == null || value.toString().trim().isEmpty) {
         return false;
       }
@@ -26,9 +31,23 @@ class IncompleteProfileDialog {
     return true;
   }
 
-  static List<String> getMissingFields(Map<String, dynamic>? profileData) {
+  static List<String> getMissingFields(dynamic profileData) {
     if (profileData == null) return ['Semua data profil'];
 
+    if (profileData is PasienModel) {
+      final missing = <String>[];
+      if (profileData.namaLengkap == null || profileData.namaLengkap!.trim().isEmpty) missing.add('Nama Lengkap');
+      if (profileData.noHp == null || profileData.noHp!.trim().isEmpty) missing.add('No. HP');
+      if (profileData.jenisKelamin == null || profileData.jenisKelamin!.trim().isEmpty) missing.add('Jenis Kelamin');
+      if (profileData.tanggalLahir == null) missing.add('Tanggal Lahir');
+      if (profileData.alamat == null || profileData.alamat!.trim().isEmpty) missing.add('Alamat');
+      if (profileData.kecamatan == null || profileData.kecamatan!.trim().isEmpty) missing.add('Kecamatan');
+      if (profileData.kota == null || profileData.kota!.trim().isEmpty) missing.add('Kota');
+      if (profileData.kodePos == null || profileData.kodePos!.trim().isEmpty) missing.add('Kode Pos');
+      return missing;
+    }
+
+    final map = profileData is Map ? profileData : <dynamic, dynamic>{};
     final missingFields = <String>[];
     final fieldLabels = {
       'nama_lengkap': 'Nama Lengkap',
@@ -42,7 +61,7 @@ class IncompleteProfileDialog {
     };
 
     fieldLabels.forEach((key, label) {
-      final value = profileData[key];
+      final value = map[key];
       if (value == null || value.toString().trim().isEmpty) {
         missingFields.add(label);
       }
@@ -51,7 +70,7 @@ class IncompleteProfileDialog {
     return missingFields;
   }
 
-  static void show(BuildContext context, {Map<String, dynamic>? profileData, VoidCallback? onComplete}) {
+  static void show(BuildContext context, {dynamic profileData, VoidCallback? onComplete}) {
     final missingFields = getMissingFields(profileData);
 
     showDialog(

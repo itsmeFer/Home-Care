@@ -20,32 +20,19 @@ class _HCBottomNavState extends State<HCBottomNav> {
   static const Color activeColor = AppColors.primary;
   static const Color inactiveColor = Color(0xFF94A3B8);
 
-  int _chatUnreadCount = 0;
   Timer? _badgeTimer;
 
   @override
   void initState() {
     super.initState();
-    _chatUnreadCount = ChatUnreadCounter.totalUnread.value;
-    ChatUnreadCounter.totalUnread.addListener(_onCounterChanged);
     _loadChatUnread();
     _startBadgePolling();
   }
 
   @override
   void dispose() {
-    ChatUnreadCounter.totalUnread.removeListener(_onCounterChanged);
     _badgeTimer?.cancel();
     super.dispose();
-  }
-
-  void _onCounterChanged() {
-    final v = ChatUnreadCounter.totalUnread.value;
-    if (mounted && _chatUnreadCount != v) {
-      setState(() {
-        _chatUnreadCount = v;
-      });
-    }
   }
 
   void _startBadgePolling() {
@@ -59,13 +46,7 @@ class _HCBottomNavState extends State<HCBottomNav> {
     try {
       final parsedUnread = await ChatService.fetchUnreadSummary();
       if (!mounted) return;
-
       ChatUnreadCounter.setTotal(parsedUnread);
-      if (_chatUnreadCount != parsedUnread) {
-        setState(() {
-          _chatUnreadCount = parsedUnread;
-        });
-      }
     } catch (_) {}
   }
 
@@ -212,51 +193,54 @@ class _HCBottomNavState extends State<HCBottomNav> {
                             size: 25.0,
                           ),
                         ),
-                        if (_chatUnreadCount > 0)
-                          Positioned(
-                            top: -6,
-                            right: -6,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 2,
-                              ),
-                              constraints: const BoxConstraints(
-                                minWidth: 17,
-                                minHeight: 17,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFF4757),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 1.5,
+                        ValueListenableBuilder<int>(
+                          valueListenable: ChatUnreadCounter.totalUnread,
+                          builder: (context, count, _) {
+                            if (count <= 0) return const SizedBox.shrink();
+                            return Positioned(
+                              top: -6,
+                              right: -6,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 2,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFFFF4757,
-                                    ).withValues(alpha: 0.4),
-                                    blurRadius: 4.0,
-                                    offset: const Offset(0, 1.5),
+                                constraints: const BoxConstraints(
+                                  minWidth: 17,
+                                  minHeight: 17,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFF4757),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 1.5,
                                   ),
-                                ],
-                              ),
-                              child: Text(
-                                _chatUnreadCount > 99
-                                    ? '99+'
-                                    : '$_chatUnreadCount',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: Colors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.0,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFFFF4757,
+                                      ).withValues(alpha: 0.4),
+                                      blurRadius: 4.0,
+                                      offset: const Offset(0, 1.5),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  count > 99 ? '99+' : '$count',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.0,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),

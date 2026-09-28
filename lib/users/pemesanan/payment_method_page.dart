@@ -5,6 +5,7 @@ import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
 import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/users/histori_pemesanan/lihat_detail_histori_pemesanan_page.dart';
+import 'package:home_care/users/pemesanan/models/payment_draft_model.dart';
 import 'package:home_care/users/pemesanan/services/payment_service.dart';
 import 'package:home_care/users/pemesanan/widgets/widgets.dart';
 
@@ -35,7 +36,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   Timer? _pollTimer;
   bool _alreadyPaid = false;
 
-  Map<String, dynamic>? _draftData;
+  PaymentDraftModel? _draftData;
   String? _draftError;
 
   static const backgroundColor = Color(0xFFFFFFFF);
@@ -206,7 +207,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
   Future<void> _checkStatus({bool auto = false}) async {
     if (_isChecking || _alreadyPaid || _isNavigatingToDetail) return;
 
-    setState(() => _isChecking = true);
+    _isChecking = true;
+    if (!auto && mounted) setState(() {});
 
     try {
       final data = await _paymentService.checkStatus(widget.draftId);
@@ -260,7 +262,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
     } catch (e) {
       if (!auto) _toast('Error cek status: $e');
     } finally {
-      if (mounted) setState(() => _isChecking = false);
+      _isChecking = false;
+      if (!auto && mounted) setState(() {});
     }
   }
 
@@ -285,10 +288,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage>
       );
     }
 
-    final namaLayanan = _draftData?['nama_layanan']?.toString() ?? 'Layanan';
-    final tanggal = AppFormatters.date(_draftData?['tanggal_mulai']?.toString());
-    final jam = AppFormatters.time(_draftData?['jam_mulai']?.toString());
-    final alamat = _draftData?['alamat_lengkap']?.toString() ?? '-';
+    final namaLayanan = _draftData?.namaLayanan ?? 'Layanan';
+    final tanggal = AppFormatters.date(_draftData?.tanggalMulai);
+    final jam = AppFormatters.time(_draftData?.jamMulai);
+    final alamat = _draftData?.alamatLengkap ?? '-';
 
     return Scaffold(
       backgroundColor: backgroundColor,

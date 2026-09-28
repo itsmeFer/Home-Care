@@ -119,46 +119,36 @@ class RoleStatsSection extends StatelessWidget {
                   onTapRole(roleStats.first.roleSlug, roleStats.first.roleName),
             ),
             const SizedBox(height: 12),
-            GridView.builder(
-              itemCount: roleStats.length - 1,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.02,
-              ),
-              itemBuilder: (context, index) {
-                final item = roleStats[index + 1];
-                return RoleCard(
-                  item: item,
-                  onTap: () => onTapRole(item.roleSlug, item.roleName),
-                );
-              },
-            ),
+            _buildRoleGrid(roleStats.sublist(1)),
           ] else ...[
-            GridView.builder(
-              itemCount: roleStats.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.02,
-              ),
-              itemBuilder: (context, index) {
-                final item = roleStats[index];
-                return RoleCard(
-                  item: item,
-                  onTap: () => onTapRole(item.roleSlug, item.roleName),
-                );
-              },
-            ),
+            _buildRoleGrid(roleStats),
           ],
         ],
       ],
+    );
+  }
+
+  Widget _buildRoleGrid(List<RoleStatItem> items) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth = (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: items.map((item) {
+            return SizedBox(
+              width: itemWidth,
+              child: AspectRatio(
+                aspectRatio: 1.02,
+                child: RoleCard(
+                  item: item,
+                  onTap: () => onTapRole(item.roleSlug, item.roleName),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }

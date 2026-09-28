@@ -193,18 +193,26 @@ class _ChatRoomPageState extends State<ChatRoomPage>
 
       if (_isDisposed || !mounted) return;
 
-      setState(() {
-        _messages = newMessages;
-        _isLoading = false;
-        _error = null;
-      });
+      final hasChanged = !fromPolling ||
+          newMessages.length != oldLen ||
+          (newMessages.isNotEmpty &&
+              _messages.isNotEmpty &&
+              newMessages.last.id != _messages.last.id);
 
-      if (!fromPolling || newMessages.length > oldLen) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_isDisposed && mounted) {
-            _scrollToBottom(animated: fromPolling);
-          }
+      if (hasChanged) {
+        setState(() {
+          _messages = newMessages;
+          _isLoading = false;
+          _error = null;
         });
+
+        if (!fromPolling || newMessages.length > oldLen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_isDisposed && mounted) {
+              _scrollToBottom(animated: fromPolling);
+            }
+          });
+        }
       }
     } catch (e) {
       if (!fromPolling && mounted) {

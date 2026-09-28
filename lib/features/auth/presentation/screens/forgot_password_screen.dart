@@ -16,7 +16,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   bool _isLoading = false;
   bool _emailSent = false;
-  int _cooldownSeconds = 0;
+  final ValueNotifier<int> _cooldownSeconds = ValueNotifier<int>(0);
   Timer? _cooldownTimer;
 
   static const int cooldownDuration = 60;
@@ -24,6 +24,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   void dispose() {
     _emailController.dispose();
+    _cooldownSeconds.dispose();
     _cooldownTimer?.cancel();
     super.dispose();
   }
@@ -53,12 +54,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _startCooldown() {
-    setState(() => _cooldownSeconds = cooldownDuration);
+    _cooldownSeconds.value = cooldownDuration;
 
     _cooldownTimer?.cancel();
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_cooldownSeconds > 0) {
-        setState(() => _cooldownSeconds--);
+      if (_cooldownSeconds.value > 0) {
+        _cooldownSeconds.value--;
       } else {
         timer.cancel();
       }
@@ -68,8 +69,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendResetLink() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_cooldownSeconds > 0) {
-      _showError('Tunggu $_cooldownSeconds detik sebelum kirim ulang');
+    if (_cooldownSeconds.value > 0) {
+      _showError('Tunggu ${_cooldownSeconds.value} detik sebelum kirim ulang');
       return;
     }
 
@@ -98,8 +99,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bool canSend = _cooldownSeconds == 0 && !_isLoading;
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -256,43 +255,48 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                               const SizedBox(height: 24),
 
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF1E3A8A),
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    disabledBackgroundColor: Colors.white
-                                        .withValues(alpha: 0.5),
-                                    disabledForegroundColor: Colors.grey[600],
-                                  ),
-                                  onPressed: canSend ? _sendResetLink : null,
-                                  child:
-                                      _isLoading
+                              ValueListenableBuilder<int>(
+                                valueListenable: _cooldownSeconds,
+                                builder: (context, cooldown, _) {
+                                  final canSend = cooldown == 0 && !_isLoading;
+                                  return SizedBox(
+                                    width: double.infinity,
+                                    height: 56,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: const Color(0xFF1E3A8A),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        disabledBackgroundColor: Colors.white
+                                            .withValues(alpha: 0.5),
+                                        disabledForegroundColor: Colors.grey[600],
+                                      ),
+                                      onPressed: canSend ? _sendResetLink : null,
+                                      child: _isLoading
                                           ? const SizedBox(
-                                            height: 24,
-                                            width: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              color: Color(0xFF1E3A8A),
-                                            ),
-                                          )
+                                              height: 24,
+                                              width: 24,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color: Color(0xFF1E3A8A),
+                                              ),
+                                            )
                                           : Text(
-                                            _cooldownSeconds > 0
-                                                ? 'Tunggu $_cooldownSeconds detik'
-                                                : 'Kirim Link Reset Password',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 16,
-                                              letterSpacing: 0.3,
+                                              cooldown > 0
+                                                  ? 'Tunggu $cooldown detik'
+                                                  : 'Kirim Link Reset Password',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 16,
+                                                letterSpacing: 0.3,
+                                              ),
                                             ),
-                                          ),
-                                ),
+                                    ),
+                                  );
+                                },
                               ),
                             ] else ...[
 
@@ -367,39 +371,45 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                               const SizedBox(height: 24),
 
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF1E3A8A),
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                              ValueListenableBuilder<int>(
+                                valueListenable: _cooldownSeconds,
+                                builder: (context, cooldown, _) {
+                                  final canSend = cooldown == 0 && !_isLoading;
+                                  return SizedBox(
+                                    width: double.infinity,
+                                    height: 56,
+                                    child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: const Color(0xFF1E3A8A),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        disabledBackgroundColor: Colors.white
+                                            .withValues(alpha: 0.5),
+                                        disabledForegroundColor: Colors.grey[600],
+                                      ),
+                                      onPressed: canSend ? _sendResetLink : null,
+                                      icon: Icon(
+                                        cooldown > 0
+                                            ? IconlyLight.timeCircle
+                                            : IconlyLight.send,
+                                        size: 24,
+                                      ),
+                                      label: Text(
+                                        cooldown > 0
+                                            ? 'Tunggu $cooldown detik'
+                                            : 'Kirim Ulang Link',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
                                     ),
-                                    disabledBackgroundColor: Colors.white
-                                        .withValues(alpha: 0.5),
-                                    disabledForegroundColor: Colors.grey[600],
-                                  ),
-                                  onPressed: canSend ? _sendResetLink : null,
-                                  icon: Icon(
-                                    _cooldownSeconds > 0
-                                        ? IconlyLight.timeCircle
-                                        : IconlyLight.send,
-                                    size: 24,
-                                  ),
-                                  label: Text(
-                                    _cooldownSeconds > 0
-                                        ? 'Tunggu $_cooldownSeconds detik'
-                                        : 'Kirim Ulang Link',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 16,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
                             ],
 

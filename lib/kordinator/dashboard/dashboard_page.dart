@@ -19,9 +19,8 @@ class KoordinatorDashboard extends StatefulWidget {
 }
 
 class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
-
-  int _chatUnreadCount = 0;
-  int _orderUnreadCount = 0;
+  final ValueNotifier<int> _chatUnread = ValueNotifier<int>(0);
+  final ValueNotifier<int> _orderUnread = ValueNotifier<int>(0);
 
   bool _isLoadingBadge = false;
   Timer? _pollTimer;
@@ -42,6 +41,8 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _chatUnread.dispose();
+    _orderUnread.dispose();
     super.dispose();
   }
 
@@ -71,55 +72,35 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   Future<void> _loadBadges({bool silent = false}) async {
     if (_isLoadingBadge && !silent) return;
 
-    if (!silent && mounted) {
-      setState(() {
-        _isLoadingBadge = true;
-      });
-    } else {
-      _isLoadingBadge = true;
-    }
+    _isLoadingBadge = true;
 
     try {
       final token = await _getToken();
       if (token == null || token.isEmpty) {
-        debugPrint('├ó┬¥┼Æ TOKEN NOT FOUND');
+        debugPrint('❌ TOKEN NOT FOUND');
         if (mounted) {
-          setState(() {
-            _chatUnreadCount = 0;
-            _orderUnreadCount = 0;
-            _isLoadingBadge = false;
-          });
+          _chatUnread.value = 0;
+          _orderUnread.value = 0;
+          _isLoadingBadge = false;
         }
         return;
       }
-
-      debugPrint('├░┼╕ΓÇ¥ΓÇ₧ Loading badges...');
 
       final results = await Future.wait([
         _fetchChatUnread(token),
         _fetchOrderUnread(token),
       ]);
 
-      final chatUnread = results[0];
-      final orderUnread = results[1];
-
-      debugPrint('├ó┼ôΓÇª Chat Unread: $chatUnread');
-      debugPrint('├ó┼ôΓÇª Order Unread: $orderUnread');
-
       if (mounted) {
-        setState(() {
-          _chatUnreadCount = chatUnread;
-          _orderUnreadCount = orderUnread;
-          _isLoadingBadge = false;
-        });
+        _chatUnread.value = results[0];
+        _orderUnread.value = results[1];
+        _isLoadingBadge = false;
       }
     } catch (e) {
-      debugPrint('├ó┬¥┼Æ LOAD KOORDINATOR BADGES ERROR: $e');
+      debugPrint('❌ LOAD KOORDINATOR BADGES ERROR: $e');
 
       if (mounted) {
-        setState(() {
-          _isLoadingBadge = false;
-        });
+        _isLoadingBadge = false;
       }
     }
   }
@@ -136,7 +117,8 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
     required IconData icon,
     required Color color,
     required String title,
-    required int count,
+    int count = 0,
+    ValueNotifier<int>? countListenable,
   }) {
     return Expanded(
       child: Container(
@@ -165,14 +147,27 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
               child: Icon(icon, color: color),
             ),
             const SizedBox(height: 14),
-            Text(
-              '$count',
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: Colors.black87,
+            if (countListenable != null)
+              ValueListenableBuilder<int>(
+                valueListenable: countListenable,
+                builder: (_, val, __) => Text(
+                  '$val',
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black87,
+                  ),
+                ),
+              )
+            else
+              Text(
+                '$count',
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
+                ),
               ),
-            ),
             const SizedBox(height: 4),
             Text(
               title,
@@ -214,6 +209,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
     required String label,
     required VoidCallback onTap,
     int badgeCount = 0,
+    ValueNotifier<int>? badgeListenable,
     Color color = HCColor.primary,
   }) {
     return InkWell(
@@ -248,7 +244,16 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                   ),
                   child: Icon(icon, color: color),
                 ),
-                if (badgeCount > 0)
+                if (badgeListenable != null)
+                  Positioned(
+                    right: -8,
+                    top: -8,
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: badgeListenable,
+                      builder: (_, count, __) => _buildBadge(count),
+                    ),
+                  )
+                else if (badgeCount > 0)
                   Positioned(
                     right: -8,
                     top: -8,
@@ -276,8 +281,6 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final totalBadge = _chatUnreadCount + _orderUnreadCount;
-
     return Scaffold(
       backgroundColor: HCColor.bg,
       body: RefreshIndicator(
@@ -313,32 +316,38 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                           ),
                         ),
                       ),
-                      if (totalBadge > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.red.withValues(alpha: 0.4),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            totalBadge > 99 ? '99+' : '$totalBadge',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                      AnimatedBuilder(
+                        animation: Listenable.merge([_chatUnread, _orderUnread]),
+                        builder: (context, _) {
+                          final totalBadge = _chatUnread.value + _orderUnread.value;
+                          if (totalBadge <= 0) return const SizedBox.shrink();
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
                             ),
-                          ),
-                        ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(999),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.red.withValues(alpha: 0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              totalBadge > 99 ? '99+' : '$totalBadge',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                       const SizedBox(width: 10),
 
                       IconButton(
@@ -394,14 +403,14 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                         icon: Icons.assignment_outlined,
                         color: Colors.orange,
                         title: 'Orderan Masuk',
-                        count: _orderUnreadCount,
+                        countListenable: _orderUnread,
                       ),
                       const SizedBox(width: 12),
                       _summaryCard(
                         icon: Icons.chat_bubble_outline,
                         color: HCColor.primary,
                         title: 'Chat Belum Dibaca',
-                        count: _chatUnreadCount,
+                        countListenable: _chatUnread,
                       ),
                     ],
                   ),
@@ -424,7 +433,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                   _menuItem(
                     icon: Icons.assignment_outlined,
                     label: 'Lihat Orderan Masuk',
-                    badgeCount: _orderUnreadCount,
+                    badgeListenable: _orderUnread,
                     color: Colors.orange,
                     onTap: () async {
                       await Navigator.push(
@@ -442,7 +451,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                   _menuItem(
                     icon: Icons.chat_bubble_outline,
                     label: 'Chat dengan Pasien',
-                    badgeCount: _chatUnreadCount,
+                    badgeListenable: _chatUnread,
                     onTap: () async {
                       await Navigator.push(
                         context,
@@ -472,89 +481,99 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
                   const SizedBox(height: 10),
 
-                  if (_chatUnreadCount > 0 || _orderUnreadCount > 0)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 14,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.notifications_active,
-                                size: 18,
-                                color: Colors.orange.shade700,
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Ringkasan Aktivitas',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.black87,
+                  AnimatedBuilder(
+                    animation: Listenable.merge([_chatUnread, _orderUnread]),
+                    builder: (context, _) {
+                      final chatCount = _chatUnread.value;
+                      final orderCount = _orderUnread.value;
+                      if (chatCount <= 0 && orderCount <= 0) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 14,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.notifications_active,
+                                  size: 18,
+                                  color: Colors.orange.shade700,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Ringkasan Aktivitas',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            if (orderCount > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.orange,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Ada $orderCount orderan masuk baru yang perlu ditangani.',
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          if (_orderUnreadCount > 0)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
-                              child: Row(
+                            if (chatCount > 0)
+                              Row(
                                 children: [
                                   Container(
                                     width: 6,
                                     height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.orange,
+                                    decoration: BoxDecoration(
+                                      color: HCColor.primary,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Ada $_orderUnreadCount orderan masuk baru yang perlu ditangani.',
+                                      'Ada $chatCount pesan chat yang belum dibaca.',
                                       style: const TextStyle(fontSize: 13),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                          if (_chatUnreadCount > 0)
-                            Row(
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: HCColor.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Ada $_chatUnreadCount pesan chat yang belum dibaca.',
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: 26),
 

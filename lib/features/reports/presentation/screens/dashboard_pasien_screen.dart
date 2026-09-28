@@ -212,18 +212,24 @@ class _DashboardPasienScreenState extends State<DashboardPasienScreen>
       ),
     ];
 
-    final crossAxisCount = widget.isDesktop
-        ? 4
-        : (widget.isTablet ? 2 : 1);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = widget.isDesktop
+            ? 4
+            : (widget.isTablet ? 2 : 1);
+        const spacing = 14.0;
+        final cardWidth =
+            (constraints.maxWidth - (spacing * (crossAxisCount - 1))) /
+                crossAxisCount;
 
-    return GridView.count(
-      crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 14,
-      mainAxisSpacing: 14,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: widget.isDesktop ? 1.8 : 2.2,
-      children: cards,
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: cards
+              .map((card) => SizedBox(width: cardWidth, child: card))
+              .toList(),
+        );
+      },
     );
   }
 
@@ -453,44 +459,47 @@ class _DashboardPasienScreenState extends State<DashboardPasienScreen>
               padding: EdgeInsets.all(16.0),
               child: Center(child: Text('Belum ada data kunjungan pasien.')),
             )
-          : ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: min(topFrequent.length, 10),
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, idx) {
-                final p = topFrequent[idx];
-                final nama = p['nama']?.toString() ?? 'Pasien #${idx + 1}';
-                final totalOrder = _n(p['total_order']);
-                final totalSpent = _n(p['total_biaya']);
+          : Column(
+              children: [
+                for (int idx = 0; idx < min(topFrequent.length, 10); idx++) ...[
+                  if (idx > 0) const Divider(height: 1),
+                  Builder(
+                    builder: (context) {
+                      final p = topFrequent[idx];
+                      final nama = p['nama']?.toString() ?? 'Pasien #${idx + 1}';
+                      final totalOrder = _n(p['total_order']);
+                      final totalSpent = _n(p['total_biaya']);
 
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: _cPrimary.withValues(alpha: 0.12),
-                    child: Text(
-                      '#${idx + 1}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: _cPrimary,
-                      ),
-                    ),
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          backgroundColor: _cPrimary.withValues(alpha: 0.12),
+                          child: Text(
+                            '#${idx + 1}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: _cPrimary,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          nama,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text('$totalOrder kunjungan tercatat'),
+                        trailing: Text(
+                          'Rp ${totalSpent.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: _cGreen,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  title: Text(
-                    nama,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  subtitle: Text('$totalOrder kunjungan tercatat'),
-                  trailing: Text(
-                    'Rp ${totalSpent.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _cGreen,
-                    ),
-                  ),
-                );
-              },
+                ],
+              ],
             ),
     );
   }

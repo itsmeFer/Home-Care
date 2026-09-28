@@ -1,13 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import '../models/user_profile_models.dart';
 import 'profile_avatar_header.dart';
 import 'profile_security_section.dart';
 import 'profile_ui_components.dart';
 
 class ProfileViewMode extends StatelessWidget {
-  final Map<String, dynamic>? user;
-  final Map<String, dynamic>? pasien;
+  final UserModel? user;
+  final PasienModel? pasien;
   final String? fotoProfilUrl;
   final File? localFotoFile;
   final VoidCallback onLogout;
@@ -21,47 +22,42 @@ class ProfileViewMode extends StatelessWidget {
     required this.onLogout,
   });
 
-  String _formatDisplayDate(dynamic date) {
+  String _formatDisplayDate(DateTime? date) {
     if (date == null) return '-';
-    try {
-      final dt = DateTime.parse(date.toString());
-      const months = [
-        'Januari',
-        'Februari',
-        'Maret',
-        'April',
-        'Mei',
-        'Juni',
-        'Juli',
-        'Agustus',
-        'September',
-        'Oktober',
-        'November',
-        'Desember',
-      ];
-      return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
-    } catch (_) {
-      return date.toString();
-    }
+    const months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final nama = (pasien?['nama_lengkap'] ?? user?['name'] ?? 'Pasien').toString();
-    final noRm = (pasien?['no_rekam_medis'] ?? '-').toString();
-    final noHp = (pasien?['no_hp'] ?? '-').toString();
-    final email = (user?['email'] ?? pasien?['email'] ?? '-').toString();
-    final jk = (pasien?['jenis_kelamin'] ?? '-').toString();
-    final tglLahir = _formatDisplayDate(pasien?['tanggal_lahir']);
+    final nama = (pasien?.namaLengkap ?? user?.name ?? 'Pasien');
+    final noRm = (pasien?.noRekamMedis ?? '-');
+    final noHp = (pasien?.noHp ?? '-');
+    final email = (user != null && user!.email.isNotEmpty ? user!.email : pasien?.email ?? '-');
+    final jk = (pasien?.jenisKelamin ?? '-');
+    final tglLahir = _formatDisplayDate(pasien?.tanggalLahir);
 
-    final nik = (pasien?['nik'] ?? '-').toString();
-    final alamat = (pasien?['alamat'] ?? '-').toString();
-    final kodePos = (pasien?['kode_pos'] ?? '-').toString();
+    final nik = (pasien?.nik ?? '-');
+    final alamat = (pasien?.alamat ?? '-');
+    final kodePos = (pasien?.kodePos ?? '-');
 
-    final provinsi = (pasien?['provinsi'] ?? '-').toString();
-    final kota = (pasien?['kota'] ?? '-').toString();
-    final kecamatan = (pasien?['kecamatan'] ?? '-').toString();
-    final kelurahan = (pasien?['kelurahan'] ?? '-').toString();
+    final provinsi = (pasien?.provinsi ?? '-');
+    final kota = (pasien?.kota ?? '-');
+    final kecamatan = (pasien?.kecamatan ?? '-');
+    final kelurahan = (pasien?.kelurahan ?? '-');
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -107,15 +103,15 @@ class ProfileViewMode extends StatelessWidget {
             children: [
               ProfileInfoRow(
                 label: 'Golongan Darah',
-                value: (pasien?['golongan_darah'] ?? '-').toString(),
+                value: (pasien?.golonganDarah ?? '-'),
               ),
               ProfileInfoRow(
                 label: 'Alergi',
-                value: (pasien?['alergi'] ?? '-').toString(),
+                value: (pasien?.alergi ?? '-'),
               ),
               ProfileInfoRow(
                 label: 'Penyakit Menahun',
-                value: (pasien?['penyakit_menahun'] ?? '-').toString(),
+                value: (pasien?.penyakitMenahun ?? '-'),
               ),
             ],
           ),

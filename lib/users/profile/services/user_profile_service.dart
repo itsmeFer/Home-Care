@@ -3,14 +3,18 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/user_profile_models.dart';
+
 class UserProfileService {
   const UserProfileService();
 
-  Future<Map<String, dynamic>?> fetchProfile() async {
+  Future<UserProfileData?> fetchProfile() async {
     try {
       final res = await ApiClient.get('/me');
       if (res is Map && res['data'] is Map) {
-        return res['data'] as Map<String, dynamic>;
+        return UserProfileData.fromJson(
+          Map<String, dynamic>.from(res['data'] as Map),
+        );
       }
       return null;
     } catch (e) {
@@ -19,14 +23,16 @@ class UserProfileService {
     }
   }
 
-  Future<Map<String, dynamic>> updateProfile(
+  Future<PasienModel> updateProfile(
     int pasienId,
     Map<String, dynamic> payload,
   ) async {
     try {
       final res = await ApiClient.put('/pasien/$pasienId', body: payload);
       if (res is Map && res['success'] == true && res['data'] is Map) {
-        return (res['data'] as Map).cast<String, dynamic>();
+        return PasienModel.fromJson(
+          Map<String, dynamic>.from(res['data'] as Map),
+        );
       }
       throw Exception(res['message'] ?? 'Gagal memperbarui profil');
     } catch (e) {

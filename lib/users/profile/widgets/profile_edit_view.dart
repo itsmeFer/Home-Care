@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/services/wilayah_service.dart';
+import '../models/user_profile_models.dart';
 import '../services/user_profile_service.dart';
 import 'profile_avatar_header.dart';
 import 'profile_edit_form.dart';
@@ -8,14 +9,14 @@ import 'profile_ui_components.dart';
 
 /// Isolated Stateful Widget for editing user profile and cascading Wilayah selection.
 class ProfileEditView extends StatefulWidget {
-  final Map<String, dynamic>? user;
-  final Map<String, dynamic>? pasien;
+  final UserModel? user;
+  final PasienModel? pasien;
   final String? fotoProfilUrl;
   final File? localFotoFile;
   final bool isUploadingFoto;
   final VoidCallback? onPickPhoto;
   final VoidCallback onCancel;
-  final ValueChanged<Map<String, dynamic>> onSaveSuccess;
+  final ValueChanged<PasienModel> onSaveSuccess;
 
   const ProfileEditView({
     super.key,
@@ -98,36 +99,28 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     final pasien = widget.pasien;
     final user = widget.user;
 
-    _namaC = TextEditingController(text: (pasien?['nama_lengkap'] ?? user?['name'] ?? '').toString());
-    _nikC = TextEditingController(text: (pasien?['nik'] ?? '').toString());
-    _noHpC = TextEditingController(text: (pasien?['no_hp'] ?? '').toString());
-    _emailC = TextEditingController(text: (user?['email'] ?? pasien?['email'] ?? '').toString());
-    _alamatC = TextEditingController(text: (pasien?['alamat'] ?? '').toString());
-    _kodePosC = TextEditingController(text: (pasien?['kode_pos'] ?? '').toString());
-    _golonganDarahC = TextEditingController(text: (pasien?['golongan_darah'] ?? '').toString());
-    _alergiC = TextEditingController(text: (pasien?['alergi'] ?? '').toString());
-    _penyakitMenahunC = TextEditingController(text: (pasien?['penyakit_menahun'] ?? '').toString());
+    _namaC = TextEditingController(text: pasien?.namaLengkap ?? user?.name ?? '');
+    _nikC = TextEditingController(text: pasien?.nik ?? '');
+    _noHpC = TextEditingController(text: pasien?.noHp ?? '');
+    _emailC = TextEditingController(text: user != null && user.email.isNotEmpty ? user.email : pasien?.email ?? '');
+    _alamatC = TextEditingController(text: pasien?.alamat ?? '');
+    _kodePosC = TextEditingController(text: pasien?.kodePos ?? '');
+    _golonganDarahC = TextEditingController(text: pasien?.golonganDarah ?? '');
+    _alergiC = TextEditingController(text: pasien?.alergi ?? '');
+    _penyakitMenahunC = TextEditingController(text: pasien?.penyakitMenahun ?? '');
 
-    _jenisKelamin = pasien?['jenis_kelamin']?.toString();
+    _jenisKelamin = pasien?.jenisKelamin;
+    _tanggalLahir = pasien?.tanggalLahir;
 
-    final tglRaw = pasien?['tanggal_lahir'];
-    if (tglRaw != null && tglRaw.toString().isNotEmpty) {
-      try {
-        _tanggalLahir = DateTime.parse(tglRaw.toString());
-      } catch (_) {
-        _tanggalLahir = null;
-      }
-    }
+    _selectedProvinsiNama = pasien?.provinsi;
+    _selectedKotaNama = pasien?.kota;
+    _selectedKecamatanNama = pasien?.kecamatan;
+    _selectedKelurahanNama = pasien?.kelurahan;
 
-    _selectedProvinsiNama = pasien?['provinsi']?.toString();
-    _selectedKotaNama = pasien?['kota']?.toString();
-    _selectedKecamatanNama = pasien?['kecamatan']?.toString();
-    _selectedKelurahanNama = pasien?['kelurahan']?.toString();
-
-    _selectedProvinsiId = pasien?['provinsi_id']?.toString();
-    _selectedKotaId = pasien?['kota_id']?.toString();
-    _selectedKecamatanId = pasien?['kecamatan_id']?.toString();
-    _selectedKelurahanId = pasien?['kelurahan_id']?.toString();
+    _selectedProvinsiId = pasien?.provinsiId;
+    _selectedKotaId = pasien?.kotaId;
+    _selectedKecamatanId = pasien?.kecamatanId;
+    _selectedKelurahanId = pasien?.kelurahanId;
   }
 
   Future<void> _loadInitialWilayah() async {
@@ -279,8 +272,8 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       return;
     }
 
-    final pasienId = widget.pasien?['id'];
-    if (pasienId == null) return;
+    final pasienId = widget.pasien?.id;
+    if (pasienId == null || pasienId == 0) return;
 
     setState(() => _isSaving = true);
 
@@ -308,7 +301,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         'penyakit_menahun': _penyakitMenahunC.text.trim().isEmpty ? null : _penyakitMenahunC.text.trim(),
       };
 
-      final updated = await _service.updateProfile(pasienId as int, payload);
+      final updated = await _service.updateProfile(pasienId, payload);
       if (!mounted) return;
 
       widget.onSaveSuccess(updated);
@@ -331,8 +324,8 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       return const EditProfileSkeleton();
     }
 
-    final nama = (widget.pasien?['nama_lengkap'] ?? widget.user?['name'] ?? 'Pasien').toString();
-    final noRm = (widget.pasien?['no_rekam_medis'] ?? '-').toString();
+    final nama = widget.pasien?.namaLengkap ?? widget.user?.name ?? 'Pasien';
+    final noRm = widget.pasien?.noRekamMedis ?? '-';
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),

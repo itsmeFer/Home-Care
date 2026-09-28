@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/perawat/orderan/services/perawat_orderan_service.dart';
+import 'package:home_care/perawat/orderan/tabs/tabs.dart';
 
 class DetailOrderanMasukPerawatPage extends StatefulWidget {
   final int orderId;
@@ -488,21 +486,10 @@ class _DetailOrderanMasukPerawatPageState
     }
   }
 
-  String _fmtDateTime(String? iso) {
-    if (iso == null || iso.isEmpty) return '-';
-    try {
-      return DateFormat('dd MMM yyyy HH:mm').format(DateTime.parse(iso));
-    } catch (_) {
-      return iso;
-    }
-  }
-
   String _fmtJam(String? jam) {
     if (jam == null || jam.isEmpty) return '-';
     return jam.length >= 5 ? jam.substring(0, 5) : jam;
   }
-
-  String _fmtUang(dynamic val) => AppFormatters.currency(val);
 
   String _getNama(Map<String, dynamic>? obj) {
     if (obj == null) return '-';
@@ -556,8 +543,6 @@ class _DetailOrderanMasukPerawatPageState
         return status;
     }
   }
-
-  String? _mediaUrl(String? path) => ApiConstants.resolveMediaUrl(path);
 
   @override
   Widget build(BuildContext context) {
@@ -845,11 +830,11 @@ class _DetailOrderanMasukPerawatPageState
             child: TabBarView(
               controller: _tabController!,
               children: [
-                _buildDetailTab(),
-                _buildLokasiTab(),
-                _buildPembayaranTab(),
-                _buildAddonsTab(),
-                _buildFotoTab(),
+                OrderTabDetail(order: _order!),
+                OrderTabLokasi(order: _order!),
+                OrderTabPembayaran(order: _order!),
+                OrderTabAddons(order: _order!),
+                OrderTabFoto(order: _order!),
               ],
             ),
           ),
@@ -858,399 +843,6 @@ class _DetailOrderanMasukPerawatPageState
     );
   }
 
-  Widget _buildDetailTab() {
-    final o = _order!;
-    final pasien = o['pasien'] as Map<String, dynamic>?;
-    final koordinator = o['koordinator'] as Map<String, dynamic>?;
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _infoRow('Pasien', _getNama(pasien)),
-        _infoRow('No HP Pasien', pasien?['no_hp']),
-        _infoRow('Koordinator', _getNama(koordinator)),
-        _infoRow('No HP Koordinator', koordinator?['no_hp']),
-        const Divider(height: 24),
-        _infoRow('Tipe Layanan', o['tipe_layanan']),
-        _infoRow('Jumlah Visit', o['jumlah_visit_dipesan']),
-        _infoRow('Durasi per Visit', '${o['durasi_menit_per_visit']} menit'),
-        _infoRow('Quantity', o['qty']),
-      ],
-    );
-  }
-
-  Widget _buildLokasiTab() {
-    final o = _order!;
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _infoRow('Alamat', o['alamat_lengkap']),
-        _infoRow('Kecamatan', o['kecamatan']),
-        _infoRow('Kota', o['kota']),
-        if (o['catatan_pasien'] != null) ...[
-          const Divider(height: 24),
-          const Text(
-            'Catatan Pasien:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: HCColor.lightTeal.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              o['catatan_pasien'].toString(),
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildPembayaranTab() {
-    final o = _order!;
-    final paymentInfo = o['payment_info'] as Map<String, dynamic>?;
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _infoRow('Harga Satuan', _fmtUang(o['harga_satuan'])),
-        _infoRow('Subtotal', _fmtUang(o['subtotal'])),
-        _infoRow('Diskon', _fmtUang(o['diskon'])),
-        _infoRow('Biaya Tambahan', _fmtUang(o['biaya_tambahan'])),
-
-        if (o['addons_total'] != null && o['addons_total'] != 0)
-          _infoRow('Total Addons', _fmtUang(o['addons_total'])),
-
-        const Divider(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Total Bayar',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              _fmtUang(o['total_bayar']),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: HCColor.primary,
-              ),
-            ),
-          ],
-        ),
-        const Divider(height: 24),
-        _infoRow('Metode', o['metode_pembayaran']),
-        _infoRow('Status', o['status_pembayaran']),
-        if (paymentInfo != null) ...[
-          _infoRow('Channel', paymentInfo['channel']),
-          _infoRow('Dibayar pada', _fmtDateTime(o['dibayar_pada']?.toString())),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildAddonsTab() {
-    final addons = _order?['order_addons'] as List?;
-
-    if (addons == null || addons.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.shopping_bag_outlined,
-              size: 64,
-              color: HCColor.textMuted,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Tidak ada addon',
-              style: TextStyle(fontSize: 14, color: HCColor.textMuted),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: addons.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final addon = addons[index] as Map<String, dynamic>;
-        final addonDetail = addon['addon'] as Map<String, dynamic>?;
-
-        final namaAddon =
-            addon['nama_addon']?.toString() ??
-            addonDetail?['nama_addon']?.toString() ??
-            '-';
-        final hargaSatuan = addon['harga_satuan'];
-        final qty = addon['qty'] ?? 1;
-        final subtotal = addon['subtotal'];
-        final deskripsi = addonDetail?['deskripsi']?.toString();
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: HCColor.lightTeal.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: HCColor.primary.withValues(alpha: 0.2),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: HCColor.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.add_shopping_cart,
-                      color: HCColor.primary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          namaAddon,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (deskripsi != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            deskripsi,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: HCColor.textMuted,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Harga Satuan',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: HCColor.textMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _fmtUang(hargaSatuan),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Qty',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: HCColor.textMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HCColor.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'x$qty',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: HCColor.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Subtotal',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: HCColor.textMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _fmtUang(subtotal),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: HCColor.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFotoTab() {
-    final o = _order!;
-    final paymentInfo = o['payment_info'] as Map<String, dynamic>?;
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _fotoPreview('Kondisi Pasien', _mediaUrl(o['kondisi_pasien'])),
-        _fotoPreview('Foto Hadir', _mediaUrl(o['foto_hadir'])),
-        _fotoPreview('Foto Selesai', _mediaUrl(o['foto_selesai'])),
-        _fotoPreview(
-          'Bukti Pembayaran',
-          _mediaUrl(paymentInfo?['bukti_pembayaran']),
-        ),
-      ],
-    );
-  }
-
-  Widget _infoRow(String label, dynamic value) {
-    final text =
-        (value == null || value.toString().isEmpty) ? '-' : value.toString();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: HCColor.textMuted,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          const Text(': ', style: TextStyle(fontSize: 13)),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _fotoPreview(String label, String? url) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          if (url == null)
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: HCColor.lightTeal.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.image_not_supported, color: HCColor.textMuted),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Belum ada foto',
-                      style: TextStyle(color: HCColor.textMuted, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder:
-                      (ctx) => Dialog(
-                        backgroundColor: Colors.transparent,
-                        child: InteractiveViewer(
-                          child: AppCachedImage(imageUrl: url, fit: BoxFit.contain),
-                        ),
-                      ),
-                );
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AppCachedImage(
-                  imageUrl: url,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildBottomBar() {
     if (_isLoading || _order == null) return const SizedBox.shrink();

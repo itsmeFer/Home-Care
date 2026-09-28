@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/kordinator/orderan/services/koordinator_orderan_service.dart';
 
 class DetailOrderKoordinatorPage extends StatefulWidget {
   final int orderId;
@@ -74,15 +74,13 @@ class _DetailOrderKoordinatorPageState
     }
 
     try {
-      final res = await ApiClient.get(
-        '/koordinator/order-layanan/${widget.orderId}',
-      );
+      final data = await KoordinatorOrderanService.fetchDetail(widget.orderId);
 
       if (!mounted) return;
 
-      if (res is Map && res['data'] is Map) {
+      if (data != null) {
         setState(() {
-          _order = Map<String, dynamic>.from(res['data']);
+          _order = data;
           _isLoading = false;
         });
       } else {
@@ -108,28 +106,14 @@ class _DetailOrderKoordinatorPageState
     }
 
     try {
-      final res = await ApiClient.get('/koordinator/perawat-list');
+      final list = await KoordinatorOrderanService.fetchPerawatList();
 
       if (!mounted) return;
 
-      if (res is Map && res['data'] is List) {
-        final List<dynamic> data = res['data'];
-        final list =
-            data
-                .map<Map<String, dynamic>>(
-                  (e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)),
-                )
-                .toList();
-
-        setState(() {
-          _perawats = list;
-          _isLoadingPerawat = false;
-        });
-      } else {
-        setState(() {
-          _isLoadingPerawat = false;
-        });
-      }
+      setState(() {
+        _perawats = list;
+        _isLoadingPerawat = false;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -152,16 +136,16 @@ class _DetailOrderKoordinatorPageState
     });
 
     try {
-      final res = await ApiClient.post(
-        '/koordinator/order-layanan/${widget.orderId}/assign-perawat',
-        body: {'perawat_id': _selectedPerawatId!.toString()},
+      final data = await KoordinatorOrderanService.assignPerawat(
+        orderId: widget.orderId,
+        perawatId: _selectedPerawatId!,
       );
 
       if (!mounted) return;
 
-      if (res is Map && res['data'] is Map) {
+      if (data.isNotEmpty) {
         setState(() {
-          _order = Map<String, dynamic>.from(res['data']);
+          _order = data;
         });
       }
 

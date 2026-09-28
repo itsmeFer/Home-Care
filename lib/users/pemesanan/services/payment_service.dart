@@ -1,18 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:home_care/core/network/api_client.dart';
+import '../models/payment_draft_model.dart';
 
 class PaymentService {
   const PaymentService();
 
-  Future<Map<String, dynamic>?> fetchDraft(int draftId) async {
+  Future<PaymentDraftModel?> fetchDraft(int draftId) async {
     try {
       final res = await ApiClient.get('/pasien/order-draft/$draftId');
       if (res is Map && res['success'] == true) {
         final data = res['data'];
         if (data is Map && data['draft'] is Map) {
-          return Map<String, dynamic>.from(data['draft'] as Map);
+          return PaymentDraftModel.fromJson(Map<String, dynamic>.from(data['draft'] as Map));
         } else if (data is Map) {
-          return Map<String, dynamic>.from(data);
+          return PaymentDraftModel.fromJson(Map<String, dynamic>.from(data));
         }
       }
       return null;

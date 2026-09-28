@@ -134,107 +134,105 @@ class OrderTimelineTracker extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: steps.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 0),
-            itemBuilder: (context, index) {
-              final step = steps[index];
-              final isLast = index == steps.length - 1;
-
-              final Color stepColor = step.isActive
-                  ? HCColors.primary
-                  : step.isCompleted
-                      ? HCColors.success
-                      : HCColors.textMuted.withAlpha(80);
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: step.isActive
-                              ? HCColors.primary.withAlpha(30)
-                              : step.isCompleted
-                                  ? HCColors.success.withAlpha(25)
-                                  : HCColors.bg,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: stepColor,
-                            width: step.isActive ? 2 : 1,
-                          ),
-                        ),
-                        child: Icon(
-                          step.icon,
-                          size: 16,
-                          color: stepColor,
-                        ),
-                      ),
-                      if (!isLast)
-                        Container(
-                          width: 2,
-                          height: 36,
-                          color: step.isCompleted
-                              ? HCColors.success.withAlpha(80)
-                              : HCColors.textMuted.withAlpha(40),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            step.title,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: step.isActive
-                                  ? FontWeight.w700
-                                  : FontWeight.w600,
-                              color: step.isActive
-                                  ? HCColors.primary
-                                  : step.isCompleted
-                                      ? HCColors.textDark
-                                      : HCColors.textMuted,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            step.description,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: HCColors.textMuted.withAlpha(200),
-                            ),
-                          ),
-                          if (step.timestamp != null &&
-                              step.timestamp!.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              step.timestamp!,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: HCColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+          Column(
+            children: [
+              for (int index = 0; index < steps.length; index++)
+                _buildTimelineStep(steps[index], index == steps.length - 1),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTimelineStep(OrderTrackingStep step, bool isLast) {
+    final Color stepColor = step.isActive
+        ? HCColors.primary
+        : step.isCompleted
+            ? HCColors.success
+            : HCColors.textMuted.withAlpha(80);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: step.isActive
+                    ? HCColors.primary.withAlpha(30)
+                    : step.isCompleted
+                        ? HCColors.success.withAlpha(25)
+                        : HCColors.bg,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: stepColor,
+                  width: step.isActive ? 2 : 1,
+                ),
+              ),
+              child: Icon(
+                step.icon,
+                size: 16,
+                color: stepColor,
+              ),
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 36,
+                color: step.isCompleted
+                    ? HCColors.success.withAlpha(80)
+                    : HCColors.textMuted.withAlpha(40),
+              ),
+          ],
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  step.title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: step.isActive
+                        ? FontWeight.w700
+                        : FontWeight.w600,
+                    color: step.isActive
+                        ? HCColors.primary
+                        : step.isCompleted
+                            ? HCColors.textDark
+                            : HCColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  step.description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: HCColors.textMuted.withAlpha(200),
+                  ),
+                ),
+                if (step.timestamp != null &&
+                    step.timestamp!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    step.timestamp!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: HCColors.textMuted,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

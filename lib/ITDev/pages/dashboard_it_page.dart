@@ -23,7 +23,8 @@ class DashboardITPage extends StatefulWidget {
 
 class _DashboardITPageState extends State<DashboardITPage> {
   Timer? _timer;
-  Future<Map<String, dynamic>>? _metricsFuture;
+  final ValueNotifier<Future<Map<String, dynamic>>?> _metricsNotifier =
+      ValueNotifier(null);
 
   Future<Map<String, dynamic>>? _future;
 
@@ -31,13 +32,11 @@ class _DashboardITPageState extends State<DashboardITPage> {
   void initState() {
     super.initState();
     _future = _fetch();
-    _metricsFuture = _fetchMetrics();
+    _metricsNotifier.value = _fetchMetrics();
 
     _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
-      setState(() {
-        _metricsFuture = _fetchMetrics();
-      });
+      _metricsNotifier.value = _fetchMetrics();
     });
   }
 
@@ -47,14 +46,15 @@ class _DashboardITPageState extends State<DashboardITPage> {
     if (oldWidget.range != widget.range) {
       setState(() {
         _future = _fetch();
-        _metricsFuture = _fetchMetrics();
       });
+      _metricsNotifier.value = _fetchMetrics();
     }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _metricsNotifier.dispose();
     super.dispose();
   }
 
@@ -62,8 +62,8 @@ class _DashboardITPageState extends State<DashboardITPage> {
     if (!mounted) return;
     setState(() {
       _future = _fetch();
-      _metricsFuture = _fetchMetrics();
     });
+    _metricsNotifier.value = _fetchMetrics();
   }
 
   Future<Map<String, dynamic>> _fetch() async {
@@ -284,85 +284,94 @@ class _DashboardITPageState extends State<DashboardITPage> {
             XCard(
               title: 'Grafik Server',
               subtitle: 'Live (auto refresh 5 detik)',
-              child: FutureBuilder<Map<String, dynamic>>(
-                future: _metricsFuture,
-                builder: (context, s) {
-                  if (s.connectionState != ConnectionState.done &&
-                      s.data == null) {
-                    return const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text('Memuat grafik...'),
-                    );
-                  }
-                  if (s.hasError && s.data == null) {
-                    return Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text('Error: ${s.error}'),
-                    );
-                  }
+              child: ValueListenableBuilder<Future<Map<String, dynamic>>?>(
+                valueListenable: _metricsNotifier,
+                builder: (context, metricsFuture, _) {
+                  return FutureBuilder<Map<String, dynamic>>(
+                    future: metricsFuture,
+                    builder: (context, s) {
+                      if (s.connectionState != ConnectionState.done &&
+                          s.data == null) {
+                        return const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Text('Memuat grafik...'),
+                        );
+                      }
+                      if (s.hasError && s.data == null) {
+                        return Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text('Error: ${s.error}'),
+                        );
+                      }
 
-                  final m = s.data ?? {};
-                  final points =
-                      (m['points'] is List) ? (m['points'] as List) : const [];
-                  if (points.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text('Belum ada data grafik (points kosong).'),
-                    );
-                  }
+                      final m = s.data ?? {};
+                      final points =
+                          (m['points'] is List)
+                              ? (m['points'] as List)
+                              : const [];
+                      if (points.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Text('Belum ada data grafik (points kosong).'),
+                        );
+                      }
 
-                  final req = <FlSpot>[];
-                  final e4 = <FlSpot>[];
-                  final e5 = <FlSpot>[];
+                      final req = <FlSpot>[];
+                      final e4 = <FlSpot>[];
+                      final e5 = <FlSpot>[];
 
-                  for (int i = 0; i < points.length; i++) {
-                    final row = Map<String, dynamic>.from(points[i] as Map);
-                    req.add(
-                      FlSpot(i.toDouble(), _i(row['traffic']).toDouble()),
-                    );
-                    e4.add(
-                      FlSpot(i.toDouble(), _i(row['risk_medium']).toDouble()),
-                    );
-                    e5.add(
-                      FlSpot(i.toDouble(), _i(row['risk_high']).toDouble()),
-                    );
-                  }
-                  final showDots =
-                      req.length < 2;
-
-                  return SizedBox(
-                    height: 240,
-                    child: LineChart(
-                      LineChartData(
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: req,
-                            isCurved: true,
-                            barWidth: 3,
-                            color: const Color(0xFF0EA5E9),
-                            dotData: FlDotData(show: showDots),
+                      for (int i = 0; i < points.length; i++) {
+                        final row = Map<String, dynamic>.from(points[i] as Map);
+                        req.add(
+                          FlSpot(i.toDouble(), _i(row['traffic']).toDouble()),
+                        );
+                        e4.add(
+                          FlSpot(
+                            i.toDouble(),
+                            _i(row['risk_medium']).toDouble(),
                           ),
-                          LineChartBarData(
-                            spots: e4,
-                            isCurved: true,
-                            barWidth: 2,
-                            color: const Color(0xFFF59E0B),
-                            dotData: FlDotData(show: showDots),
-                          ),
-                          LineChartBarData(
-                            spots: e5,
-                            isCurved: true,
-                            barWidth: 2,
-                            color: const Color(0xFFDC2626),
-                            dotData: FlDotData(show: showDots),
-                          ),
-                        ],
+                        );
+                        e5.add(
+                          FlSpot(i.toDouble(), _i(row['risk_high']).toDouble()),
+                        );
+                      }
+                      final showDots = req.length < 2;
 
-                        titlesData: const FlTitlesData(show: false),
-                        gridData: const FlGridData(show: true),
-                        borderData: FlBorderData(show: false),
-                      ),
-                    ),
+                      return SizedBox(
+                        height: 240,
+                        child: LineChart(
+                          LineChartData(
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: req,
+                                isCurved: true,
+                                barWidth: 3,
+                                color: const Color(0xFF0EA5E9),
+                                dotData: FlDotData(show: showDots),
+                              ),
+                              LineChartBarData(
+                                spots: e4,
+                                isCurved: true,
+                                barWidth: 2,
+                                color: const Color(0xFFF59E0B),
+                                dotData: FlDotData(show: showDots),
+                              ),
+                              LineChartBarData(
+                                spots: e5,
+                                isCurved: true,
+                                barWidth: 2,
+                                color: const Color(0xFFDC2626),
+                                dotData: FlDotData(show: showDots),
+                              ),
+                            ],
+
+                            titlesData: const FlTitlesData(show: false),
+                            gridData: const FlGridData(show: true),
+                            borderData: FlBorderData(show: false),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

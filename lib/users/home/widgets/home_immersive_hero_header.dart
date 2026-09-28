@@ -25,7 +25,7 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
 
   String? _nama;
   String? _lokasi;
-  int _notifUnreadCount = 0;
+  final ValueNotifier<int> _notifUnread = ValueNotifier<int>(0);
   Timer? _notifTimer;
 
   @override
@@ -39,6 +39,7 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
   @override
   void dispose() {
     _notifTimer?.cancel();
+    _notifUnread.dispose();
     super.dispose();
   }
 
@@ -53,9 +54,7 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
     try {
       final unread = await _notifService.fetchUnreadCount();
       if (!mounted) return;
-      setState(() {
-        _notifUnreadCount = unread;
-      });
+      _notifUnread.value = unread;
     } catch (_) {}
   }
 
@@ -64,17 +63,19 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
       final data = await _profileService.fetchProfile();
       if (!mounted || data == null) return;
 
-      final pasien = data['pasien'] as Map<String, dynamic>?;
-      final user = data['user'] as Map<String, dynamic>?;
+      final pasien = data.pasien;
+      final user = data.user;
 
-      final kota = (pasien?['kota'] ?? '').toString().trim();
+      final kota = (pasien?.kota ?? '').trim();
       String lokasi = 'Kota Medan';
       if (kota.isNotEmpty) {
         lokasi = kota;
       }
 
       setState(() {
-        _nama = (pasien?['nama_lengkap'] ?? user?['name'])?.toString();
+        _nama = (pasien?.namaLengkap != null && pasien!.namaLengkap!.isNotEmpty)
+            ? pasien.namaLengkap
+            : user.name;
         _lokasi = lokasi;
       });
     } catch (_) {}
@@ -225,19 +226,26 @@ class _HomeImmersiveHeroHeaderState extends State<HomeImmersiveHeroHeader> {
                                   color: Colors.white,
                                   size: 21,
                                 ),
-                                if (_notifUnreadCount > 0)
-                                  Positioned(
-                                    top: 7,
-                                    right: 8,
-                                    child: Container(
-                                      width: 9,
-                                      height: 9,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFEF4444),
-                                        shape: BoxShape.circle,
+                                ValueListenableBuilder<int>(
+                                  valueListenable: _notifUnread,
+                                  builder: (_, unread, __) {
+                                    if (unread <= 0) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Positioned(
+                                      top: 7,
+                                      right: 8,
+                                      child: Container(
+                                        width: 9,
+                                        height: 9,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFEF4444),
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ),

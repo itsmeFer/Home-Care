@@ -101,7 +101,7 @@ class _AnimatedSearchPlaceholderState
   ];
 
   int _currentTextIndex = 0;
-  String _displayedText = '';
+  final ValueNotifier<String> _displayedText = ValueNotifier<String>('');
   Timer? _timer;
   bool _isTyping = true;
 
@@ -114,6 +114,7 @@ class _AnimatedSearchPlaceholderState
   @override
   void dispose() {
     _timer?.cancel();
+    _displayedText.dispose();
     super.dispose();
   }
 
@@ -130,9 +131,7 @@ class _AnimatedSearchPlaceholderState
 
       if (_isTyping) {
         if (charIndex <= currentText.length) {
-          setState(() {
-            _displayedText = currentText.substring(0, charIndex);
-          });
+          _displayedText.value = currentText.substring(0, charIndex);
           charIndex++;
         } else {
           timer.cancel();
@@ -159,9 +158,7 @@ class _AnimatedSearchPlaceholderState
       }
 
       if (charIndex > 0) {
-        setState(() {
-          _displayedText = currentText.substring(0, charIndex);
-        });
+        _displayedText.value = currentText.substring(0, charIndex);
         charIndex--;
       } else {
         timer.cancel();
@@ -178,18 +175,23 @@ class _AnimatedSearchPlaceholderState
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      _displayedText.isNotEmpty
-          ? _displayedText
-          : 'Cari layanan medis, perawat...',
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
-        fontFamily: 'Poppins',
-        color: Color(0xFF94A3B8),
-        fontSize: 13.5,
-        fontWeight: FontWeight.w400,
-      ),
+    return ValueListenableBuilder<String>(
+      valueListenable: _displayedText,
+      builder: (context, text, _) {
+        return Text(
+          text.isNotEmpty
+              ? text
+              : 'Cari layanan medis, perawat...',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            color: Color(0xFF94A3B8),
+            fontSize: 13.5,
+            fontWeight: FontWeight.w400,
+          ),
+        );
+      },
     );
   }
 }

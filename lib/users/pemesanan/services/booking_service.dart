@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
+import 'package:home_care/users/profile/models/user_profile_models.dart';
 import 'package:http/http.dart' as http;
 
 class BookingService {
@@ -35,13 +36,13 @@ class BookingService {
     }
   }
 
-  Future<Map<String, dynamic>?> fetchUserProfile() async {
+  Future<PasienModel?> fetchUserProfile() async {
     try {
       final res = await ApiClient.get('/me');
       if (res is Map && res['success'] == true && res['data'] is Map) {
         final data = res['data'] as Map<String, dynamic>;
         if (data['pasien'] is Map) {
-          return Map<String, dynamic>.from(data['pasien'] as Map);
+          return PasienModel.fromJson(Map<String, dynamic>.from(data['pasien'] as Map));
         }
       }
       return null;

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:home_care/kordinator/orderan/lihat_detail_orderan_masuk_page.dart';
+import 'package:home_care/kordinator/orderan/services/koordinator_orderan_service.dart';
 
 export 'package:home_care/features/orders/domain/order_models.dart';
 
@@ -57,50 +57,19 @@ class _LihatOrderanMasukKoordinatorPageState
     });
 
     try {
-      final Map<String, dynamic> queryParams = {};
-
-      if (_selectedStatus != null && _selectedStatus!.isNotEmpty) {
-        queryParams['status'] = _selectedStatus!;
-      }
-
-      final keyword = _searchController.text.trim();
-      if (keyword.isNotEmpty) {
-        queryParams['search'] = keyword;
-      }
-
-      if (_tanggalDari != null) {
-        queryParams['tanggal_mulai_dari'] =
-            DateFormat('yyyy-MM-dd').format(_tanggalDari!);
-      }
-
-      if (_tanggalSampai != null) {
-        queryParams['tanggal_mulai_sampai'] =
-            DateFormat('yyyy-MM-dd').format(_tanggalSampai!);
-      }
-
-      final res = await ApiClient.get(
-        '/koordinator/order-layanan',
-        queryParams: queryParams.isEmpty ? null : queryParams,
+      final orders = await KoordinatorOrderanService.fetchOrders(
+        status: _selectedStatus,
+        search: _searchController.text,
+        tanggalDari: _tanggalDari,
+        tanggalSampai: _tanggalSampai,
       );
 
       if (!mounted) return;
 
-      if (res is Map && res['data'] is List) {
-        final List list = res['data'] as List;
-        setState(() {
-          _orders = list
-              .whereType<Map>()
-              .map((e) => OrderKoordinator.fromJson(
-                  Map<String, dynamic>.from(e)))
-              .toList();
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _orders = [];
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _orders = orders;
+        _isLoading = false;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -240,8 +209,9 @@ class _LihatOrderanMasukKoordinatorPageState
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final horizontalPadding = size.width >= 900 ? 28.0 : 16.0;
+    final size = MediaQuery.sizeOf(context);
+    final isDesktop = size.width >= 900;
+    final horizontalPadding = isDesktop ? 28.0 : 16.0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -253,19 +223,40 @@ class _LihatOrderanMasukKoordinatorPageState
       ),
       body: RefreshIndicator(
         onRefresh: _fetchOrders,
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            horizontalPadding,
-            16,
-            horizontalPadding,
-            20,
-          ),
-          children: [
-            _buildStatsSection(),
-            const SizedBox(height: 14),
-            _buildFilterSection(),
-            const SizedBox(height: 14),
-            _buildBody(),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                16,
+                horizontalPadding,
+                14,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: _buildStatsSection(),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                0,
+                horizontalPadding,
+                14,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: _buildFilterSection(),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                0,
+                horizontalPadding,
+                24,
+              ),
+              sliver: _buildOrdersSliver(isDesktop),
+            ),
           ],
         ),
       ),
@@ -502,101 +493,93 @@ class _LihatOrderanMasukKoordinatorPageState
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildOrdersSliver(bool isDesktop) {
     if (_isLoading) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        alignment: Alignment.center,
-        child: const CircularProgressIndicator(),
+      return SliverToBoxAdapter(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 60),
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(),
+        ),
       );
     }
 
     if (_error != null) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
-            const SizedBox(height: 10),
-            Text(
-              _error!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 14),
-            ElevatedButton(
-              onPressed: _fetchOrders,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0BA5A7),
-                foregroundColor: Colors.white,
+      return SliverToBoxAdapter(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
+              const SizedBox(height: 10),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
               ),
-              child: const Text('Coba Lagi'),
-            ),
-          ],
+              const SizedBox(height: 14),
+              ElevatedButton(
+                onPressed: _fetchOrders,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0BA5A7),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (_orders.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: const Column(
-          children: [
-            Icon(Icons.inbox_outlined, size: 52, color: Colors.grey),
-            SizedBox(height: 12),
-            Text(
-              'Belum ada order masuk untuk koordinator ini.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.black54),
-            ),
-          ],
+      return SliverToBoxAdapter(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: const Column(
+            children: [
+              Icon(Icons.inbox_outlined, size: 52, color: Colors.grey),
+              SizedBox(height: 12),
+              Text(
+                'Belum ada order masuk untuk koordinator ini.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isGrid = constraints.maxWidth >= 900;
+    if (isDesktop) {
+      return SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 1.65,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => _buildOrderCard(_orders[index]),
+          childCount: _orders.length,
+        ),
+      );
+    }
 
-        if (isGrid) {
-          return GridView.builder(
-            itemCount: _orders.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.65,
-            ),
-            itemBuilder: (context, index) {
-              return _buildOrderCard(_orders[index]);
-            },
-          );
-        }
-
-        return ListView.builder(
-          itemCount: _orders.length,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildOrderCard(_orders[index]),
-            );
-          },
-        );
-      },
+    return SliverList.separated(
+      itemCount: _orders.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => _buildOrderCard(_orders[index]),
     );
   }
 

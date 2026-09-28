@@ -8,6 +8,7 @@ import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/pemesanan/payment_method_page.dart';
 import 'package:home_care/users/pemesanan/services/booking_service.dart';
 import 'package:home_care/users/pemesanan/widgets/widgets.dart';
+import 'package:home_care/users/profile/models/user_profile_models.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -47,7 +48,7 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
   int _currentStep = 0;
 
   bool _isLoadingProfile = false;
-  Map<String, dynamic>? _profileData;
+  PasienModel? _profileData;
 
   bool _isFavorite = false;
   bool _isDescriptionExpanded = false;
@@ -83,9 +84,9 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
       if (pasien != null) {
         setState(() {
           _profileData = pasien;
-          _alamatController.text = pasien['alamat']?.toString() ?? '';
-          _kecamatanController.text = pasien['kecamatan']?.toString() ?? '';
-          _kotaController.text = pasien['kota']?.toString() ?? '';
+          _alamatController.text = pasien.alamat ?? '';
+          _kecamatanController.text = pasien.kecamatan ?? '';
+          _kotaController.text = pasien.kota ?? '';
         });
       }
     } finally {
@@ -452,12 +453,11 @@ class _PesanLayananPageState extends State<PesanLayananPage> {
                               if (_profileData != null) {
                                 setState(() {
                                   _alamatController.text =
-                                      (_profileData!['alamat'] ?? '').toString();
+                                      _profileData!.alamat ?? '';
                                   _kotaController.text =
-                                      (_profileData!['kota'] ?? '').toString();
+                                      _profileData!.kota ?? '';
                                   _kecamatanController.text =
-                                      (_profileData!['kecamatan'] ?? '')
-                                          .toString();
+                                      _profileData!.kecamatan ?? '';
                                 });
                               }
                             },

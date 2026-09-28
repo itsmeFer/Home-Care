@@ -9,6 +9,7 @@ import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
 import 'package:home_care/features/auth/data/auth_repository.dart';
 import 'package:home_care/features/auth/presentation/screens/login.dart';
+import 'models/user_profile_models.dart';
 import 'services/user_profile_service.dart';
 import 'widgets/widgets.dart';
 
@@ -29,8 +30,8 @@ class _ProfilePageState extends State<ProfilePage> {
   File? _localFotoFile;
   bool _isUploadingFoto = false;
 
-  Map<String, dynamic>? _user;
-  Map<String, dynamic>? _pasien;
+  UserModel? _user;
+  PasienModel? _pasien;
 
   bool _isEditing = false;
 
@@ -76,16 +77,9 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       setState(() {
-        _user = (data['user'] ?? {}) as Map<String, dynamic>;
-        _pasien = (data['pasien'] ?? {}) as Map<String, dynamic>;
-
-        final rawFoto = _pasien?['foto_profil_url'] ?? _pasien?['foto_profil'];
-        if (rawFoto is String && rawFoto.isNotEmpty) {
-          _fotoProfilUrl = ApiConstants.resolveMediaUrl(rawFoto);
-        } else {
-          _fotoProfilUrl = null;
-        }
-
+        _user = data.user;
+        _pasien = data.pasien;
+        _fotoProfilUrl = data.pasien?.fotoProfilUrl;
         _isLoading = false;
         _error = null;
       });
@@ -123,8 +117,8 @@ class _ProfilePageState extends State<ProfilePage> {
         quality: 75,
       );
 
-      final pasienId = _pasien?['id'];
-      if (pasienId == null) {
+      final pasienId = _pasien?.id;
+      if (pasienId == null || pasienId == 0) {
         if (!mounted) return;
         setState(() => _isUploadingFoto = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -137,7 +131,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final newUrl = await _service.uploadProfilePhotoBytes(
-        pasienId: pasienId as int,
+        pasienId: pasienId,
         bytes: uploadBytes,
         fileName: picked.name,
       );
@@ -267,6 +261,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       onSaveSuccess: (updated) {
                                         setState(() {
                                           _pasien = updated;
+                                          _fotoProfilUrl = updated.fotoProfilUrl ?? _fotoProfilUrl;
                                           _isEditing = false;
                                         });
                                       },
