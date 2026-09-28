@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class OrderPembayaranCard extends StatelessWidget {
   final Map<String, dynamic> order;
@@ -267,31 +268,29 @@ class OrderPembayaranCard extends StatelessWidget {
                   ),
                 )
               else ...[
-                ClipRRect(
+                AppCachedImage(
+                  imageUrl: buktiUrl,
+                  width: double.infinity,
+                  height: 220,
+                  fit: BoxFit.cover,
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    buktiUrl,
-                    width: double.infinity,
-                    height: 220,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 140,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: HCColors.bg,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(IconlyLight.image, color: HCColors.textMuted, size: 32),
-                          SizedBox(height: 8),
-                          Text(
-                            'Gagal memuat bukti transaksi',
-                            style: TextStyle(color: HCColors.textMuted, fontSize: 12),
-                          ),
-                        ],
-                      ),
+                  errorWidget: Container(
+                    height: 140,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: HCColors.bg,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(IconlyLight.image, color: HCColors.textMuted, size: 32),
+                        SizedBox(height: 8),
+                        Text(
+                          'Gagal memuat bukti transaksi',
+                          style: TextStyle(color: HCColors.textMuted, fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
                 ),

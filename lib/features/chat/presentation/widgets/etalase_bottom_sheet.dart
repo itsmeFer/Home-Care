@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/features/chat/data/models/chat_models.dart';
 import 'package:home_care/features/chat/presentation/widgets/chat_input_composer.dart';
 
@@ -68,21 +69,19 @@ class EtalaseBottomSheet extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: SizedBox(
-                          width: 58,
-                          height: 58,
-                          child:
-                              image != null && image.isNotEmpty
-                                  ? Image.network(
-                                    image,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (_, __, ___) => _imageFallback(),
-                                  )
-                                  : _imageFallback(),
-                        ),
+                      SizedBox(
+                        width: 58,
+                        height: 58,
+                        child: image != null && image.isNotEmpty
+                            ? AppCachedImage(
+                                imageUrl: image,
+                                width: 58,
+                                height: 58,
+                                fit: BoxFit.cover,
+                                borderRadius: BorderRadius.circular(16),
+                                errorWidget: _imageFallback(),
+                              )
+                            : _imageFallback(),
                       ),
                       const SizedBox(width: 12),
                       Expanded(

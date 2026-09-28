@@ -1,14 +1,10 @@
-﻿import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/features/nurses/domain/nurse_model.dart';
-import 'package:home_care/kordinator/kelola_perawat.dart';
+import 'services/kelola_perawat_service.dart';
 
 class DetailPerawatPage extends StatefulWidget {
   final Perawat perawat;
@@ -20,7 +16,6 @@ class DetailPerawatPage extends StatefulWidget {
 }
 
 class _DetailPerawatPageState extends State<DetailPerawatPage> {
-  static String get baseUrl => ApiConstants.apiBase;
 
   final TextEditingController _passwordC = TextEditingController();
   bool _obscurePwd = true;
@@ -65,43 +60,7 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
     setState(() => _isSavingPassword = true);
 
     try {
-      final token = await StorageService.getToken();
-
-      if (token == null) {
-        _showSnack('Token tidak ditemukan. Silakan login ulang.', error: true);
-        return;
-      }
-
-      final url = Uri.parse(
-        '$baseUrl/koordinator/perawat/${widget.perawat.id}/password',
-      );
-
-      final res = await http.put(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'password': pwd}),
-      );
-
-      if (res.statusCode != 200 && res.statusCode != 201) {
-        String msg = 'Gagal mengubah password (${res.statusCode})';
-        try {
-          final body = jsonDecode(res.body);
-          if (body['message'] != null) msg = body['message'];
-        } catch (_) {}
-        _showSnack(msg, error: true);
-        return;
-      }
-
-      final body = jsonDecode(res.body);
-      if (body['success'] != true) {
-        _showSnack(body['message'] ?? 'Gagal mengubah password', error: true);
-        return;
-      }
-
+      await KelolaPerawatService.updatePassword(widget.perawat.id, pwd);
       _passwordC.clear();
       _showSnack('Password perawat berhasil diubah');
     } catch (e) {
@@ -140,12 +99,16 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
                   children: [
                     CircleAvatar(
                       radius: 28,
-                      backgroundColor: HCColor.primary.withOpacity(.1),
+                      backgroundColor: HCColor.primary.withValues(alpha: .1),
                       backgroundImage:
                           (() {
                             final url = _resolveMediaUrl(perawat.foto);
                             return (url != null && url.isNotEmpty)
-                                ? NetworkImage(url)
+                                ? CachedNetworkImageProvider(
+                                    url,
+                                    maxHeight: 200,
+                                    maxWidth: 200,
+                                  )
                                 : null;
                           })(),
                       child:
@@ -193,15 +156,15 @@ class _DetailPerawatPageState extends State<DetailPerawatPage> {
                               const SizedBox(width: 8),
                               Chip(
                                 label: Text(
-                                  (perawat.isActive ?? true)
+                                  perawat.isActive
                                       ? 'Aktif'
                                       : 'Tidak Aktif',
                                   style: const TextStyle(fontSize: 12),
                                 ),
                                 backgroundColor:
-                                    (perawat.isActive ?? true)
-                                        ? Colors.green.withOpacity(.15)
-                                        : Colors.red.withOpacity(.15),
+                                    perawat.isActive
+                                        ? Colors.green.withValues(alpha: .15)
+                                        : Colors.red.withValues(alpha: .15),
                                 visualDensity: VisualDensity.compact,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
@@ -516,17 +479,16 @@ class _DocImageTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child:
                   hasImage
-                      ? Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (_, __, ___) => Container(
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: Text('Gagal memuat gambar'),
-                              ),
+                      ? AppCachedImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Text('Gagal memuat gambar'),
                             ),
-                      )
+                          ),
+                        )
                       : Container(
                         color: Colors.grey[200],
                         child: const Center(

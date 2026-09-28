@@ -1,47 +1,39 @@
-﻿import 'dart:convert';
-import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:home_care/core/services/storage_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:home_care/direktur/pages/lapor_it.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'pages/overview_page.dart';
-import 'pages/keuangan_page.dart';
-import 'pages/tim_page.dart';
-import 'pages/pasien_page.dart';
-import 'pages/audit_page.dart';
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/features/auth/data/auth_repository.dart';
 import 'package:home_care/features/auth/presentation/screens/login.dart';
+import 'package:home_care/manager/pages/audit_page.dart';
+import 'package:home_care/manager/pages/kelola_perawat.dart';
+import 'package:home_care/manager/pages/keuangan_page.dart';
+import 'package:home_care/manager/pages/lapor_it.dart';
+import 'package:home_care/manager/pages/overview_page.dart';
+import 'package:home_care/manager/pages/tim_page.dart';
 
-class DirekturDashboard extends StatefulWidget {
-  const DirekturDashboard({super.key});
+class ManagerDashboard extends StatefulWidget {
+  const ManagerDashboard({super.key});
 
   @override
-  State<DirekturDashboard> createState() => _DirekturDashboardState();
+  State<ManagerDashboard> createState() => _ManagerDashboardState();
 }
 
-class _DirekturDashboardState extends State<DirekturDashboard> {
-
+class _ManagerDashboardState extends State<ManagerDashboard> {
   static const Color kBg = Color(0xFFFFFFFF);
-  static const Color kCard = Colors.white;
-  static const Color kBorder = Color(0xFFE2E8F0);
-  static const Color kText = Color(0xFF0F172A);
-  static const Color kMuted = Color(0xFF64748B);
-  static const Color kPrimary = Color(0xFF0EA5E9);
 
   int _tabIndex = 0;
 
   final List<String> _ranges = const [
     'Hari ini',
     '7 hari',
+    '30 hari',
     'Bulan ini',
-    'Tahun ini',
   ];
-  String _range = 'Bulan ini';
+  String _range = '7 hari';
 
   String _userName = '...';
-
   Key _pageAnimKey = UniqueKey();
 
   @override
@@ -72,6 +64,9 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
       barrierDismissible: true,
       builder: (ctx) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text(
             'Logout?',
             style: TextStyle(fontWeight: FontWeight.w900),
@@ -83,6 +78,9 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
               child: const Text('Batal'),
             ),
             FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+              ),
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Logout'),
             ),
@@ -93,50 +91,29 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
 
     if (ok != true) return;
 
-    await StorageService.clearAuth();
+    await AuthRepository().logout();
 
     if (!mounted) return;
 
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
-  }
-
-  void _openLaporIT() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const LaporITPage()),
+      (_) => false,
     );
   }
 
   Future<void> _loadMe() async {
-    final token = (await StorageService.getToken()) ?? '';
-
-    if (token.isEmpty) {
-      if (mounted) setState(() => _userName = 'Direktur');
-      return;
-    }
+    final localName = (await StorageService.getString('name') ?? '').trim();
+    if (mounted && localName.isNotEmpty) setState(() => _userName = localName);
 
     try {
-      final res = await http.get(
-        Uri.parse(ApiConstants.me),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        final body = jsonDecode(res.body);
-        final name = _pickName(body);
-        if (mounted) setState(() => _userName = name);
-      } else {
-        if (mounted) setState(() => _userName = 'Direktur');
-      }
+      final res = await ApiClient.get(ApiConstants.me);
+      final name = _pickName(res);
+      if (mounted) setState(() => _userName = name);
     } catch (_) {
-      if (mounted) setState(() => _userName = 'Direktur');
+      if (mounted && _userName.trim().isEmpty) {
+        setState(() => _userName = 'Manager');
+      }
     }
   }
 
@@ -158,7 +135,58 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
         }
       }
     }
-    return 'Direktur';
+    return 'Manager';
+  }
+
+  String _titleForTab(int i) {
+    switch (i) {
+      case 0:
+        return 'Overview';
+      case 1:
+        return 'Keuangan';
+      case 2:
+        return 'Kinerja Tim';
+      case 3:
+        return 'Kelola Perawat';
+      case 4:
+        return 'Audit';
+      default:
+        return 'Dashboard';
+    }
+  }
+
+  Widget _buildTabPage(
+    int i, {
+    required String range,
+    required bool isDesktop,
+    required bool isTablet,
+  }) {
+    switch (i) {
+      case 0:
+        return ManagerOverviewPage(
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
+      case 1:
+        return ManagerKeuanganPage(
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
+      case 2:
+        return TimPage(isDesktop: isDesktop, isTablet: isTablet, range: range);
+      case 3:
+        return KelolaPerawatPage(isDesktop: isDesktop, isTablet: isTablet);
+      case 4:
+        return AuditPageManager(
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+          range: range,
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   @override
@@ -188,12 +216,14 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
                     ranges: _ranges,
                     onRangeChanged: _setRange,
                     userName: _userName,
+                    onLogout: _logout,
                     onOpenMenu:
                         isDesktop
                             ? null
                             : () => showModalBottomSheet(
                               context: context,
                               backgroundColor: Colors.transparent,
+                              isScrollControlled: true,
                               builder:
                                   (_) => _MobileMenu(
                                     selectedIndex: _tabIndex,
@@ -212,9 +242,9 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
                   Expanded(
                     child: SingleChildScrollView(
                       padding: EdgeInsets.fromLTRB(
-                        isDesktop ? 22 : 16,
-                        10,
-                        isDesktop ? 22 : 16,
+                        isDesktop ? 22 : (isTablet ? 16 : 12),
+                        isDesktop ? 10 : 8,
+                        isDesktop ? 22 : (isTablet ? 16 : 12),
                         18,
                       ),
                       child: AnimatedSwitcher(
@@ -265,61 +295,6 @@ class _DirekturDashboardState extends State<DirekturDashboard> {
           isDesktop ? null : _BottomNav(index: _tabIndex, onChanged: _setTab),
     );
   }
-
-  String _titleForTab(int i) {
-    switch (i) {
-      case 0:
-        return 'Executive Overview';
-      case 1:
-        return 'Laporan Keuangan';
-      case 2:
-        return 'Kinerja Tim';
-      case 3:
-        return 'Pasien & Insight';
-      case 4:
-        return 'Audit & Control';
-      default:
-        return 'Dashboard';
-    }
-  }
-
-  Widget _buildTabPage(
-    int i, {
-    required String range,
-    required bool isDesktop,
-    required bool isTablet,
-  }) {
-    switch (i) {
-      case 0:
-        return OverviewPage(
-          isDesktop: isDesktop,
-          isTablet: isTablet,
-          range: range,
-        );
-      case 1:
-        return KeuanganPage(
-          isDesktop: isDesktop,
-          isTablet: isTablet,
-          range: range,
-        );
-      case 2:
-        return TimPage(isDesktop: isDesktop, isTablet: isTablet, range: range);
-      case 3:
-        return PasienPage(
-          isDesktop: isDesktop,
-          isTablet: isTablet,
-          range: range,
-        );
-      case 4:
-        return AuditPage(
-          isDesktop: isDesktop,
-          isTablet: isTablet,
-          range: range,
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
 }
 
 class _TopBar extends StatelessWidget {
@@ -329,6 +304,7 @@ class _TopBar extends StatelessWidget {
   final ValueChanged<String> onRangeChanged;
   final VoidCallback? onOpenMenu;
   final String userName;
+  final VoidCallback onLogout;
 
   const _TopBar({
     required this.title,
@@ -336,6 +312,7 @@ class _TopBar extends StatelessWidget {
     required this.ranges,
     required this.onRangeChanged,
     required this.userName,
+    required this.onLogout,
     this.onOpenMenu,
   });
 
@@ -347,23 +324,18 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    final isMobile = w < 600;
+    final bool isMobile = w < 760;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        isMobile ? 8 : 14,
-        isMobile ? 8 : 12,
-        isMobile ? 8 : 14,
-        isMobile ? 8 : 12,
-      ),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: kCard.withOpacity(.92),
+        color: kCard.withValues(alpha: .92),
         border: const Border(bottom: BorderSide(color: kBorder)),
       ),
       child:
           isMobile
               ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
 
                   Row(
@@ -371,11 +343,11 @@ class _TopBar extends StatelessWidget {
                       if (onOpenMenu != null)
                         IconButton(
                           onPressed: onOpenMenu,
-                          icon: const Icon(Icons.menu_rounded, size: 22),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.menu_rounded),
+                          tooltip: 'Menu',
+                          iconSize: 22,
                         ),
-                      if (onOpenMenu != null) const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,7 +365,7 @@ class _TopBar extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             const Text(
-                              'HomeCare â€¢ Dashboard',
+                              'Manager Suite',
                               style: TextStyle(
                                 color: kMuted,
                                 fontSize: 11,
@@ -403,27 +375,18 @@ class _TopBar extends StatelessWidget {
                           ],
                         ),
                       ),
+                      _AvatarChipMobile(
+                        name: userName,
+                        onTap: onOpenMenu ?? () {},
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _Select(
-                          value: rangeValue,
-                          items: ranges,
-                          onChanged: onRangeChanged,
-                        ),
-                        const SizedBox(width: 8),
-                        _AvatarChip(
-                          name: userName,
-                          subtitle: 'Direktur',
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
+                  _MobileRangeSelector(
+                    value: rangeValue,
+                    items: ranges,
+                    onChanged: onRangeChanged,
                   ),
                 ],
               )
@@ -435,7 +398,7 @@ class _TopBar extends StatelessWidget {
                       icon: const Icon(Icons.menu_rounded),
                       tooltip: 'Menu',
                     ),
-                  if (onOpenMenu != null) const SizedBox(width: 6),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +414,7 @@ class _TopBar extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         const Text(
-                          'HomeCare â€¢ Executive Dashboard',
+                          'HomeCare â€¢ Manager Dashboard',
                           style: TextStyle(
                             color: kMuted,
                             fontSize: 12.5,
@@ -475,11 +438,115 @@ class _TopBar extends StatelessWidget {
                   const SizedBox(width: 8),
                   _AvatarChip(
                     name: userName,
-                    subtitle: 'All Access',
+                    subtitle: 'Manager Access',
                     onTap: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: onLogout,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: kBorder),
+                        color: const Color(0xFFF8FAFC),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            IconlyLight.logout,
+                            size: 18,
+                            color: Color(0xFF334155),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Keluar',
+                            style: TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
+    );
+  }
+}
+
+class _MobileRangeSelector extends StatelessWidget {
+  final String value;
+  final List<String> items;
+  final ValueChanged<String> onChanged;
+
+  const _MobileRangeSelector({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  static const Color kBorder = Color(0xFFE2E8F0);
+  static const Color kPrimary = Color(0xFF0EA5E9);
+  static const Color kMuted = Color(0xFF64748B);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorder),
+      ),
+      child: Row(
+        children:
+            items.map((item) {
+              final selected = item == value;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onChanged(item),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selected ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9),
+                      border:
+                          selected
+                              ? Border.all(color: kPrimary.withValues(alpha: 0.3))
+                              : null,
+                      boxShadow:
+                          selected
+                              ? [
+                                BoxShadow(
+                                  color: kPrimary.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                              : null,
+                    ),
+                    child: Text(
+                      item,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: selected ? kPrimary : kMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+      ),
     );
   }
 }
@@ -499,9 +566,6 @@ class _Sidebar extends StatelessWidget {
 
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
-  static const Color kText = Color(0xFF0F172A);
-  static const Color kMuted = Color(0xFF64748B);
-  static const Color kPrimary = Color(0xFF0EA5E9);
   static const Color kDanger = Color(0xFFEF4444);
 
   @override
@@ -544,33 +608,38 @@ class _Sidebar extends StatelessWidget {
             onTap: () => onSelect(2),
           ),
           _NavItem(
-            icon: IconlyLight.heart,
-            activeIcon: IconlyBold.heart,
-            label: 'Pasien & Insight',
+            icon: IconlyLight.work,
+            activeIcon: IconlyBold.work,
+            label: 'Kelola Perawat',
             selected: selectedIndex == 3,
             onTap: () => onSelect(3),
           ),
           _NavItem(
             icon: IconlyLight.shieldDone,
             activeIcon: IconlyBold.shieldDone,
-            label: 'Audit & Control',
+            label: 'Audit',
             selected: selectedIndex == 4,
             onTap: () => onSelect(4),
           ),
+
+          const SizedBox(height: 8),
+          const Divider(height: 1, color: kBorder),
+          const SizedBox(height: 8),
+
           _NavItem(
             icon: IconlyLight.ticket,
             activeIcon: IconlyBold.ticket,
-            label: 'Hubungi IT',
+            label: 'Lapor IT',
             selected: false,
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LaporITPage()),
-                ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LaporITPageManager()),
+              );
+            },
           ),
 
           const Spacer(),
-
           Padding(
             padding: const EdgeInsets.all(14),
             child: InkWell(
@@ -619,7 +688,7 @@ class _BrandHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayName =
-        (name.trim().isEmpty || name == '...') ? 'Direktur' : name;
+        (name.trim().isEmpty || name == '...') ? 'Manager' : name;
 
     return Row(
       children: [
@@ -648,7 +717,7 @@ class _BrandHeader extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               const Text(
-                'Executive Suite',
+                'Manager Suite',
                 style: TextStyle(
                   color: kMuted,
                   fontSize: 12.2,
@@ -737,60 +806,102 @@ class _BottomNav extends StatelessWidget {
 
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: kCard,
+        border: const Border(top: BorderSide(color: kBorder)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _BottomNavItem(
+                icon: IconlyLight.category,
+                activeIcon: IconlyBold.category,
+                label: 'Overview',
+                selected: index == 0,
+                onTap: () => onChanged(0),
+              ),
+              _BottomNavItem(
+                icon: IconlyLight.wallet,
+                activeIcon: IconlyBold.wallet,
+                label: 'Keuangan',
+                selected: index == 1,
+                onTap: () => onChanged(1),
+              ),
+              _BottomNavItem(
+                icon: IconlyLight.user3,
+                activeIcon: IconlyBold.user3,
+                label: 'Tim',
+                selected: index == 2,
+                onTap: () => onChanged(2),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatelessWidget {
+  final IconData icon;
+  final IconData? activeIcon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _BottomNavItem({
+    required this.icon,
+    this.activeIcon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
   static const Color kMuted = Color(0xFF64748B);
   static const Color kPrimary = Color(0xFF0EA5E9);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: kCard,
-        border: Border(top: BorderSide(color: kBorder)),
-      ),
-      child: BottomNavigationBar(
-        currentIndex: index,
-        onTap: onChanged,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: kCard,
-        selectedItemColor: kPrimary,
-        unselectedItemColor: kMuted,
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w800,
-          fontSize: 11,
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                color: selected ? kPrimary.withValues(alpha: 0.12) : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(selected ? (activeIcon ?? icon) : icon, color: selected ? kPrimary : kMuted, size: 22),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? kPrimary : kMuted,
+                fontSize: 10.5,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+              ),
+            ),
+          ],
         ),
-        unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 10,
-        ),
-        selectedFontSize: 11,
-        unselectedFontSize: 10,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(IconlyLight.category, size: 22),
-            activeIcon: Icon(IconlyBold.category, size: 22),
-            label: 'Overview',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(IconlyLight.wallet, size: 22),
-            activeIcon: Icon(IconlyBold.wallet, size: 22),
-            label: 'Keuangan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(IconlyLight.user3, size: 22),
-            activeIcon: Icon(IconlyBold.user3, size: 22),
-            label: 'Tim',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(IconlyLight.heart, size: 22),
-            activeIcon: Icon(IconlyBold.heart, size: 22),
-            label: 'Pasien',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(IconlyLight.shieldDone, size: 22),
-            activeIcon: Icon(IconlyBold.shieldDone, size: 22),
-            label: 'Audit',
-          ),
-        ],
       ),
     );
   }
@@ -798,21 +909,22 @@ class _BottomNav extends StatelessWidget {
 
 class _MobileMenu extends StatelessWidget {
   final int selectedIndex;
-  final ValueChanged<int> onSelect;
   final String userName;
+  final ValueChanged<int> onSelect;
   final VoidCallback onLogout;
 
   const _MobileMenu({
     required this.selectedIndex,
-    required this.onSelect,
     required this.userName,
+    required this.onSelect,
     required this.onLogout,
   });
 
   static const Color kCard = Colors.white;
   static const Color kBorder = Color(0xFFE2E8F0);
   static const Color kText = Color(0xFF0F172A);
-  static const Color kDanger = Color(0xFFEF4444);
+  static const Color kMuted = Color(0xFF64748B);
+  static const Color kPrimary = Color(0xFF0EA5E9);
 
   @override
   Widget build(BuildContext context) {
@@ -821,105 +933,185 @@ class _MobileMenu extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          color: kCard.withOpacity(.95),
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 5,
-                  width: 46,
-                  decoration: BoxDecoration(
-                    color: kBorder,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Menu Direktur - $userName',
-                    style: const TextStyle(
-                      color: kText,
-                      fontSize: 14.8,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _menuItem(context, 0, IconlyLight.category, IconlyBold.category, 'Overview'),
-                _menuItem(
-                  context,
-                  1,
-                  IconlyLight.wallet,
-                  IconlyBold.wallet,
-                  'Keuangan',
-                ),
-                _menuItem(context, 2, IconlyLight.user3, IconlyBold.user3, 'Kinerja Tim'),
-                _menuItem(
-                  context,
-                  3,
-                  IconlyLight.heart,
-                  IconlyBold.heart,
-                  'Pasien & Insight',
-                ),
-                _menuItem(
-                  context,
-                  4,
-                  IconlyLight.shieldDone,
-                  IconlyBold.shieldDone,
-                  'Audit & Control',
-                ),
-                const SizedBox(height: 8),
-                const Divider(height: 1, color: kBorder),
-                const SizedBox(height: 8),
+          color: kCard.withValues(alpha: .98),
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
 
-                InkWell(
-                  onTap: onLogout,
+              Container(
+                height: 5,
+                width: 46,
+                decoration: BoxDecoration(
+                  color: kBorder,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
+                  border: Border.all(color: kBorder),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 48,
+                      width: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: const Color(0xFFE0F2FE),
+                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                      ),
+                      child: const Icon(
+                        Icons.medical_services_outlined,
+                        color: kPrimary,
+                        size: 24,
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFFECACA)),
-                      color: const Color(0xFFFEF2F2),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(IconlyLight.logout, color: kDanger),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Logout',
-                            style: TextStyle(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (userName.trim().isEmpty || userName == '...')
+                                ? 'Manager'
+                                : userName,
+                            style: const TextStyle(
+                              color: kText,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF991B1B),
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const Text(
+                            'Manager Suite',
+                            style: TextStyle(
+                              color: kMuted,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
                             ),
                           ),
-                        ),
-                        Icon(
-                          IconlyLight.arrowRight2,
-                          color: Color(0xFFEF4444),
-                          size: 18,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Menu Manager',
+                  style: TextStyle(
+                    color: kText,
+                    fontSize: 14.8,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 10),
+
+              _menuItem(0, IconlyLight.category, IconlyBold.category, 'Overview'),
+              _menuItem(1, IconlyLight.wallet, IconlyBold.wallet, 'Keuangan'),
+              _menuItem(2, IconlyLight.user3, IconlyBold.user3, 'Kinerja Tim'),
+              _menuItem(3, IconlyLight.work, IconlyBold.work, 'Kelola Perawat'),
+              _menuItem(4, IconlyLight.shieldDone, IconlyBold.shieldDone, 'Audit'),
+
+              const SizedBox(height: 8),
+              const Divider(height: 1, color: kBorder),
+              const SizedBox(height: 8),
+
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LaporITPageManager(),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                    color: const Color(0xFFE0F2FE),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(IconlyLight.ticket, color: kPrimary),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Lapor IT',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: kText,
+                          ),
+                        ),
+                      ),
+                      Icon(IconlyLight.arrowRight2, color: kPrimary, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              InkWell(
+                onTap: onLogout,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                    color: const Color(0xFFFEF2F2),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(IconlyLight.logout, color: Color(0xFFEF4444)),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF991B1B),
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: Color(0xFFEF4444),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _menuItem(BuildContext context, int i, IconData icon, IconData activeIcon, String label) {
+  Widget _menuItem(int i, IconData icon, IconData activeIcon, String label) {
     final bool selected = selectedIndex == i;
     return InkWell(
       onTap: () => onSelect(i),
@@ -936,26 +1128,23 @@ class _MobileMenu extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              selected ? activeIcon : icon,
-              color:
-                  selected ? const Color(0xFF0EA5E9) : const Color(0xFF64748B),
-              size: 20,
-            ),
+            Icon(selected ? activeIcon : icon, color: selected ? kPrimary : kMuted, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
-                  color:
-                      selected
-                          ? const Color(0xFF0F172A)
-                          : const Color(0xFF334155),
+                  fontSize: 13,
+                  color: selected ? kText : const Color(0xFF334155),
                 ),
               ),
             ),
-            const Icon(IconlyLight.arrowRight2, color: Color(0xFF94A3B8), size: 18),
+            Icon(
+              IconlyLight.arrowRight2,
+              color: selected ? kPrimary : const Color(0xFF94A3B8),
+              size: 18,
+            ),
           ],
         ),
       ),
@@ -981,17 +1170,13 @@ class _Select extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
-        color: const Color(0xFFFFFFFF),
+        color: Colors.white,
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isDense: true,
-          icon: const Icon(
-            Icons.expand_more_rounded,
-            color: Color(0xFF64748B),
-            size: 20,
-          ),
+          icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF64748B)),
           style: const TextStyle(
             color: Color(0xFF0F172A),
             fontWeight: FontWeight.w900,
@@ -1025,69 +1210,79 @@ class _AvatarChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final isMobile = w < 600;
-
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 8 : 10,
-          vertical: isMobile ? 6 : 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: kBorder),
           color: Colors.white,
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: isMobile ? 28 : 34,
-              width: isMobile ? 28 : 34,
+              height: 34,
+              width: 34,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 color: const Color(0xFFE0F2FE),
                 border: Border.all(color: const Color(0xFFBAE6FD)),
               ),
-              child: Icon(
-                Icons.person_outline,
-                color: const Color(0xFF0284C7),
-                size: isMobile ? 16 : 18,
-              ),
+              child: const Icon(Icons.person_outline, color: Color(0xFF0284C7)),
             ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      color: const Color(0xFF0F172A),
-                      fontWeight: FontWeight.w900,
-                      fontSize: isMobile ? 11.5 : 12.8,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  (name.trim().isEmpty || name == '...') ? 'Manager' : name,
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12.8,
                   ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: const Color(0xFF64748B),
-                      fontWeight: FontWeight.w700,
-                      fontSize: isMobile ? 10.5 : 11.6,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11.6,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AvatarChipMobile extends StatelessWidget {
+  final String name;
+  final VoidCallback onTap;
+
+  const _AvatarChipMobile({required this.name, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: const Color(0xFFE0F2FE),
+          border: Border.all(color: const Color(0xFFBAE6FD)),
+        ),
+        child: const Icon(
+          Icons.medical_services_outlined,
+          color: Color(0xFF0284C7),
+          size: 20,
         ),
       ),
     );
@@ -1118,7 +1313,6 @@ class _GhostButton extends StatelessWidget {
           color: const Color(0xFFF8FAFC),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 18, color: const Color(0xFF64748B)),
             const SizedBox(width: 8),

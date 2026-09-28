@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/features/chat/data/models/chat_models.dart';
 
 class ChatBubble extends StatelessWidget {
@@ -59,23 +60,20 @@ class ChatBubble extends StatelessWidget {
                   if (imageUrl != null) ...[
                     GestureDetector(
                       onTap: onImageTap,
-                      child: ClipRRect(
+                      child: AppCachedImage(
+                        imageUrl: imageUrl!,
+                        width: 220,
+                        height: 220,
+                        fit: BoxFit.cover,
                         borderRadius: BorderRadius.circular(18),
-                        child: Image.network(
-                          imageUrl!,
+                        errorWidget: Container(
                           width: 220,
                           height: 220,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (_, __, ___) => Container(
-                                width: 220,
-                                height: 220,
-                                color: Colors.black12,
-                                child: const Icon(
-                                  CupertinoIcons.photo,
-                                  size: 40,
-                                ),
-                              ),
+                          color: Colors.black12,
+                          child: const Icon(
+                            CupertinoIcons.photo,
+                            size: 40,
+                          ),
                         ),
                       ),
                     ),
@@ -126,7 +124,10 @@ class ChatBubble extends StatelessWidget {
                   child: InteractiveViewer(
                     minScale: 0.8,
                     maxScale: 4,
-                    child: Image.network(imageUrl, fit: BoxFit.contain),
+                    child: AppCachedImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
                 Positioned(

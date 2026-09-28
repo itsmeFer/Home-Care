@@ -1,15 +1,15 @@
-﻿import 'dart:ui';
+import 'dart:ui';
+import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/services/storage_service.dart';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/features/auth/data/auth_repository.dart';
 
-import 'pages/dashboard_it_page.dart';
-import 'pages/audit_sistem_page.dart';
-import 'pages/user_monitor_page.dart';
-import 'pages/support_ticket_page.dart';
-import 'pages/system_maintenance_page.dart';
-import 'pages/session_token_page.dart';
+import 'package:home_care/ITDev/pages/dashboard_it_page.dart';
+import 'package:home_care/ITDev/pages/audit_sistem_page.dart';
+import 'package:home_care/ITDev/pages/user_monitor_page.dart';
+import 'package:home_care/ITDev/pages/support_ticket_page.dart';
+import 'package:home_care/ITDev/pages/system_maintenance_page.dart';
+import 'package:home_care/ITDev/pages/session_token_page.dart';
 
 import 'package:home_care/features/auth/presentation/screens/login.dart';
 
@@ -43,8 +43,7 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
   }
 
   Future<void> _loadMeLocal() async {
-    final prefs = await SharedPreferences.getInstance();
-    final localName = (prefs.getString('name') ?? '').trim();
+    final localName = (await StorageService.getString('name') ?? '').trim();
     if (mounted && localName.isNotEmpty) setState(() => _userName = localName);
   }
 
@@ -96,7 +95,7 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
     );
     if (ok != true) return;
 
-    await StorageService.clearAuth();
+    await AuthRepository().logout();
 
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(

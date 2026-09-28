@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:home_care/ITDev/dashboard_it_page.dart';
+import 'package:home_care/ITDev/dashboard/dashboard_it_page.dart';
 import 'package:home_care/admin/dashboard/admin_dashboard_page.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/core/services/firebase_notification_service.dart';
 import 'package:home_care/core/services/storage_service.dart';
-import 'package:home_care/direktur/direktur_dashboard.dart';
+import 'package:home_care/direktur/dashboard/direktur_dashboard.dart';
 import 'package:home_care/features/auth/presentation/screens/login.dart';
-import 'package:home_care/kordinator/dashboard.dart';
-import 'package:home_care/manager/manager_dashboard.dart';
-import 'package:home_care/perawat/dashboard.dart';
+import 'package:home_care/kordinator/dashboard/dashboard_page.dart';
+import 'package:home_care/manager/dashboard/manager_dashboard_page.dart';
+import 'package:home_care/perawat/dashboard/dashboard_page.dart';
 import 'package:home_care/users/home/home_page.dart';
 
 /// RootAuthGate bertanggung jawab menentukan halaman awal pengguna:

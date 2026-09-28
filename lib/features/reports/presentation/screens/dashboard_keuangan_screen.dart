@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,8 +11,7 @@ import 'package:universal_io/io.dart' as uio;
 
 import 'package:universal_html/html.dart' as html;
 
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 enum KeuanganChartMode { lineRevenue, pieFee, barProfitLayanan }
@@ -38,12 +36,6 @@ class DashboardKeuanganScreen extends StatefulWidget {
 
 class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     with SingleTickerProviderStateMixin {
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
-
-  String get _url =>
-      '$kApiBase/${widget.role}/dashboard/keuangan?range=${Uri.encodeComponent(widget.range)}';
-
   Future<Map<String, dynamic>>? _future;
 
   KeuanganChartMode _mode = KeuanganChartMode.lineRevenue;
@@ -112,26 +104,20 @@ class _DashboardKeuanganScreenState extends State<DashboardKeuanganScreen>
     );
   }
 
-  Future<String> _getToken() async => (await StorageService.getToken()) ?? '';
-
   Future<Map<String, dynamic>> _fetch() async {
-    final token = await _getToken();
-    if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
-
-    final res = await http.get(
-      Uri.parse(_url),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final res = await ApiClient.get(
+      '/${widget.role}/dashboard/keuangan',
+      queryParams: {'range': widget.range},
     );
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final body = jsonDecode(res.body);
-      if (body is Map && body['data'] is Map) {
-        return Map<String, dynamic>.from(body['data']);
-      }
-      return Map<String, dynamic>.from(body as Map);
+    if (res is Map && res['data'] is Map) {
+      return Map<String, dynamic>.from(res['data']);
+    }
+    if (res is Map) {
+      return Map<String, dynamic>.from(res);
     }
 
-    throw Exception('HTTP ${res.statusCode}: ${res.body}');
+    throw Exception('Gagal memuat data keuangan');
   }
 
   double _toDouble(dynamic v) {

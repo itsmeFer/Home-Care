@@ -1,16 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:home_care/perawat/chat/perawat_chat_list_page.dart';
-import 'package:home_care/perawat/lapor_it.dart';
-import 'package:home_care/perawat/lihat_orderan_masuk.dart';
-import 'package:home_care/perawat/profil.dart';
-import 'package:home_care/features/auth/presentation/screens/login.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/theme/app_colors.dart';
-import 'package:http/http.dart' as http;
 
+import 'package:flutter/material.dart';
+import 'package:home_care/features/auth/data/auth_repository.dart';
+import 'package:home_care/features/auth/presentation/screens/login.dart';
+import 'package:home_care/perawat/chat/perawat_chat_list_page.dart';
+import 'package:home_care/perawat/lapor_it/lapor_it_page.dart';
+import 'package:home_care/perawat/orderan/lihat_orderan_masuk_page.dart';
+import 'package:home_care/perawat/profil/profil_page.dart';
+import 'package:home_care/core/theme/app_colors.dart';
+import 'services/dashboard_service.dart';
 
 class PerawatDashboard extends StatefulWidget {
   const PerawatDashboard({super.key});
@@ -20,8 +18,6 @@ class PerawatDashboard extends StatefulWidget {
 }
 
 class _PerawatDashboardState extends State<PerawatDashboard> {
-  static String get kBaseUrl => ApiConstants.apiBase;
-
   int _chatUnreadCount = 0;
   int _orderUnreadCount = 0;
 
@@ -56,12 +52,10 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
     });
   }
 
-  Future<String?> _getToken() => StorageService.getToken();
-
   Future<void> _logout(BuildContext context) async {
-    await StorageService.clearAuth();
+    await AuthRepository().logout();
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     Navigator.pushAndRemoveUntil(
       context,
@@ -71,7 +65,6 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
   }
 
   Future<void> _loadBadges({bool silent = false}) async {
-
     if (_isLoadingBadge && !silent) return;
 
     if (!silent && mounted) {
@@ -83,146 +76,25 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
     }
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        debugPrint('âŒ PERAWAT TOKEN NOT FOUND');
-        if (mounted) {
-          setState(() {
-            _chatUnreadCount = 0;
-            _orderUnreadCount = 0;
-            _isLoadingBadge = false;
-          });
-        }
-        return;
-      }
-
-      debugPrint('ðŸ”„ Loading perawat badges...');
-
       final results = await Future.wait([
-        _fetchChatUnread(token),
-        _fetchOrderUnread(token),
+        PerawatDashboardService.getChatUnread(),
+        PerawatDashboardService.getOrderUnread(),
       ]);
 
-      final chatUnread = results[0];
-      final orderUnread = results[1];
-
-      debugPrint('âœ… Perawat Chat Unread: $chatUnread');
-      debugPrint('âœ… Perawat Order Unread: $orderUnread');
-
       if (mounted) {
         setState(() {
-          _chatUnreadCount = chatUnread;
-          _orderUnreadCount = orderUnread;
+          _chatUnreadCount = results[0];
+          _orderUnreadCount = results[1];
           _isLoadingBadge = false;
         });
       }
     } catch (e) {
-      debugPrint('âŒ LOAD PERAWAT BADGES ERROR: $e');
-
+      debugPrint('LOAD PERAWAT BADGES ERROR: $e');
       if (mounted) {
         setState(() {
           _isLoadingBadge = false;
         });
       }
-    }
-  }
-
-  Future<int> _fetchChatUnread(String token) async {
-    try {
-      final res = await http
-          .get(
-            Uri.parse('$kBaseUrl/chat/unread-summary'),
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
-
-      debugPrint('ðŸ“¨ Perawat Chat Unread Response: ${res.statusCode}');
-      debugPrint('ðŸ“¨ Perawat Chat Unread Body: ${res.body}');
-
-      if (res.statusCode != 200) return 0;
-
-      final body = json.decode(res.body);
-
-      if (body is Map) {
-        if (body['success'] == true) {
-          final data = body['data'];
-          if (data is Map) {
-            final totalUnread = data['total_unread'];
-            if (totalUnread is int) return totalUnread;
-            return int.tryParse(totalUnread?.toString() ?? '0') ?? 0;
-          }
-        }
-
-        final totalUnread = body['total_unread'];
-        if (totalUnread is int) return totalUnread;
-        return int.tryParse(totalUnread?.toString() ?? '0') ?? 0;
-      }
-
-      return 0;
-    } catch (e) {
-      debugPrint('âŒ FETCH PERAWAT CHAT UNREAD ERROR: $e');
-      return 0;
-    }
-  }
-
-  Future<int> _fetchOrderUnread(String token) async {
-    try {
-      final res = await http
-          .get(
-            Uri.parse('$kBaseUrl/perawat/order-layanan'),
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
-
-      debugPrint('ðŸ“¦ Perawat Order Response: ${res.statusCode}');
-      debugPrint('ðŸ“¦ Perawat Order Body: ${res.body}');
-
-      if (res.statusCode != 200) return 0;
-
-      final body = json.decode(res.body);
-
-      List data = [];
-
-      if (body is List) {
-        data = body;
-      } else if (body is Map<String, dynamic>) {
-        if (body['success'] == true || body['success'] == 1) {
-          final raw = body['data'];
-          if (raw is List) {
-            data = raw;
-          }
-        } else if (body['data'] is List) {
-          data = body['data'];
-        }
-      }
-
-      final relevantStatuses = [
-        'mendapatkan_perawat',
-        'sedang_dalam_perjalanan',
-        'sampai_ditempat',
-        'sedang_berjalan',
-      ];
-
-      final filteredData =
-          data.where((item) {
-            if (item is! Map) return false;
-            final status = item['status_order']?.toString() ?? '';
-            return relevantStatuses.contains(status);
-          }).toList();
-
-      debugPrint('ðŸ“Š Total Perawat Orders: ${data.length}');
-      debugPrint('ðŸ“Š Filtered Perawat Orders (aktif): ${filteredData.length}');
-
-      return filteredData.length;
-    } catch (e) {
-      debugPrint('âŒ FETCH PERAWAT ORDER UNREAD ERROR: $e');
-      return 0;
     }
   }
 
@@ -240,7 +112,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
         border: Border.all(color: Colors.white, width: 1.4),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withOpacity(0.3),
+            color: Colors.red.withValues(alpha: 0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -430,7 +302,7 @@ class _PerawatDashboardState extends State<PerawatDashboard> {
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.red.withOpacity(0.4),
+                                color: Colors.red.withValues(alpha: 0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),

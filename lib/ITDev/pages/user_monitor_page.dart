@@ -1,12 +1,7 @@
 import 'dart:async';
-import 'package:home_care/core/services/storage_service.dart';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:http/http.dart' as http;
+import 'package:home_care/core/network/api_client.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class UserMonitorPage extends StatefulWidget {
   final bool isDesktop;
@@ -25,14 +20,12 @@ class UserMonitorPage extends StatefulWidget {
 }
 
 class _UserMonitorPageState extends State<UserMonitorPage> {
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
 
   final _qC = TextEditingController();
   Timer? _debounce;
 
   String _q = '';
-  int _perPage = 20;
+  final int _perPage = 20;
   int _page = 1;
 
   int? _roleId;
@@ -131,57 +124,27 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
     return const Color(0xFF334155);
   }
 
-  Future<String> _token() async {
-    final token = ((await StorageService.getToken()) ?? '').trim();
-    if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
-    return token;
-  }
-
   Future<Map<String, dynamic>> _api(
     String method,
     String path, {
     Map<String, String>? query,
     Map<String, dynamic>? body,
   }) async {
-    final token = await _token();
-
-    final uri = Uri.parse('$kApiBase$path').replace(queryParameters: query);
-    final headers = <String, String>{
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-    http.Response res;
-
+    dynamic decoded;
     if (method == 'GET') {
-      res = await http.get(uri, headers: headers);
+      decoded = await ApiClient.get(path, queryParams: query);
     } else if (method == 'POST') {
-      headers['Content-Type'] = 'application/json';
-      res = await http.post(
-        uri,
-        headers: headers,
-        body: jsonEncode(body ?? {}),
-      );
+      decoded = await ApiClient.post(path, body: body ?? {});
     } else if (method == 'PUT') {
-      headers['Content-Type'] = 'application/json';
-      res = await http.put(uri, headers: headers, body: jsonEncode(body ?? {}));
+      decoded = await ApiClient.put(path, body: body ?? {});
     } else if (method == 'PATCH') {
-      headers['Content-Type'] = 'application/json';
-      res = await http.patch(
-        uri,
-        headers: headers,
-        body: jsonEncode(body ?? {}),
-      );
+      decoded = await ApiClient.patch(path, body: body ?? {});
     } else if (method == 'DELETE') {
-      res = await http.delete(uri, headers: headers);
+      decoded = await ApiClient.delete(path, body: body ?? {});
     } else {
       throw Exception('HTTP method tidak dikenal: $method');
     }
 
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final decoded = jsonDecode(res.body);
     if (decoded is Map) return Map<String, dynamic>.from(decoded);
     throw Exception('Response bukan object JSON.');
   }
@@ -821,8 +784,8 @@ class _UserMonitorPageState extends State<UserMonitorPage> {
                           user: Map<String, dynamic>.from(e as Map),
                           roleColor: _roleColor(_userRoleSlug(e)),
                           roleLabel: _userRoleName(e),
-                          frozen: _b((e as Map)['is_frozen']),
-                          active: _b((e as Map)['is_active']),
+                          frozen: _b((e)['is_frozen']),
+                          active: _b((e)['is_active']),
                           onEdit: () => _editUser(Map<String, dynamic>.from(e)),
                           onDelete:
                               () => _deleteUser(Map<String, dynamic>.from(e)),
@@ -1154,8 +1117,9 @@ class _OutlineButtonXState extends State<OutlineButtonX> {
     try {
       await widget.onTap!.call();
     } finally {
-      if (!mounted) return;
-      setState(() => _busy = false);
+      if (mounted) {
+        setState(() => _busy = false);
+      }
     }
   }
 
@@ -1269,7 +1233,6 @@ class _UserRowCrud extends StatefulWidget {
   final String Function(dynamic v, [String fb]) s;
 
   const _UserRowCrud({
-    super.key,
     required this.isWide,
     required this.isCompact,
     required this.user,
@@ -1617,8 +1580,8 @@ class _UserRowCrudState extends State<_UserRowCrud> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: c.withOpacity(.14)),
-          color: c.withOpacity(.06),
+          border: Border.all(color: c.withValues(alpha: .14)),
+          color: c.withValues(alpha: .06),
         ),
         child: Row(
           children: [
@@ -1653,8 +1616,8 @@ class _UserRowCrudState extends State<_UserRowCrud> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: c.withOpacity(.18)),
-          color: c.withOpacity(.06),
+          border: Border.all(color: c.withValues(alpha: .18)),
+          color: c.withValues(alpha: .06),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1681,8 +1644,8 @@ Widget _pill(String s, Color c) {
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(999),
-      border: Border.all(color: c.withOpacity(.25)),
-      color: c.withOpacity(.10),
+      border: Border.all(color: c.withValues(alpha: .25)),
+      color: c.withValues(alpha: .10),
     ),
     child: Text(
       s,
@@ -1829,7 +1792,7 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                   const SizedBox(height: 10),
                 ],
                 DropdownButtonFormField<int?>(
-                  value: _roleId,
+                  initialValue: _roleId,
                   decoration: const InputDecoration(
                     labelText: 'Role',
                     border: OutlineInputBorder(),

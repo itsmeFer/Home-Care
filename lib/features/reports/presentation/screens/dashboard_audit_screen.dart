@@ -5,13 +5,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart' as uio;
 
 import 'package:universal_html/html.dart' as html;
-import 'package:home_care/core/constants/api_constants.dart';
 
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
@@ -38,19 +36,6 @@ class DashboardAuditScreen extends StatefulWidget {
 }
 
 class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
-
-  String get _freezeListUrl => '$kApiBase/direktur/freeze/users';
-  String _freezeUrl(int userId) => '$kApiBase/direktur/freeze/users/$userId';
-  String _unfreezeUrl(int userId) =>
-      '$kApiBase/direktur/freeze/users/$userId/unfreeze';
-
-  String get _adminUsersUrl => '$kApiBase/direktur/kelola-admin/users';
-  String get _adminRolesUrl => '$kApiBase/direktur/kelola-admin/roles';
-  String _updateUserRoleUrl(int userId) =>
-      '$kApiBase/direktur/kelola-admin/users/$userId/role';
-
   Future<Map<String, dynamic>>? _future;
 
   @override
@@ -231,26 +216,15 @@ class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
     required String token,
     String q = '',
   }) async {
-    final uri = Uri.parse(
-      _freezeListUrl,
-    ).replace(queryParameters: {if (q.trim().isNotEmpty) 'q': q.trim()});
-
-    final res = await http.get(
-      uri,
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final res = await ApiClient.get(
+      '/direktur/freeze/users',
+      queryParams: {if (q.trim().isNotEmpty) 'q': q.trim()},
     );
 
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final body = jsonDecode(res.body);
-    final data = (body is Map) ? body['data'] : null;
-
-    final List list =
-        (data is Map && data['data'] is List)
-            ? data['data']
-            : (data is List ? data : const []);
+    final data = (res is Map) ? res['data'] : null;
+    final List list = (data is Map && data['data'] is List)
+        ? data['data']
+        : (data is List ? data : const []);
 
     return list
         .map(
@@ -265,32 +239,14 @@ class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
     required bool freeze,
     String reason = '',
   }) async {
-    final token = await _token();
+    final endpoint = freeze
+        ? '/direktur/freeze/users/$userId'
+        : '/direktur/freeze/users/$userId/unfreeze';
 
-    final uri = Uri.parse(freeze ? _freezeUrl(userId) : _unfreezeUrl(userId));
-
-    final res = await http.post(
-      uri,
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: freeze ? jsonEncode({'reason': reason}) : null,
+    await ApiClient.post(
+      endpoint,
+      body: freeze ? {'reason': reason} : null,
     );
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      try {
-        final body = jsonDecode(res.body);
-        final msg =
-            (body is Map && body['message'] != null)
-                ? body['message'].toString()
-                : 'HTTP ${res.statusCode}';
-        throw Exception(msg);
-      } catch (_) {
-        throw Exception('HTTP ${res.statusCode}: ${res.body}');
-      }
-    }
   }
 
   Future<void> _openFreezePopup() async {
@@ -309,18 +265,8 @@ class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
   Future<List<Map<String, dynamic>>> _fetchRoles({
     required String token,
   }) async {
-    final res = await http.get(
-      Uri.parse(_adminRolesUrl),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
-    );
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final body = jsonDecode(res.body);
-    final data = (body is Map) ? body['data'] : null;
-
+    final res = await ApiClient.get('/direktur/kelola-admin/roles');
+    final data = (res is Map) ? res['data'] : null;
     final List list = (data is List) ? data : const [];
     return list
         .map(
@@ -336,25 +282,16 @@ class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
     int page = 1,
     int perPage = 15,
   }) async {
-    final qp = <String, String>{
-      'page': page.toString(),
-      'per_page': perPage.toString(),
-      if (q.trim().isNotEmpty) 'q': q.trim(),
-    };
-
-    final uri = Uri.parse(_adminUsersUrl).replace(queryParameters: qp);
-
-    final res = await http.get(
-      uri,
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final res = await ApiClient.get(
+      '/direktur/kelola-admin/users',
+      queryParams: {
+        'page': page.toString(),
+        'per_page': perPage.toString(),
+        if (q.trim().isNotEmpty) 'q': q.trim(),
+      },
     );
 
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final body = jsonDecode(res.body);
-    final data = (body is Map) ? body['data'] : null;
+    final data = (res is Map) ? res['data'] : null;
     if (data is Map) return Map<String, dynamic>.from(data);
     return <String, dynamic>{};
   }
@@ -366,34 +303,14 @@ class _DashboardAuditScreenState extends State<DashboardAuditScreen> {
     String reason = '',
     bool revokeTokens = true,
   }) async {
-    final uri = Uri.parse(_updateUserRoleUrl(userId));
-
-    final res = await http.post(
-      uri,
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
+    await ApiClient.post(
+      '/direktur/kelola-admin/users/$userId/role',
+      body: {
         'role_slug': roleSlug,
         'reason': reason,
         'revoke_tokens': revokeTokens,
-      }),
+      },
     );
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      try {
-        final body = jsonDecode(res.body);
-        final msg =
-            (body is Map && body['message'] != null)
-                ? body['message'].toString()
-                : 'HTTP ${res.statusCode}';
-        throw Exception(msg);
-      } catch (_) {
-        throw Exception('HTTP ${res.statusCode}: ${res.body}');
-      }
-    }
   }
 
   Future<void> _openKelolaAdminPopup() async {

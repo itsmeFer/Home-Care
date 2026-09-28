@@ -1,12 +1,8 @@
-import 'dart:convert';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:flutter/material.dart';
-import 'package:home_care/ITDev/pages/system_maintenance_page.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/ITDev/pages/system_maintenance_page.dart';
 import '../widgets/ui_components.dart';
 
 class DashboardITPage extends StatefulWidget {
@@ -26,8 +22,6 @@ class DashboardITPage extends StatefulWidget {
 }
 
 class _DashboardITPageState extends State<DashboardITPage> {
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
   Timer? _timer;
   Future<Map<String, dynamic>>? _metricsFuture;
 
@@ -72,26 +66,12 @@ class _DashboardITPageState extends State<DashboardITPage> {
     });
   }
 
-  String _buildUrl() {
-    return Uri.parse(
-      '$kApiBase/it/dashboard/overview',
-    ).replace(queryParameters: {'range': widget.range}).toString();
-  }
-
   Future<Map<String, dynamic>> _fetch() async {
-    final token = ((await StorageService.getToken()) ?? '').trim();
-    if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
-
-    final res = await http.get(
-      Uri.parse(_buildUrl()),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final decoded = await ApiClient.get(
+      '/it/dashboard/overview',
+      queryParams: {'range': widget.range},
     );
 
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final decoded = jsonDecode(res.body);
     if (decoded is Map && decoded['data'] is Map) {
       return Map<String, dynamic>.from(decoded['data'] as Map);
     }
@@ -99,26 +79,12 @@ class _DashboardITPageState extends State<DashboardITPage> {
     throw Exception('Format response tidak sesuai.');
   }
 
-  String _buildMetricsUrl() {
-    return Uri.parse(
-      '$kApiBase/it/dashboard/metrics',
-    ).replace(queryParameters: {'range': widget.range}).toString();
-  }
-
   Future<Map<String, dynamic>> _fetchMetrics() async {
-    final token = ((await StorageService.getToken()) ?? '').trim();
-    if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
-
-    final res = await http.get(
-      Uri.parse(_buildMetricsUrl()),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final decoded = await ApiClient.get(
+      '/it/dashboard/metrics',
+      queryParams: {'range': widget.range},
     );
 
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final decoded = jsonDecode(res.body);
     if (decoded is Map && decoded['data'] is Map) {
       return Map<String, dynamic>.from(decoded['data'] as Map);
     }
@@ -232,15 +198,9 @@ class _DashboardITPageState extends State<DashboardITPage> {
         final apiVersion = _s(api['version'], 'unknown');
         final serverTime = _s(api['server_time'], '-');
 
-        final reqCount = _i(
-          stats['sessions_total'],
-        );
-        final err5xx = _i(
-          queue['failed_jobs'],
-        );
-        final err4xx = _i(
-          stats['audit_medium'],
-        );
+        
+        
+        
 
         final frozenUsers = _i(stats['frozen_users']);
         final tokensTotal = _i(stats['tokens_total']);

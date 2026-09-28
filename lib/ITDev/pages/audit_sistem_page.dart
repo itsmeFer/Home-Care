@@ -1,12 +1,8 @@
 import 'dart:async';
-import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
 import '../widgets/ui_components.dart';
 
 class AuditSistemPage extends StatefulWidget {
@@ -26,15 +22,13 @@ class AuditSistemPage extends StatefulWidget {
 }
 
 class _AuditSistemPageState extends State<AuditSistemPage> {
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
 
   String _risk = 'all';
   String _action = '';
   String _q = '';
   Timer? _debounce;
 
-  int _perPage = 20;
+  final int _perPage = 20;
   int _page = 1;
   String _formatWaktuID(dynamic v) {
     final s = _s(v, '');
@@ -114,8 +108,8 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
     super.dispose();
   }
 
-  String _buildUrl() {
-    final qp = <String, String>{
+  Map<String, dynamic> _buildQueryParams() {
+    final qp = <String, dynamic>{
       'range': widget.range,
       'per_page': '$_perPage',
       'page': '$_page',
@@ -127,32 +121,23 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
     if (_action.trim().isNotEmpty) qp['action'] = _action.trim();
     if (_q.trim().isNotEmpty) qp['q'] = _q.trim();
 
-    return Uri.parse(
-      '$kApiBase/it/audit',
-    ).replace(queryParameters: qp).toString();
+    return qp;
   }
 
   Future<Map<String, dynamic>> _fetch() async {
-    final token = ((await StorageService.getToken()) ?? '').trim();
-
-    if (token.isEmpty) {
-      throw Exception('Token kosong. Silakan login ulang.');
-    }
-
-    final res = await http.get(
-      Uri.parse(_buildUrl()),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final body = await ApiClient.get(
+      '/it/audit',
+      queryParams: _buildQueryParams(),
     );
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final body = jsonDecode(res.body);
-      if (body is Map && body['data'] is Map) {
-        return Map<String, dynamic>.from(body['data']);
-      }
-      return Map<String, dynamic>.from(body as Map);
+    if (body is Map && body['data'] is Map) {
+      return Map<String, dynamic>.from(body['data']);
+    }
+    if (body is Map) {
+      return Map<String, dynamic>.from(body);
     }
 
-    throw Exception('HTTP ${res.statusCode}: ${res.body}');
+    throw Exception('Format response tidak sesuai.');
   }
 
   String _s(dynamic v, [String fb = '']) {
@@ -201,13 +186,6 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
     } catch (_) {
       return v?.toString() ?? '-';
     }
-  }
-
-  void _applyFilters() {
-    _q = _qC.text.trim();
-    _action = _actionC.text.trim();
-    _page = 1;
-    setState(() => _future = _fetch());
   }
 
   void _resetFilters() {
@@ -417,13 +395,13 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
                             return _AuditRow(
                               title: title,
                               desc:
-                                  '$desc\nIP: $ip • UA: ${ua.length > 60 ? ua.substring(0, 60) + '…' : ua}',
+                                  '$desc\nIP: $ip • UA: ${ua.length > 60 ? '${ua.substring(0, 60)}…' : ua}',
                               time: time,
                               risk: _riskLabel(risk),
                               color: _riskColor(risk),
                               onTap: () => _showDetailDialog(m),
                             );
-                          }).toList(),
+                          }),
                           const SizedBox(height: 10),
                           _PaginationBarNative(
                             page: _page,
@@ -488,8 +466,8 @@ class _AuditSistemPageState extends State<AuditSistemPage> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
-                  color: c.withOpacity(.12),
-                  border: Border.all(color: c.withOpacity(.25)),
+                  color: c.withValues(alpha: .12),
+                  border: Border.all(color: c.withValues(alpha: .25)),
                 ),
                 child: Text(
                   _riskLabel(risk),
@@ -613,7 +591,7 @@ class _RiskDropdown extends StatelessWidget {
     return SizedBox(
       width: fullWidth ? double.infinity : 170,
       child: DropdownButtonFormField<String>(
-        value: safeValue,
+        initialValue: safeValue,
         decoration: const InputDecoration(
           isDense: true,
           prefixIcon: Icon(Icons.shield_outlined, size: 20),
@@ -755,8 +733,8 @@ class _AuditRow extends StatelessWidget {
               width: 40,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                color: c.withOpacity(.12),
-                border: Border.all(color: c.withOpacity(.25)),
+                color: c.withValues(alpha: .12),
+                border: Border.all(color: c.withValues(alpha: .25)),
               ),
               child: Icon(Icons.policy_outlined, color: c),
             ),
@@ -783,8 +761,8 @@ class _AuditRow extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
-                          color: c.withOpacity(.12),
-                          border: Border.all(color: c.withOpacity(.25)),
+                          color: c.withValues(alpha: .12),
+                          border: Border.all(color: c.withValues(alpha: .25)),
                         ),
                         child: Text(
                           risk,

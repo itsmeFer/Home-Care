@@ -1,23 +1,17 @@
-﻿import 'dart:convert';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
-
-String get kBaseUrl => ApiConstants.apiBase;
+import 'package:home_care/perawat/orderan/services/perawat_orderan_service.dart';
 
 class DetailOrderanMasukPerawatPage extends StatefulWidget {
   final int orderId;
 
-  const DetailOrderanMasukPerawatPage({Key? key, required this.orderId})
-    : super(key: key);
+  const DetailOrderanMasukPerawatPage({super.key, required this.orderId});
 
   @override
   State<DetailOrderanMasukPerawatPage> createState() =>
@@ -57,62 +51,32 @@ class _DetailOrderanMasukPerawatPageState
     super.dispose();
   }
 
-  Future<String?> _getToken() => StorageService.getToken();
-
   Future<void> _fetchDetail() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
-    final token = await _getToken();
-    if (token == null) {
-      setState(() {
-        _isLoading = false;
-        _error = 'Token tidak ditemukan. Silakan login sebagai perawat.';
-      });
-      return;
-    }
-
     try {
-      final uri = Uri.parse(
-        '$kBaseUrl/perawat/order-layanan/${widget.orderId}',
-      );
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final decoded = await PerawatOrderanService.fetchDetail(widget.orderId);
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        final success = decoded['success'] == true;
+      final success = decoded['success'] == true;
 
-        if (!success) {
-          setState(() {
-            _isLoading = false;
-            _error =
-                decoded['message']?.toString() ?? 'Gagal memuat detail order.';
-          });
-          return;
-        }
-
-        setState(() {
-          _order = decoded['data'] as Map<String, dynamic>;
-          _isLoading = false;
-        });
-
-        print('ðŸ“¦ Order Addons: ${_order?['order_addons']}');
-      } else {
+      if (!success) {
         setState(() {
           _isLoading = false;
-          _error = 'Gagal memuat detail. Kode: ${response.statusCode}';
+          _error =
+              decoded['message']?.toString() ?? 'Gagal memuat detail order.';
         });
+        return;
       }
+
+      setState(() {
+        _order = decoded['data'] as Map<String, dynamic>?;
+        _isLoading = false;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -340,31 +304,25 @@ class _DetailOrderanMasukPerawatPageState
     required String endpoint,
     required String successMessage,
   }) async {
-    final token = await _getToken();
-    if (token == null) return;
-
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('$kBaseUrl/perawat/order-layanan/$endpoint'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final decoded = await PerawatOrderanService.performAction(endpoint);
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        if (decoded['success'] == true) {
-          setState(() {
-            _order = decoded['data'];
-            _isLoading = false;
-          });
-          _showSnackBar(successMessage);
-        }
+      if (decoded['success'] == true) {
+        setState(() {
+          _order = decoded['data'] as Map<String, dynamic>?;
+          _isLoading = false;
+        });
+        _showSnackBar(successMessage);
+      } else {
+        setState(() => _isLoading = false);
+        _showSnackBar(
+          decoded['message']?.toString() ?? 'Gagal memproses.',
+          isError: true,
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -379,32 +337,26 @@ class _DetailOrderanMasukPerawatPageState
     required String successMessage,
     bool shouldPop = false,
   }) async {
-    final token = await _getToken();
-    if (token == null) return;
-
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('$kBaseUrl/perawat/order-layanan/$endpoint'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(body),
+      final decoded = await PerawatOrderanService.performActionWithBody(
+        endpoint,
+        body,
       );
 
       if (!mounted) return;
 
       setState(() => _isLoading = false);
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        if (decoded['success'] == true) {
-          _showSnackBar(successMessage);
-          if (shouldPop) Navigator.of(context).pop(true);
-        }
+      if (decoded['success'] == true) {
+        _showSnackBar(successMessage);
+        if (shouldPop) Navigator.of(context).pop(true);
+      } else {
+        _showSnackBar(
+          decoded['message']?.toString() ?? 'Gagal memproses.',
+          isError: true,
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -420,65 +372,40 @@ class _DetailOrderanMasukPerawatPageState
     required bool Function() isUploadingFlag,
     required Function(bool) setUploadingFlag,
   }) async {
-    final token = await _getToken();
-    if (token == null) return;
-
     setUploadingFlag(true);
 
     try {
-      final request =
-          http.MultipartRequest(
-              'POST',
-              Uri.parse('$kBaseUrl/perawat/order-layanan/$endpoint'),
-            )
-            ..headers['Accept'] = 'application/json'
-            ..headers['Authorization'] = 'Bearer $token';
-
-      if (kIsWeb) {
-        final bytes = await photo.readAsBytes();
-        request.files.add(
-          http.MultipartFile.fromBytes(fieldName, bytes, filename: photo.name),
-        );
-      } else {
-        request.files.add(
-          await http.MultipartFile.fromPath(fieldName, photo.path),
-        );
-      }
-
-      final streamed = await request.send();
-      final response = await http.Response.fromStream(streamed);
+      final decoded = await PerawatOrderanService.uploadPhoto(
+        endpoint: endpoint,
+        fieldName: fieldName,
+        photo: photo,
+      );
 
       if (!mounted) return;
 
       setUploadingFlag(false);
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
+      if (decoded['success'] == true) {
+        setState(() {
+          var data = decoded['data'];
 
-        print('ðŸ“¦ Upload Response: ${response.body}');
-
-        if (decoded['success'] == true) {
-          setState(() {
-            var data = decoded['data'];
-
-            if (data is Map<String, dynamic>) {
-
-              if (data.containsKey('order')) {
-                _order = data['order'] as Map<String, dynamic>;
-                print('âœ… Using data.order');
-              }
-
-              else {
-                _order = data;
-                print('âœ… Using data directly');
-              }
+          if (data is Map<String, dynamic>) {
+            if (data.containsKey('order')) {
+              _order = data['order'] as Map<String, dynamic>?;
+            } else {
+              _order = data;
             }
-          });
+          }
+        });
 
-          _showSnackBar('Berhasil');
+        _showSnackBar('Berhasil');
 
-          await _fetchDetail();
-        }
+        await _fetchDetail();
+      } else {
+        _showSnackBar(
+          decoded['message']?.toString() ?? 'Gagal mengunggah foto.',
+          isError: true,
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -630,12 +557,7 @@ class _DetailOrderanMasukPerawatPageState
     }
   }
 
-  String? _mediaUrl(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    var cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return '$kBaseUrl/media/$cleanPath';
-  }
+  String? _mediaUrl(String? path) => ApiConstants.resolveMediaUrl(path);
 
   @override
   Widget build(BuildContext context) {
@@ -679,7 +601,7 @@ class _DetailOrderanMasukPerawatPageState
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
@@ -706,9 +628,9 @@ class _DetailOrderanMasukPerawatPageState
           margin: const EdgeInsets.only(right: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: _statusColor(status).withOpacity(0.2),
+            color: _statusColor(status).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.5)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
           ),
           child: Text(
             _statusLabel(status),
@@ -784,7 +706,7 @@ class _DetailOrderanMasukPerawatPageState
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -853,7 +775,7 @@ class _DetailOrderanMasukPerawatPageState
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: HCColor.lightTeal.withOpacity(0.5),
+          color: HCColor.lightTeal.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
@@ -896,7 +818,7 @@ class _DetailOrderanMasukPerawatPageState
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -976,7 +898,7 @@ class _DetailOrderanMasukPerawatPageState
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: HCColor.lightTeal.withOpacity(0.3),
+              color: HCColor.lightTeal.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -1076,10 +998,10 @@ class _DetailOrderanMasukPerawatPageState
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: HCColor.lightTeal.withOpacity(0.2),
+            color: HCColor.lightTeal.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: HCColor.primary.withOpacity(0.2),
+              color: HCColor.primary.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -1092,7 +1014,7 @@ class _DetailOrderanMasukPerawatPageState
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: HCColor.primary.withOpacity(0.1),
+                      color: HCColor.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -1175,7 +1097,7 @@ class _DetailOrderanMasukPerawatPageState
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: HCColor.primary.withOpacity(0.1),
+                          color: HCColor.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -1284,7 +1206,7 @@ class _DetailOrderanMasukPerawatPageState
             Container(
               height: 120,
               decoration: BoxDecoration(
-                color: HCColor.lightTeal.withOpacity(0.3),
+                color: HCColor.lightTeal.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -1345,7 +1267,7 @@ class _DetailOrderanMasukPerawatPageState
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -1413,7 +1335,7 @@ class _DetailOrderanMasukPerawatPageState
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: HCColor.success.withOpacity(0.1),
+                  color: HCColor.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -1529,7 +1451,7 @@ class _DetailOrderanMasukPerawatPageState
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: HCColor.success.withOpacity(0.1),
+                  color: HCColor.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -1627,7 +1549,7 @@ class _DetailOrderanMasukPerawatPageState
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: HCColor.success.withOpacity(0.1),
+                    color: HCColor.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(

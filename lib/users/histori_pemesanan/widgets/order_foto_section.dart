@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class OrderFotoSection extends StatelessWidget {
   final Map<String, dynamic> order;
 
   const OrderFotoSection({super.key, required this.order});
 
-  String? _resolveImageUrl(String? raw) {
-    if (raw == null || raw.isEmpty) return null;
-    if (raw.startsWith('http')) return raw;
-    return '${ApiConstants.apiBase}/media/$raw';
-  }
+  String? _resolveImageUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
   IconData _getFotoIcon(String title) {
     switch (title) {
@@ -82,22 +79,20 @@ class OrderFotoSection extends StatelessWidget {
               ),
             )
           else
-            ClipRRect(
+            AppCachedImage(
+              imageUrl: url,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 200,
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                url,
-                fit: BoxFit.cover,
-                width: double.infinity,
+              errorWidget: Container(
                 height: 200,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 200,
-                  color: HCColors.bg,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    IconlyLight.image,
-                    color: HCColors.textMuted,
-                    size: 48,
-                  ),
+                color: HCColors.bg,
+                alignment: Alignment.center,
+                child: const Icon(
+                  IconlyLight.image,
+                  color: HCColors.textMuted,
+                  size: 48,
                 ),
               ),
             ),

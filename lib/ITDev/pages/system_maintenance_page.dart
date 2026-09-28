@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/network/api_client.dart';
 import '../widgets/ui_components.dart';
 
 class SystemMaintenancePage extends StatefulWidget {
@@ -18,65 +14,39 @@ class SystemMaintenancePage extends StatefulWidget {
     required this.range,
   });
 
+  @override
   State<SystemMaintenancePage> createState() => _SystemMaintenancePageState();
 }
 
 class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
 
-  static String get baseUrl => ApiConstants.apiBase;
-
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;
   bool _isActive = false;
   String _currentMessage = '';
-  String? _token;
 
   @override
   void initState() {
     super.initState();
-    _loadToken();
-  }
-
-  Future<void> _loadToken() async {
-    _token = await StorageService.getToken();
-
-    if (_token != null && _token!.isNotEmpty) {
-      await _loadStatus();
-    } else {
-      _showError('Token tidak ditemukan. Silakan login ulang.');
-    }
+    _loadStatus();
   }
 
   Future<void> _loadStatus() async {
-    if (_token == null || _token!.isEmpty) {
-      _showError('Token tidak valid');
-      return;
-    }
-
     setState(() => _isLoading = true);
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/it/maintenance/status'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-      );
+      final data = await ApiClient.get('/it/maintenance/status');
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          final maintenanceData = data['data'];
-          setState(() {
-            _isActive = maintenanceData['is_active'] ?? false;
-            _currentMessage = maintenanceData['message'] ?? '';
-            _messageController.text = _currentMessage;
-          });
-        }
+      if (data is Map && data['success'] == true) {
+        final maintenanceData = data['data'];
+        setState(() {
+          _isActive = maintenanceData['is_active'] ?? false;
+          _currentMessage = maintenanceData['message'] ?? '';
+          _messageController.text = _currentMessage;
+        });
       } else {
-        _showError('Gagal memuat status: ${response.statusCode}');
+        _showError('Gagal memuat status.');
       }
     } catch (e) {
       if (!mounted) return;
@@ -93,35 +63,20 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
       return;
     }
 
-    if (_token == null || _token!.isEmpty) {
-      _showError('Token tidak valid');
-      return;
-    }
-
     setState(() => _isLoading = true);
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/it/maintenance/activate'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-        body: json.encode({'message': message}),
+      final data = await ApiClient.post(
+        '/it/maintenance/activate',
+        body: {'message': message},
       );
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          _showSuccess('Maintenance mode diaktifkan!');
-          await _loadStatus();
-        } else {
-          _showError(data['message'] ?? 'Gagal mengaktifkan');
-        }
+      if (data is Map && data['success'] == true) {
+        _showSuccess('Maintenance mode diaktifkan!');
+        await _loadStatus();
       } else {
-        _showError('Gagal mengaktifkan: ${response.statusCode}');
+        _showError(data is Map ? (data['message'] ?? 'Gagal mengaktifkan') : 'Gagal mengaktifkan');
       }
     } catch (e) {
       if (!mounted) return;
@@ -132,35 +87,20 @@ class _SystemMaintenancePageState extends State<SystemMaintenancePage> {
   }
 
   Future<void> _deactivate() async {
-    if (_token == null || _token!.isEmpty) {
-      _showError('Token tidak valid');
-      return;
-    }
-
     setState(() => _isLoading = true);
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/it/maintenance/deactivate'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-        body: json.encode({}),
+      final data = await ApiClient.post(
+        '/it/maintenance/deactivate',
+        body: {},
       );
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          _showSuccess('Maintenance mode dimatikan!');
-          await _loadStatus();
-        } else {
-          _showError(data['message'] ?? 'Gagal mematikan');
-        }
+      if (data is Map && data['success'] == true) {
+        _showSuccess('Maintenance mode dimatikan!');
+        await _loadStatus();
       } else {
-        _showError('Gagal mematikan: ${response.statusCode}');
+        _showError(data is Map ? (data['message'] ?? 'Gagal mematikan') : 'Gagal mematikan');
       }
     } catch (e) {
       if (!mounted) return;

@@ -7,6 +7,7 @@ import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:home_care/features/auth/data/auth_repository.dart';
 import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'services/user_profile_service.dart';
 import 'widgets/widgets.dart';
@@ -171,7 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _logout() async {
-    await StorageService.clearAuth();
+    await AuthRepository().logout();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,

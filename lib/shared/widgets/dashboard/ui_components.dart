@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class SectionHeader extends StatelessWidget {
@@ -81,7 +80,7 @@ class XCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 18,
             offset: const Offset(0, 10),
-            color: Colors.black.withOpacity(.06),
+            color: Colors.black.withValues(alpha: .06),
           ),
         ],
       ),
@@ -183,7 +182,7 @@ class KpiCard extends StatelessWidget {
           BoxShadow(
             blurRadius: 18,
             offset: const Offset(0, 10),
-            color: Colors.black.withOpacity(.06),
+            color: Colors.black.withValues(alpha: .06),
           ),
         ],
       ),
@@ -194,8 +193,8 @@ class KpiCard extends StatelessWidget {
             width: 44,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              color: accent.withOpacity(.12),
-              border: Border.all(color: accent.withOpacity(.22)),
+              color: accent.withValues(alpha: .12),
+              border: Border.all(color: accent.withValues(alpha: .22)),
             ),
             child: Icon(icon, color: accent),
           ),
@@ -371,13 +370,13 @@ class _WavesPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint1 =
         Paint()
-          ..color = const Color(0xFF0EA5E9).withOpacity(.12)
+          ..color = const Color(0xFF0EA5E9).withValues(alpha: .12)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
 
     final paint2 =
         Paint()
-          ..color = const Color(0xFF22C55E).withOpacity(.10)
+          ..color = const Color(0xFF22C55E).withValues(alpha: .10)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
 
@@ -429,7 +428,7 @@ class _PiePainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 18;
 
-    p.color = const Color(0xFF0EA5E9).withOpacity(.35);
+    p.color = const Color(0xFF0EA5E9).withValues(alpha: .35);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -1.2,
@@ -438,7 +437,7 @@ class _PiePainter extends CustomPainter {
       p,
     );
 
-    p.color = const Color(0xFF22C55E).withOpacity(.30);
+    p.color = const Color(0xFF22C55E).withValues(alpha: .30);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       0.9,
@@ -447,7 +446,7 @@ class _PiePainter extends CustomPainter {
       p,
     );
 
-    p.color = const Color(0xFFF59E0B).withOpacity(.28);
+    p.color = const Color(0xFFF59E0B).withValues(alpha: .28);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       2.4,

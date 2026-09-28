@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
+import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 class DashboardPasienScreen extends StatefulWidget {
@@ -29,12 +26,6 @@ class DashboardPasienScreen extends StatefulWidget {
 
 class _DashboardPasienScreenState extends State<DashboardPasienScreen>
     with SingleTickerProviderStateMixin {
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
-
-  String get _url =>
-      '$kApiBase/${widget.role}/dashboard/pasien?range=${Uri.encodeComponent(widget.range)}';
-
   Future<Map<String, dynamic>>? _future;
 
   late final AnimationController _chartCtrl;
@@ -76,28 +67,19 @@ class _DashboardPasienScreenState extends State<DashboardPasienScreen>
     super.dispose();
   }
 
-  Future<String?> _getToken() => StorageService.getToken();
-
   Future<Map<String, dynamic>> _fetch() async {
-    final token = await _getToken();
-    final res = await http.get(
-      Uri.parse(_url),
-      headers: {
-        'Accept': 'application/json',
-        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-      },
+    final res = await ApiClient.get(
+      '/${widget.role}/dashboard/pasien',
+      queryParams: {'range': widget.range},
     );
 
-    if (res.statusCode == 200) {
-      final j = jsonDecode(res.body);
-      if (j is Map<String, dynamic>) {
-        if (j['data'] is Map<String, dynamic>) {
-          return j['data'] as Map<String, dynamic>;
-        }
-        return j;
-      }
+    if (res is Map && res['data'] is Map) {
+      return Map<String, dynamic>.from(res['data']);
     }
-    throw Exception('Gagal memuat data (${res.statusCode})');
+    if (res is Map) {
+      return Map<String, dynamic>.from(res);
+    }
+    throw Exception('Gagal memuat data pasien');
   }
 
   num _n(dynamic v) => (v is num) ? v : (num.tryParse(v?.toString() ?? '') ?? 0);

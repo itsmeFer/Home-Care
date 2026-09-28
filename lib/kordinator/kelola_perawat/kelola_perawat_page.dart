@@ -1,15 +1,14 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:home_care/kordinator/detail_perawat.dart';
+import 'package:home_care/kordinator/kelola_perawat/detail_perawat_page.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/nurses/domain/nurse_model.dart';
+import 'services/kelola_perawat_service.dart';
 
 class KelolaPerawatPage extends StatefulWidget {
   const KelolaPerawatPage({super.key});
@@ -19,8 +18,6 @@ class KelolaPerawatPage extends StatefulWidget {
 }
 
 class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
-  static String get baseUrl => ApiConstants.apiBase;
-
   bool _isLoading = true;
   bool _isError = false;
   String? _errorMessage;
@@ -33,61 +30,21 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     _fetchPerawat();
   }
 
-  Future<String?> _getToken() => StorageService.getToken();
-
-  Future<void> _fetchPerawat() async {
+    Future<void> _fetchPerawat() async {
     setState(() {
       _isLoading = true;
       _isError = false;
       _errorMessage = null;
     });
-
     try {
-      final token = await _getToken();
-      if (token == null) {
-        setState(() {
-          _isError = true;
-          _errorMessage = 'Token tidak ditemukan, silakan login ulang.';
-        });
-        return;
-      }
-
-      final url = Uri.parse('$baseUrl/koordinator/perawat');
-      final res = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (res.statusCode != 200) {
-        setState(() {
-          _isError = true;
-          _errorMessage =
-              'Gagal mengambil data perawat (kode ${res.statusCode})';
-        });
-        return;
-      }
-
-      final body = json.decode(res.body);
-      if (body is Map && body['success'] == true && body['data'] != null) {
-        final List<dynamic> data = body['data'];
-        final list = data.map((e) => Perawat.fromJson(e)).toList();
-        setState(() {
-          _list = list;
-        });
-      } else {
-        setState(() {
-          _isError = true;
-          _errorMessage =
-              body['message'] ?? 'Gagal mengambil data perawat dari server.';
-        });
-      }
+      final list = await KelolaPerawatService.fetchPerawat();
+      setState(() {
+        _list = list;
+      });
     } catch (e) {
       setState(() {
         _isError = true;
-        _errorMessage = 'Terjadi kesalahan: $e';
+        _errorMessage = e.toString();
       });
     } finally {
       if (mounted) {
@@ -96,62 +53,40 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  Future<void> _ubahStatusVerifikasi(
+
+    Future<void> _ubahStatusVerifikasi(
     int perawatId,
     String status, {
     String? catatan,
   }) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw 'Token tidak ditemukan.';
-
-      final url = Uri.parse(
-        '$baseUrl/koordinator/perawat/$perawatId/verifikasi',
-      );
-
-      final body = <String, dynamic>{
-        'status_verifikasi': status,
-        if (catatan != null && catatan.trim().isNotEmpty)
-          'catatan_verifikasi': catatan.trim(),
-      };
-
-      final res = await http.put(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
-
-      if (res.statusCode != 200) {
-        throw 'Gagal mengubah status verifikasi (kode ${res.statusCode})';
-      }
+      await KelolaPerawatService.ubahStatusVerifikasi(perawatId, status, catatan: catatan);
 
       String msg;
       Color bgColor;
 
       if (status == 'verified') {
-        msg = 'Perawat berhasil diverifikasi ✔';
+        msg = 'Perawat berhasil diverifikasi';
         bgColor = Colors.green;
       } else if (status == 'rejected') {
-        msg = 'Perawat ditolak ❌';
+        msg = 'Perawat ditolak';
         bgColor = Colors.red;
       } else if (status == 'pending') {
-        msg = 'Status dikembalikan ke draft ⏪';
+        msg = 'Status dikembalikan ke draft';
         bgColor = Colors.orange;
       } else {
         msg = 'Status verifikasi diperbarui';
         bgColor = HCColor.primary;
       }
 
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: bgColor));
 
       _fetchPerawat();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal mengubah status: $e'),
@@ -160,6 +95,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       );
     }
   }
+
 
   Future<void> _tanyaCatatanDanUbahStatus(Perawat p, String status) async {
     final controller = TextEditingController();
@@ -175,7 +111,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Perawat: ${p.namaLengkap ?? '-'}',
+                  'Perawat: ${p.namaLengkap}',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
@@ -207,46 +143,23 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
 
     if (hasil == true) {
-      await _ubahStatusVerifikasi(p.id!, status, catatan: controller.text);
+      await _ubahStatusVerifikasi(p.id, status, catatan: controller.text);
     }
   }
 
-  Future<void> _createPerawat(Map<String, dynamic> payload) async {
+    Future<void> _createPerawat(Map<String, dynamic> payload) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw 'Token tidak ditemukan.';
-
-      final url = Uri.parse('$baseUrl/koordinator/perawat');
-      final res = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-        body: json.encode(payload),
-      );
-
-      if (res.statusCode != 201 && res.statusCode != 200) {
-        String msg = 'Gagal menambah perawat (kode ${res.statusCode})';
-        try {
-          final body = json.decode(res.body);
-          if (body is Map && body['message'] != null) {
-            msg = body['message'];
-          }
-        } catch (_) {}
-        throw msg;
-      }
-
+      await KelolaPerawatService.createPerawat(payload);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Perawat berhasil ditambahkan'),
           backgroundColor: Colors.green,
         ),
       );
-
       await _fetchPerawat();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal menambah perawat: $e'),
@@ -256,42 +169,20 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  Future<void> _updatePerawat(int id, Map<String, dynamic> payload) async {
+
+    Future<void> _updatePerawat(int id, Map<String, dynamic> payload) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw 'Token tidak ditemukan.';
-
-      final url = Uri.parse('$baseUrl/koordinator/perawat/$id');
-      final res = await http.put(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-        body: json.encode(payload),
-      );
-
-      if (res.statusCode != 200) {
-        String msg = 'Gagal mengupdate perawat (kode ${res.statusCode})';
-        try {
-          final body = json.decode(res.body);
-          if (body is Map && body['message'] != null) {
-            msg = body['message'];
-          }
-        } catch (_) {}
-        throw msg;
-      }
-
+      await KelolaPerawatService.updatePerawat(id, payload);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Perawat berhasil diupdate'),
           backgroundColor: Colors.green,
         ),
       );
-
       await _fetchPerawat();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal mengupdate perawat: $e'),
@@ -301,65 +192,44 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     }
   }
 
-  Future<void> _deletePerawat(Perawat p) async {
-    final confirm = await showDialog<bool>(
+
+    Future<void> _deletePerawat(Perawat p) async {
+    final konfirmasi = await showDialog<bool>(
       context: context,
       builder:
           (_) => AlertDialog(
             title: const Text('Hapus Perawat'),
             content: Text(
-              'Yakin ingin menghapus perawat "${p.namaLengkap ?? '-'}"?',
+              'Yakin ingin menghapus perawat "${p.namaLengkap}"?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: const Text('Batal'),
               ),
-              TextButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+                child: const Text('Hapus', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
     );
 
-    if (confirm != true) return;
+    if (konfirmasi != true) return;
 
     try {
-      final token = await _getToken();
-      if (token == null) throw 'Token tidak ditemukan.';
-
-      final url = Uri.parse('$baseUrl/koordinator/perawat/${p.id}');
-      final res = await http.delete(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (res.statusCode != 200 && res.statusCode != 204) {
-        String msg = 'Gagal menghapus perawat (kode ${res.statusCode})';
-        try {
-          final body = json.decode(res.body);
-          if (body is Map && body['message'] != null) {
-            msg = body['message'];
-          }
-        } catch (_) {}
-        throw msg;
-      }
-
+      await KelolaPerawatService.deletePerawat(p.id);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Perawat berhasil dihapus'),
           backgroundColor: Colors.green,
         ),
       );
-
-      setState(() {
-        _list.removeWhere((e) => e.id == p.id);
-      });
+      _fetchPerawat();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal menghapus perawat: $e'),
@@ -368,6 +238,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       );
     }
   }
+
 
   Future<void> _openForm({Perawat? perawat}) async {
     final result = await showDialog<Map<String, dynamic>>(
@@ -381,7 +252,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     if (perawat == null) {
       await _createPerawat(result);
     } else {
-      await _updatePerawat(perawat.id!, result);
+      await _updatePerawat(perawat.id, result);
     }
   }
 
@@ -451,10 +322,14 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                           children: [
                             CircleAvatar(
                               radius: 22,
-                              backgroundColor: HCColor.primary.withOpacity(.1),
+                              backgroundColor: HCColor.primary.withValues(alpha: .1),
                               backgroundImage:
                                   (fotoUrl != null && fotoUrl.isNotEmpty)
-                                      ? NetworkImage(fotoUrl)
+                                      ? CachedNetworkImageProvider(
+                                          fotoUrl,
+                                          maxHeight: 150,
+                                          maxWidth: 150,
+                                        )
                                       : null,
                               child:
                                   (fotoUrl != null && fotoUrl.isNotEmpty)
@@ -474,7 +349,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    p.namaLengkap ?? '-',
+                                    p.namaLengkap,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 16,
@@ -492,7 +367,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: p.chipColorVerifikasi
-                                              .withOpacity(0.15),
+                                              .withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(
                                             999,
                                           ),
@@ -515,25 +390,25 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                         ),
                                         decoration: BoxDecoration(
                                           color:
-                                              (p.isActive ?? true)
-                                                  ? Colors.green.withOpacity(
-                                                    0.15,
+                                              p.isActive
+                                                  ? Colors.green.withValues(
+                                                    alpha: 0.15,
                                                   )
-                                                  : Colors.red.withOpacity(
-                                                    0.15,
+                                                  : Colors.red.withValues(
+                                                    alpha: 0.15,
                                                   ),
                                           borderRadius: BorderRadius.circular(
                                             999,
                                           ),
                                         ),
                                         child: Text(
-                                          (p.isActive ?? true)
+                                          p.isActive
                                               ? 'Aktif'
                                               : 'Tidak Aktif',
                                           style: TextStyle(
                                             fontSize: 11,
                                             color:
-                                                (p.isActive ?? true)
+                                                p.isActive
                                                     ? Colors.green[700]
                                                     : Colors.red[700],
                                             fontWeight: FontWeight.w600,
@@ -549,13 +424,13 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                         p.labelJenisKelamin,
                                         style: const TextStyle(fontSize: 12),
                                       ),
-                                      if (p.tahunPengalaman != null) ...[
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '${p.tahunPengalaman} thn pengalaman',
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                      ],
+                                      ...[
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '${p.tahunPengalaman} thn pengalaman',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ],
                                     ],
                                   ),
                                   const SizedBox(height: 2),
@@ -593,18 +468,16 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                 Transform.scale(
                                   scale: 0.9,
                                   child: Switch(
-                                    value: p.isActive ?? false,
+                                    value: p.isActive,
                                     onChanged:
                                         canToggleActive
                                             ? (val) {
-                                              if (p.id != null) {
-                                                _updatePerawat(p.id!, {
-                                                  'is_active': val,
-                                                });
-                                              }
+                                              _updatePerawat(p.id, {
+                                                'is_active': val,
+                                              });
                                             }
                                             : null,
-                                    activeColor: HCColor.primary,
+                                    activeThumbColor: HCColor.primary,
                                   ),
                                 ),
                                 if (!canToggleActive) ...[
@@ -682,7 +555,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                     ),
                                     onPressed:
                                         () => _ubahStatusVerifikasi(
-                                          p.id!,
+                                          p.id,
                                           'pending',
                                         ),
                                     child: const Text(
@@ -809,7 +682,7 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
     _noSipC = TextEditingController(text: p?.noSip ?? '');
 
     _tahunPengalamanC = TextEditingController(
-      text: p?.tahunPengalaman?.toString() ?? '',
+      text: p?.tahunPengalaman.toString() ?? '',
     );
     _tempatKerjaTerakhirC = TextEditingController(
       text: p?.tempatKerjaTerakhir ?? '',
@@ -1053,7 +926,7 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
                 const SizedBox(height: 10),
 
                 DropdownButtonFormField<String>(
-                  value: _jenisKelamin,
+                  initialValue: _jenisKelamin,
                   decoration: const InputDecoration(
                     labelText: 'Jenis Kelamin',
                     border: OutlineInputBorder(),

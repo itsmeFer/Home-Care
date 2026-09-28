@@ -1,19 +1,11 @@
-﻿import 'package:home_care/core/services/storage_service.dart';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-String get kBaseUrl => ApiConstants.apiBase;
+import 'package:home_care/core/network/api_client.dart';
 
 class DetailOrderKoordinatorPage extends StatefulWidget {
   final int orderId;
 
-  const DetailOrderKoordinatorPage({Key? key, required this.orderId})
-    : super(key: key);
+  const DetailOrderKoordinatorPage({super.key, required this.orderId});
 
   @override
   State<DetailOrderKoordinatorPage> createState() =>
@@ -73,8 +65,6 @@ class _DetailOrderKoordinatorPageState
     }
   }
 
-  Future<String?> _getToken() => StorageService.getToken();
-
   Future<void> _fetchDetail({bool internalCall = false}) async {
     if (!internalCall) {
       setState(() {
@@ -83,61 +73,22 @@ class _DetailOrderKoordinatorPageState
       });
     }
 
-    final token = await _getToken();
-    if (token == null) {
-      setState(() {
-        _isLoading = false;
-        _error = 'Token tidak ditemukan. Silakan login sebagai koordinator.';
-      });
-      return;
-    }
-
     try {
-      final uri = Uri.parse(
-        '$kBaseUrl/koordinator/order-layanan/${widget.orderId}',
-      );
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+      final res = await ApiClient.get(
+        '/koordinator/order-layanan/${widget.orderId}',
       );
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        final success = decoded['success'] == true;
-
-        if (!success) {
-          setState(() {
-            _isLoading = false;
-            _error =
-                decoded['message']?.toString() ?? 'Gagal memuat detail order.';
-          });
-          return;
-        }
-
+      if (res is Map && res['data'] is Map) {
         setState(() {
-          _order = decoded['data'] as Map<String, dynamic>;
-        });
-      } else if (response.statusCode == 404) {
-        setState(() {
+          _order = Map<String, dynamic>.from(res['data']);
           _isLoading = false;
-          _error = 'Order tidak ditemukan (404).';
-        });
-      } else if (response.statusCode == 401) {
-        setState(() {
-          _isLoading = false;
-          _error = 'Sesi login koordinator berakhir. Silakan login ulang.';
         });
       } else {
         setState(() {
           _isLoading = false;
-          _error =
-              'Gagal memuat detail. Kode: ${response.statusCode} ${response.reasonPhrase}';
+          _error = 'Order tidak ditemukan.';
         });
       }
     } catch (e) {
@@ -156,32 +107,13 @@ class _DetailOrderKoordinatorPageState
       });
     }
 
-    final token = await _getToken();
-    if (token == null) {
-      setState(() {
-        _isLoadingPerawat = false;
-      });
-      return;
-    }
-
     try {
-
-      final uri = Uri.parse('$kBaseUrl/koordinator/perawat-list');
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final res = await ApiClient.get('/koordinator/perawat-list');
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        final List<dynamic> data = decoded['data'] ?? [];
-
+      if (res is Map && res['data'] is List) {
+        final List<dynamic> data = res['data'];
         final list =
             data
                 .map<Map<String, dynamic>>(
@@ -198,7 +130,7 @@ class _DetailOrderKoordinatorPageState
           _isLoadingPerawat = false;
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         _isLoadingPerawat = false;
@@ -208,6 +140,7 @@ class _DetailOrderKoordinatorPageState
 
   Future<void> _assignPerawat() async {
     if (_selectedPerawatId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Silakan pilih perawat terlebih dahulu.')),
       );
@@ -218,79 +151,26 @@ class _DetailOrderKoordinatorPageState
       _isAssigningPerawat = true;
     });
 
-    final token = await _getToken();
-    if (token == null) {
-      setState(() {
-        _isAssigningPerawat = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Token tidak ditemukan. Silakan login ulang.'),
-        ),
-      );
-      return;
-    }
-
     try {
-
-      final uri = Uri.parse(
-        '$kBaseUrl/koordinator/order-layanan/${widget.orderId}/assign-perawat',
-      );
-
-      final response = await http.post(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+      final res = await ApiClient.post(
+        '/koordinator/order-layanan/${widget.orderId}/assign-perawat',
         body: {'perawat_id': _selectedPerawatId!.toString()},
       );
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        final success = decoded['success'] == true;
-
-        if (success) {
-          setState(() {
-            _order = decoded['data'] as Map<String, dynamic>;
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Perawat berhasil ditugaskan.')),
-          );
-
-          Navigator.pop(context, true);
-          return;
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                decoded['message']?.toString() ??
-                    'Gagal menyimpan penugasan perawat.',
-              ),
-            ),
-          );
-        }
-      } else if (response.statusCode == 422) {
-        final decoded = json.decode(response.body) as Map<String, dynamic>;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              decoded['message']?.toString() ?? 'Validasi gagal (422).',
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menyimpan penugasan. Kode: ${response.statusCode} ${response.reasonPhrase}',
-            ),
-          ),
-        );
+      if (res is Map && res['data'] is Map) {
+        setState(() {
+          _order = Map<String, dynamic>.from(res['data']);
+        });
       }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Perawat berhasil ditugaskan.')),
+      );
+
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -493,7 +373,7 @@ class _DetailOrderKoordinatorPageState
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<int>(
-          value: _selectedPerawatId,
+          initialValue: _selectedPerawatId,
           isExpanded: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -622,7 +502,7 @@ class _DetailOrderKoordinatorPageState
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(

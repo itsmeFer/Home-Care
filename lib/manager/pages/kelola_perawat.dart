@@ -1,12 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:home_care/core/constants/api_constants.dart';
-import 'package:home_care/core/services/storage_service.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
 
 class KelolaPerawatPage extends StatefulWidget {
@@ -24,11 +19,6 @@ class KelolaPerawatPage extends StatefulWidget {
 }
 
 class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
-
-  String get _perawatUrl => '$kApiBase/manager/perawat';
-  String get _koordinatorUrl => '$kApiBase/manager/koordinator';
   void _popLoadingIfAny() {
     if (!mounted) return;
     final nav = Navigator.of(context, rootNavigator: true);
@@ -47,7 +37,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      _koorOptions = await _fetchList(_koordinatorUrl);
+      _koorOptions = await _fetchList('/manager/koordinator');
 
       _popLoadingIfAny();
       return _koorOptions.isNotEmpty;
@@ -83,8 +73,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     _searchCtrl.dispose();
     super.dispose();
   }
-
-  Future<String> _getToken() async => (await StorageService.getToken()) ?? '';
 
   Map<String, dynamic> _map(dynamic v) =>
       (v is Map) ? Map<String, dynamic>.from(v) : <String, dynamic>{};
@@ -134,85 +122,21 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchList(String url) async {
-    final token = await _getToken();
-    if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
-
-    final res = await http.get(
-      Uri.parse(url),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
-    );
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final body = jsonDecode(res.body);
-    return _asList(body);
-  }
-
-  Uri _buildPerawatUri() {
-    final q = _q.trim();
-    if (q.isEmpty) return Uri.parse(_perawatUrl);
-
-    return Uri.parse(_perawatUrl).replace(queryParameters: {'q': q});
+    final res = await ApiClient.get(url);
+    return _asList(res);
   }
 
   Future<Map<String, dynamic>> _fetch() async {
-    final token = await _getToken();
-    if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
-
-    var uri = _buildPerawatUri();
-    var res = await http.get(
-      uri,
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final q = _q.trim();
+    final res = await ApiClient.get(
+      '/manager/perawat',
+      queryParams: q.isNotEmpty ? {'q': q} : null,
     );
 
-    if (res.statusCode == 200 && _q.trim().isNotEmpty) {
+    var list = _asList(res);
 
-    } else if (_q.trim().isNotEmpty) {
-
-      final uri2 = Uri.parse(
-        _perawatUrl,
-      ).replace(queryParameters: {'search': _q.trim()});
-      final res2 = await http.get(
-        uri2,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-      if (res2.statusCode >= 200 && res2.statusCode < 300) {
-        uri = uri2;
-        res = res2;
-      } else {
-
-        final uri3 = Uri.parse(
-          _perawatUrl,
-        ).replace(queryParameters: {'keyword': _q.trim()});
-        final res3 = await http.get(
-          uri3,
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        );
-        if (res3.statusCode >= 200 && res3.statusCode < 300) {
-          uri = uri3;
-          res = res3;
-        }
-      }
-    }
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final body = jsonDecode(res.body);
-
-    var list = _asList(body);
-
-    if (list.isEmpty && body is Map && body['data'] is Map) {
-      final d = Map<String, dynamic>.from(body['data']);
+    if (list.isEmpty && res is Map && res['data'] is Map) {
+      final d = Map<String, dynamic>.from(res['data']);
       if (d['leaderboard'] is List) {
         list = _list(d['leaderboard']);
       }
@@ -220,7 +144,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
     if (_koorOptions.isEmpty) {
       try {
-        _koorOptions = await _fetchList(_koordinatorUrl);
+        _koorOptions = await _fetchList('/manager/koordinator');
       } catch (_) {
         _koorOptions = [];
       }
@@ -347,6 +271,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
 
     int? selected = currentKoorId;
 
+    if (!mounted) return;
     await showDialog(
       context: context,
       builder: (ctx) {
@@ -415,7 +340,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                     kode.isEmpty ? name : '$name ($kode)',
                                   ),
                                 );
-                              }).toList(),
+                              }),
                             ],
                             onChanged: (v) => setLocal(() => selected = v),
                           ),
@@ -472,6 +397,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     int? selectedPerawatId;
     int? selectedKoorId;
 
+    if (!mounted) return;
     await showDialog(
       context: context,
       builder: (ctx) {
@@ -570,7 +496,7 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
                                     kode.isEmpty ? name : '$name ($kode)',
                                   ),
                                 );
-                              }).toList(),
+                              }),
                             ],
                             onChanged:
                                 (v) => setLocal(() => selectedKoorId = v),
@@ -631,23 +557,12 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
 
     try {
-      final token = await _getToken();
-      final res = await http.put(
-        Uri.parse('$kApiBase/manager/perawat/$perawatId/assign-koordinator'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'koordinator_id': koorId}),
+      await ApiClient.put(
+        '/manager/perawat/$perawatId/assign-koordinator',
+        body: {'koordinator_id': koorId},
       );
 
       _popLoadingIfAny();
-
-      if (res.statusCode < 200 || res.statusCode >= 300) {
-        throw Exception('HTTP ${res.statusCode}: ${res.body}');
-      }
-
       _toastSuccess('Berhasil', 'Koordinator diperbarui.');
       _reload();
     } catch (e) {
@@ -664,23 +579,12 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
     );
 
     try {
-      final token = await _getToken();
-      final res = await http.patch(
-        Uri.parse('$kApiBase/manager/perawat/$perawatId/toggle-active'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'is_active': nextActive}),
+      await ApiClient.put(
+        '/manager/perawat/$perawatId/toggle-active',
+        body: {'is_active': nextActive},
       );
 
       _popLoadingIfAny();
-
-      if (res.statusCode < 200 || res.statusCode >= 300) {
-        throw Exception('HTTP ${res.statusCode}: ${res.body}');
-      }
-
       _toastSuccess('Berhasil', 'Status aktif diperbarui.');
       _reload();
     } catch (e) {
@@ -925,105 +829,6 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
       ),
     );
   }
-
-  Future<void> _pickPerawatAndAssign(List<Map<String, dynamic>> items) async {
-    int? selectedId;
-
-    await showDialog(
-      context: context,
-      builder: (ctx) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 18,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: StatefulBuilder(
-                builder: (ctx, setLocal) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Pilih Perawat',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<int>(
-                            isExpanded: true,
-                            value: selectedId,
-                            hint: const Text('Pilih perawat...'),
-                            items:
-                                items.take(100).map((p) {
-                                  final id = _toInt(p['id']);
-                                  final name = _pickName(p);
-                                  final kode = _pickKode(p);
-                                  return DropdownMenuItem<int>(
-                                    value: id,
-                                    child: Text('$name ($kode)'),
-                                  );
-                                }).toList(),
-                            onChanged: (v) => setLocal(() => selectedId = v),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text('Batal'),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(ctx).pop();
-                                if (selectedId != null) {
-                                  _assignKoordinator(selectedId!);
-                                } else {
-                                  _toastError(
-                                    'Validasi',
-                                    'Pilih perawat dulu.',
-                                  );
-                                }
-                              },
-                              child: const Text('Lanjut'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _pickPerawatAndToggle(List<Map<String, dynamic>> items) async {
     int? selectedId;
     bool nextActive = false;
@@ -1312,9 +1117,9 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(.12),
+        color: color.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(.35)),
+        border: Border.all(color: color.withValues(alpha: .35)),
       ),
       child: Text(
         text,

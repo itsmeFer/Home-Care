@@ -1,17 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:home_care/kordinator/chat/koordinator_chat_list_page.dart';
-import 'package:home_care/kordinator/kelola_perawat.dart';
-import 'package:home_care/kordinator/lapor_it.dart';
-import 'package:home_care/kordinator/lihat_orderan_masuk.dart';
+import 'package:home_care/kordinator/kelola_perawat/kelola_perawat_page.dart';
+import 'package:home_care/kordinator/lapor_it/lapor_it_page.dart';
+import 'package:home_care/kordinator/orderan/lihat_orderan_masuk_page.dart';
 import 'package:home_care/features/auth/presentation/screens/login.dart';
-import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/features/auth/data/auth_repository.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-
-import 'package:http/http.dart' as http;
+import 'services/dashboard_service.dart';
 
 class KoordinatorDashboard extends StatefulWidget {
   const KoordinatorDashboard({super.key});
@@ -21,7 +19,6 @@ class KoordinatorDashboard extends StatefulWidget {
 }
 
 class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
-  static String get kBaseUrl => ApiConstants.apiBase;
 
   int _chatUnreadCount = 0;
   int _orderUnreadCount = 0;
@@ -60,9 +57,9 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   Future<String?> _getToken() => StorageService.getToken();
 
   Future<void> _logout(BuildContext context) async {
-    await StorageService.clearAuth();
+    await AuthRepository().logout();
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     Navigator.pushAndRemoveUntil(
       context,
@@ -85,7 +82,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
     try {
       final token = await _getToken();
       if (token == null || token.isEmpty) {
-        debugPrint('âŒ TOKEN NOT FOUND');
+        debugPrint('├ó┬¥┼Æ TOKEN NOT FOUND');
         if (mounted) {
           setState(() {
             _chatUnreadCount = 0;
@@ -96,7 +93,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
         return;
       }
 
-      debugPrint('ðŸ”„ Loading badges...');
+      debugPrint('├░┼╕ΓÇ¥ΓÇ₧ Loading badges...');
 
       final results = await Future.wait([
         _fetchChatUnread(token),
@@ -106,8 +103,8 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
       final chatUnread = results[0];
       final orderUnread = results[1];
 
-      debugPrint('âœ… Chat Unread: $chatUnread');
-      debugPrint('âœ… Order Unread: $orderUnread');
+      debugPrint('├ó┼ôΓÇª Chat Unread: $chatUnread');
+      debugPrint('├ó┼ôΓÇª Order Unread: $orderUnread');
 
       if (mounted) {
         setState(() {
@@ -117,7 +114,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
         });
       }
     } catch (e) {
-      debugPrint('âŒ LOAD KOORDINATOR BADGES ERROR: $e');
+      debugPrint('├ó┬¥┼Æ LOAD KOORDINATOR BADGES ERROR: $e');
 
       if (mounted) {
         setState(() {
@@ -128,132 +125,11 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
   }
 
   Future<int> _fetchChatUnread(String token) async {
-    try {
-      final res = await http
-          .get(
-            Uri.parse('$kBaseUrl/chat/unread-summary'),
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
-
-      debugPrint('ðŸ“¨ Chat Unread Response: ${res.statusCode}');
-      debugPrint('ðŸ“¨ Chat Unread Body: ${res.body}');
-
-      if (res.statusCode != 200) return 0;
-
-      final body = json.decode(res.body);
-
-      if (body is Map) {
-        if (body['success'] == true) {
-          final data = body['data'];
-          if (data is Map) {
-            final totalUnread = data['total_unread'];
-            if (totalUnread is int) return totalUnread;
-            return int.tryParse(totalUnread?.toString() ?? '0') ?? 0;
-          }
-        }
-
-        final totalUnread = body['total_unread'];
-        if (totalUnread is int) return totalUnread;
-        return int.tryParse(totalUnread?.toString() ?? '0') ?? 0;
-      }
-
-      return 0;
-    } catch (e) {
-      debugPrint('âŒ FETCH KOORDINATOR CHAT UNREAD ERROR: $e');
-      return 0;
-    }
+    return await KoordinatorDashboardService.getChatUnread();
   }
 
   Future<int> _fetchOrderUnread(String token) async {
-    try {
-      final res = await http
-          .get(
-            Uri.parse('$kBaseUrl/koordinator/order-layanan'),
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
-
-      debugPrint('ðŸ“¦ Order Response: ${res.statusCode}');
-      debugPrint('ðŸ“¦ Order Body: ${res.body}');
-
-      if (res.statusCode != 200) return 0;
-
-      final body = json.decode(res.body);
-
-      List data = [];
-
-      if (body is List) {
-        data = body;
-      } else if (body is Map<String, dynamic>) {
-        if (body['success'] == true || body['success'] == 1) {
-          final raw = body['data'];
-          if (raw is List) {
-            data = raw;
-          }
-        } else if (body['data'] is List) {
-          data = body['data'];
-        }
-      }
-
-      final relevantStatuses = ['pending', 'menunggu_penugasan'];
-
-      final filteredData =
-          data.where((item) {
-            if (item is! Map) return false;
-            final status = item['status_order']?.toString() ?? '';
-            return relevantStatuses.contains(status);
-          }).toList();
-
-      debugPrint('ðŸ“Š Total Orders: ${data.length}');
-      debugPrint(
-        'ðŸ“Š Filtered Orders (pending/menunggu): ${filteredData.length}',
-      );
-
-      return filteredData.length;
-    } catch (e) {
-      debugPrint('âŒ FETCH KOORDINATOR ORDER UNREAD ERROR: $e');
-      return 0;
-    }
-  }
-
-  Widget _buildBadge(int count) {
-    if (count <= 0) return const SizedBox.shrink();
-
-    final text = count > 99 ? '99+' : count.toString();
-
-    return Container(
-      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white, width: 1.4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.red.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          height: 1.1,
-        ),
-      ),
-    );
+    return await KoordinatorDashboardService.getOrderUnread();
   }
 
   Widget _summaryCard({
@@ -307,6 +183,27 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+      child: Center(
+        child: Text(
+          count > 99 ? '99+' : '$count',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -427,7 +324,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.red.withOpacity(0.4),
+                                color: Colors.red.withValues(alpha: 0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -446,7 +343,7 @@ class _KoordinatorDashboardState extends State<KoordinatorDashboard> {
 
                       IconButton(
                         onPressed: () {
-                          debugPrint('ðŸ”„ Manual Refresh Badge');
+                          debugPrint('├░┼╕ΓÇ¥ΓÇ₧ Manual Refresh Badge');
                           _loadBadges(silent: false);
                         },
                         icon: const Icon(Icons.refresh, color: Colors.white),

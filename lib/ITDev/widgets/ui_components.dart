@@ -171,8 +171,8 @@ class KpiCard extends StatelessWidget {
             width: 44,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              color: accent.withOpacity(.12),
-              border: Border.all(color: accent.withOpacity(.25)),
+              color: accent.withValues(alpha: .12),
+              border: Border.all(color: accent.withValues(alpha: .25)),
             ),
             child: Icon(icon, color: accent),
           ),

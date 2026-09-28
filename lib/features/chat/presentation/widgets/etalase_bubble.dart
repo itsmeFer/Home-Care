@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 import 'package:home_care/features/chat/data/models/chat_models.dart';
 import 'package:home_care/features/chat/presentation/widgets/chat_bubble.dart';
 
@@ -34,20 +35,17 @@ class EtalaseBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (gambar != null && gambar.isNotEmpty)
-              ClipRRect(
+              AppCachedImage(
+                imageUrl: gambar,
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
-                child: Image.network(
-                  gambar,
+                errorWidget: Container(
                   height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (_, __, ___) => Container(
-                        height: 150,
-                        color: const Color(0xFFF2F2F7),
-                      ),
+                  color: const Color(0xFFF2F2F7),
                 ),
               ),
             Padding(

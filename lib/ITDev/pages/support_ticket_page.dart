@@ -1,12 +1,6 @@
 import 'dart:async';
-import 'package:home_care/core/services/storage_service.dart';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:home_care/core/constants/api_constants.dart';
+import 'package:home_care/core/network/api_client.dart';
 import '../widgets/ui_components.dart';
 
 class SupportTicketPage extends StatefulWidget {
@@ -27,9 +21,6 @@ class SupportTicketPage extends StatefulWidget {
 
 class _SupportTicketPageState extends State<SupportTicketPage> {
 
-  String get kBaseUrl => ApiConstants.baseUrl;
-  String get kApiBase => ApiConstants.apiBase;
-
   String _status = 'all';
   String _priority = 'all';
   String _category = 'all';
@@ -37,7 +28,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
   Timer? _debounce;
 
-  int _perPage = 15;
+  final int _perPage = 15;
   int _page = 1;
 
   final _qC = TextEditingController();
@@ -109,32 +100,8 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     super.dispose();
   }
 
-  Future<String> _token() async {
-    final token = ((await StorageService.getToken()) ?? '').trim();
-    if (token.isEmpty) throw Exception('Token kosong. Silakan login ulang.');
-    return token;
-  }
-
-  Map<String, String> _headers(String token) => {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer $token',
-  };
-
   Future<Map<String, dynamic>> _bootstrap() async {
-    final token = await _token();
-
-    final res = await http.get(
-      Uri.parse('$kApiBase/me'),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
-    );
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
-
-    final body = jsonDecode(res.body);
-
+    final body = await ApiClient.get('/me');
     final data = (body is Map && body['data'] != null) ? body['data'] : body;
     final user = (data is Map && data['user'] != null) ? data['user'] : data;
 
@@ -143,8 +110,8 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     return _fetchList();
   }
 
-  String _buildListUrl() {
-    final qp = <String, String>{
+  Map<String, dynamic> _buildListQueryParams() {
+    final qp = <String, dynamic>{
       'range': widget.range,
       'per_page': '$_perPage',
       'page': '$_page',
@@ -159,45 +126,29 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     if (ct != 'all') qp['category'] = ct;
     if (_q.trim().isNotEmpty) qp['q'] = _q.trim();
 
-    return Uri.parse(
-      '$kApiBase/support-tickets',
-    ).replace(queryParameters: qp).toString();
+    return qp;
   }
 
   Future<Map<String, dynamic>> _fetchList() async {
-    final token = await _token();
-
-    final res = await http.get(
-      Uri.parse(_buildListUrl()),
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+    final body = await ApiClient.get(
+      '/support-tickets',
+      queryParams: _buildListQueryParams(),
     );
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final body = jsonDecode(res.body);
-
-      if (body is Map && body['data'] is Map) {
-        return Map<String, dynamic>.from(body['data']);
-      }
-
-      if (body is Map) return Map<String, dynamic>.from(body);
-
-      return {'data': <dynamic>[]};
+    if (body is Map && body['data'] is Map) {
+      return Map<String, dynamic>.from(body['data']);
     }
 
-    throw Exception('HTTP ${res.statusCode}: ${res.body}');
+    if (body is Map) return Map<String, dynamic>.from(body);
+
+    return {'data': <dynamic>[]};
   }
 
   Future<void> _setStatus(int ticketId, String status) async {
-    final token = await _token();
-    final res = await http.post(
-      Uri.parse('$kApiBase/support-tickets/$ticketId/status'),
-      headers: _headers(token),
-      body: jsonEncode({'status': status}),
+    await ApiClient.post(
+      '/support-tickets/$ticketId/status',
+      body: {'status': status},
     );
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
   }
 
   Future<void> _assignToMe(int ticketId) async {
@@ -205,41 +156,20 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       throw Exception('User ID tidak ditemukan (me).');
     }
 
-    final token = await _token();
-    final res = await http.post(
-      Uri.parse('$kApiBase/support-tickets/$ticketId/assign'),
-      headers: _headers(token),
-      body: jsonEncode({'assigned_to': _myUserId}),
+    await ApiClient.post(
+      '/support-tickets/$ticketId/assign',
+      body: {'assigned_to': _myUserId},
     );
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
   }
 
   Future<void> _saveNotes(int ticketId) async {
-    final token = await _token();
     final notes = _notesC.text.trim();
-
-    debugPrint('🔵 Saving notes for ticket $ticketId');
-    debugPrint('🔵 Notes content: $notes');
-
     final payload = {'it_notes': notes.isEmpty ? null : notes};
 
-    debugPrint('🔵 Payload: ${jsonEncode(payload)}');
-
-    final res = await http.post(
-      Uri.parse('$kApiBase/support-tickets/$ticketId/it-notes'),
-      headers: _headers(token),
-      body: jsonEncode(payload),
+    await ApiClient.post(
+      '/support-tickets/$ticketId/it-notes',
+      body: payload,
     );
-
-    debugPrint('🔵 Response status: ${res.statusCode}');
-    debugPrint('🔵 Response body: ${res.body}');
-
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
-    }
   }
 
   String _s(dynamic v, [String fb = '']) {
@@ -335,6 +265,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
     if (_isAssignedToOther(t)) {
       if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -368,7 +299,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
               onAssignMe: () {
                 Navigator.of(sheetContext).pop();
                 Future.delayed(const Duration(milliseconds: 100)).then((_) {
-                  if (!mounted) return;
+                  if (!scaffoldContext.mounted) return;
 
                   ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                     const SnackBar(
@@ -394,7 +325,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
                   _assignToMe(id)
                       .then((_) {
-                        if (!mounted) return;
+                        if (!scaffoldContext.mounted) return;
 
                         ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
@@ -415,13 +346,14 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                           ),
                         );
 
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             _future = _fetchList();
                           });
+                        }
                       })
                       .catchError((e) {
-                        if (!mounted) return;
+                        if (!scaffoldContext.mounted) return;
 
                         ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
@@ -448,7 +380,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
               onSaveNotes: () {
                 Navigator.of(sheetContext).pop();
                 Future.delayed(const Duration(milliseconds: 100)).then((_) {
-                  if (!mounted) return;
+                  if (!scaffoldContext.mounted) return;
 
                   ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                     const SnackBar(
@@ -474,7 +406,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
                   _saveNotes(id)
                       .then((_) {
-                        if (!mounted) return;
+                        if (!scaffoldContext.mounted) return;
 
                         ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
@@ -495,13 +427,14 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                           ),
                         );
 
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             _future = _fetchList();
                           });
+                        }
                       })
                       .catchError((e) {
-                        if (!mounted) return;
+                        if (!scaffoldContext.mounted) return;
 
                         ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
@@ -528,7 +461,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
               onSetStatus: (st) {
                 Navigator.of(sheetContext).pop();
                 Future.delayed(const Duration(milliseconds: 100)).then((_) {
-                  if (!mounted) return;
+                  if (!scaffoldContext.mounted) return;
 
                   ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                     SnackBar(
@@ -554,7 +487,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
                   _setStatus(id, st)
                       .then((_) {
-                        if (!mounted) return;
+                        if (!scaffoldContext.mounted) return;
 
                         ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
@@ -575,13 +508,14 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                           ),
                         );
 
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             _future = _fetchList();
                           });
+                        }
                       })
                       .catchError((e) {
-                        if (!mounted) return;
+                        if (!scaffoldContext.mounted) return;
 
                         ScaffoldMessenger.of(scaffoldContext).clearSnackBars();
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
@@ -805,7 +739,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                     assigneeName: assignee,
                                     onTap: () => _openDetail(m),
                                   );
-                                }).toList(),
+                                }),
                                 const SizedBox(height: 10),
                                 _PaginationBarNative(
                                   page: _page,
@@ -862,7 +796,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                 onAssignMe: () {
                                   _assignToMe(_i(selectedMap['id']))
                                       .then((_) {
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -877,7 +811,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                         });
                                       })
                                       .catchError((e) {
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -891,7 +825,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                 onSaveNotes: () {
                                   _saveNotes(_i(selectedMap['id']))
                                       .then((_) {
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -906,7 +840,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                         });
                                       })
                                       .catchError((e) {
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -922,7 +856,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                 onSetStatus: (st) {
                                   _setStatus(_i(selectedMap['id']), st)
                                       .then((_) {
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -935,7 +869,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                                         });
                                       })
                                       .catchError((e) {
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -1015,14 +949,14 @@ class _TicketRow extends StatelessWidget {
                   isLocked
                       ? const Color(0xFF94A3B8)
                       : (selected
-                          ? c.withOpacity(.35)
+                          ? c.withValues(alpha: .35)
                           : const Color(0xFFE2E8F0)),
               width: isLocked ? 2 : 1,
             ),
             color:
                 isLocked
                     ? const Color(0xFFF1F5F9)
-                    : (selected ? c.withOpacity(.06) : const Color(0xFFF8FAFC)),
+                    : (selected ? c.withValues(alpha: .06) : const Color(0xFFF8FAFC)),
           ),
           child: Row(
             children: [
@@ -1031,8 +965,8 @@ class _TicketRow extends StatelessWidget {
                 width: 38,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: c.withOpacity(.12),
-                  border: Border.all(color: c.withOpacity(.25)),
+                  color: c.withValues(alpha: .12),
+                  border: Border.all(color: c.withValues(alpha: .25)),
                 ),
                 child: Icon(
                   isLocked ? Icons.lock_outlined : icon,
@@ -1068,8 +1002,8 @@ class _TicketRow extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              color: c.withOpacity(.12),
-                              border: Border.all(color: c.withOpacity(.25)),
+                              color: c.withValues(alpha: .12),
+                              border: Border.all(color: c.withValues(alpha: .25)),
                             ),
                             child: Text(
                               status,
@@ -1151,8 +1085,8 @@ class _AssignBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: color.withOpacity(.12),
-        border: Border.all(color: color.withOpacity(.3)),
+        color: color.withValues(alpha: .12),
+        border: Border.all(color: color.withValues(alpha: .3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1282,8 +1216,8 @@ class _TicketDetailPanel extends StatelessWidget {
               width: 44,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                color: c.withOpacity(.12),
-                border: Border.all(color: c.withOpacity(.25)),
+                color: c.withValues(alpha: .12),
+                border: Border.all(color: c.withValues(alpha: .25)),
               ),
               child: Icon(categoryIcon(category), color: c),
             ),
@@ -1321,8 +1255,8 @@ class _TicketDetailPanel extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
-                  color: c.withOpacity(.12),
-                  border: Border.all(color: c.withOpacity(.25)),
+                  color: c.withValues(alpha: .12),
+                  border: Border.all(color: c.withValues(alpha: .25)),
                 ),
                 child: Text(
                   status,
@@ -1580,7 +1514,7 @@ class _StatusDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       decoration: const InputDecoration(
         isDense: true,
@@ -1629,7 +1563,7 @@ class _PriorityDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       decoration: const InputDecoration(
         isDense: true,
@@ -1671,7 +1605,7 @@ class _CategoryDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       decoration: const InputDecoration(
         isDense: true,

@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'package:home_care/core/services/storage_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/constants/api_constants.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/widgets/app_cached_image.dart';
 
 class PerawatProfilPage extends StatefulWidget {
   const PerawatProfilPage({super.key});
@@ -11,9 +10,6 @@ class PerawatProfilPage extends StatefulWidget {
   @override
   State<PerawatProfilPage> createState() => _PerawatProfilPageState();
 }
-
-String get kApiBase => ApiConstants.apiBase;
-String get kBaseUrl => ApiConstants.baseUrl;
 
 String? resolveMediaUrl(String? raw) => ApiConstants.resolveMediaUrl(raw);
 
@@ -35,45 +31,15 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
     });
 
     try {
-      final token = await StorageService.getToken();
-
-      if (token == null) {
+      final res = await ApiClient.get('/perawat/profil');
+      if (res is Map && res['data'] is Map) {
         setState(() {
-          _error = 'Token tidak ditemukan. Silakan login ulang.';
+          _profil = Map<String, dynamic>.from(res['data']);
           _isLoading = false;
         });
         return;
       }
-
-      final res = await http.get(
-        Uri.parse('$kApiBase/perawat/profil'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (res.statusCode != 200) {
-        setState(() {
-          _error = 'Gagal memuat profil (${res.statusCode})';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final body = json.decode(res.body);
-      if (body['success'] != true) {
-        setState(() {
-          _error = body['message'] ?? 'Gagal memuat profil';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      setState(() {
-        _profil = body['data'] as Map<String, dynamic>;
-        _isLoading = false;
-      });
+      throw 'Format profil tidak sesuai.';
     } catch (e) {
       setState(() {
         _error = 'Terjadi kesalahan: $e';
@@ -125,17 +91,14 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
           const SizedBox(height: 8),
           url == null || url.isEmpty
               ? const Text('-')
-              : ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  url,
+              : AppCachedImage(
+                  imageUrl: url,
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder:
-                      (ctx, err, st) => const Text('Gambar tidak tersedia'),
+                  borderRadius: BorderRadius.circular(12),
+                  errorWidget: const Center(child: Text('Gambar tidak tersedia')),
                 ),
-              ),
         ],
       ),
     );
@@ -190,10 +153,14 @@ class _PerawatProfilPageState extends State<PerawatProfilPage> {
                               radius: 32,
                               backgroundColor: const Color(
                                 0xFF0BA5A7,
-                              ).withOpacity(.1),
+                              ).withValues(alpha: .1),
                               backgroundImage:
                                   (fotoUrl != null)
-                                      ? NetworkImage(fotoUrl)
+                                      ? CachedNetworkImageProvider(
+                                          fotoUrl,
+                                          maxHeight: 200,
+                                          maxWidth: 200,
+                                        )
                                       : null,
                               child:
                                   (fotoUrl != null)
