@@ -1,6 +1,9 @@
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/features/chat/data/models/chat_models.dart';
 
 class ChatService {
@@ -110,7 +113,7 @@ class ChatService {
   static Future<ChatMessage?> sendImageMessage({
     required int roomId,
     required String role,
-    required String imagePath,
+    required XFile imageFile,
     required int currentUserId,
     String? message,
   }) async {
@@ -121,7 +124,22 @@ class ChatService {
     if (message != null && message.trim().isNotEmpty) {
       request.fields['message'] = message.trim();
     }
-    request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+
+    final compressedBytes = await AppImageCompressor.compressXFile(
+      imageFile,
+      maxDimension: 1024,
+      quality: 75,
+    );
+
+    final filename = 'chat_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'image',
+        compressedBytes,
+        filename: filename,
+        contentType: MediaType('image', 'jpeg'),
+      ),
+    );
 
     final body = await ApiClient.sendMultipart(request);
     if (body is Map && body['data'] is Map) {

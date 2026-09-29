@@ -313,7 +313,7 @@ class _ChatRoomPageState extends State<ChatRoomPage>
       final sent = await ChatService.sendImageMessage(
         roomId: widget.roomId,
         role: widget.role,
-        imagePath: picked.path,
+        imageFile: picked,
         currentUserId: _currentUserId,
         message: _messageController.text.trim(),
       );

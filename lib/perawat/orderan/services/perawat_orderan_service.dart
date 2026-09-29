@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 
 class PerawatOrderanService {
@@ -43,16 +44,21 @@ class PerawatOrderanService {
     final uri = Uri.parse('${ApiConstants.apiBase}/perawat/order-layanan/$endpoint');
     final request = http.MultipartRequest('POST', uri);
 
-    if (kIsWeb) {
-      final bytes = await photo.readAsBytes();
-      request.files.add(
-        http.MultipartFile.fromBytes(fieldName, bytes, filename: photo.name),
-      );
-    } else {
-      request.files.add(
-        await http.MultipartFile.fromPath(fieldName, photo.path),
-      );
-    }
+    final compressedBytes = await AppImageCompressor.compressXFile(
+      photo,
+      maxDimension: 1024,
+      quality: 75,
+    );
+
+    final filename = '${fieldName}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        fieldName,
+        compressedBytes,
+        filename: filename,
+        contentType: MediaType('image', 'jpeg'),
+      ),
+    );
 
     final decoded = await ApiClient.sendMultipart(request);
     if (decoded is Map<String, dynamic>) {

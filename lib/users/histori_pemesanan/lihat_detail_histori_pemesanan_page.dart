@@ -26,6 +26,7 @@ class _LihatDetailHistoriPemesananPageState
 
   bool _isLoadingRating = false;
   bool _isSubmittingRating = false;
+  bool _isCancelling = false;
   Map<String, dynamic>? _ratingData;
   bool _hasRating = false;
   int _ratingLayanan = 0;
@@ -161,18 +162,11 @@ class _LihatDetailHistoriPemesananPageState
   }
 
   Future<void> _cancelOrder(String alasan) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: HCColors.primary),
-      ),
-    );
+    setState(() => _isCancelling = true);
 
     try {
       await _service.cancelOrder(widget.orderId, alasan);
       if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -184,7 +178,6 @@ class _LihatDetailHistoriPemesananPageState
       await _fetchDetail(isRefresh: true);
     } catch (e) {
       if (!mounted) return;
-      if (Navigator.canPop(context)) Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal membatalkan pesanan: $e'),
@@ -192,6 +185,8 @@ class _LihatDetailHistoriPemesananPageState
           duration: const Duration(seconds: 4),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _isCancelling = false);
     }
   }
 
@@ -394,11 +389,20 @@ class _LihatDetailHistoriPemesananPageState
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: _showCancelDialog,
-                      icon: const Icon(IconlyLight.closeSquare, color: HCColors.danger),
-                      label: const Text(
-                        'Batalkan Pesanan',
-                        style: TextStyle(
+                      onPressed: _isCancelling ? null : _showCancelDialog,
+                      icon: _isCancelling
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: HCColors.danger,
+                              ),
+                            )
+                          : const Icon(IconlyLight.closeSquare, color: HCColors.danger),
+                      label: Text(
+                        _isCancelling ? 'Membatalkan...' : 'Batalkan Pesanan',
+                        style: const TextStyle(
                           color: HCColors.danger,
                           fontWeight: FontWeight.w700,
                         ),

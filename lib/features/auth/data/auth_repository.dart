@@ -124,17 +124,6 @@ class AuthRepository {
     }
   }
 
-  /// Mengecek status verifikasi email akun pengguna.
-  Future<Map<String, dynamic>> checkVerificationStatus(String email) async {
-    final response = await ApiClient.post(
-      ApiConstants.checkVerificationStatus,
-      body: {'email': email.trim()},
-      requiresAuth: false,
-    );
-    if (response is Map<String, dynamic>) return response;
-    return {'success': true, 'data': response};
-  }
-
   /// Mengirim ulang email verifikasi.
   Future<Map<String, dynamic>> resendVerification(String email) async {
     final response = await ApiClient.post(

@@ -19,30 +19,13 @@ class KelolaPerawatPage extends StatefulWidget {
 }
 
 class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
-  void _popLoadingIfAny() {
-    if (!mounted) return;
-    final nav = Navigator.of(context, rootNavigator: true);
-    if (nav.canPop()) {
-      nav.pop();
-    }
-  }
-
   Future<bool> _ensureKoordinatorLoaded() async {
     if (_koorOptions.isNotEmpty) return true;
 
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
-
       _koorOptions = await _fetchList('/manager/koordinator');
-
-      _popLoadingIfAny();
       return _koorOptions.isNotEmpty;
     } catch (e) {
-      _popLoadingIfAny();
       _toastError('Gagal load koordinator', e.toString());
       return false;
     }
@@ -550,45 +533,29 @@ class _KelolaPerawatPageState extends State<KelolaPerawatPage> {
   }
 
   Future<void> _submitAssign(int perawatId, int? koorId) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
     try {
       await ApiClient.put(
         '/manager/perawat/$perawatId/assign-koordinator',
         body: {'koordinator_id': koorId},
       );
 
-      _popLoadingIfAny();
       _toastSuccess('Berhasil', 'Koordinator diperbarui.');
       _reload();
     } catch (e) {
-      _popLoadingIfAny();
       _toastError('Gagal assign', e.toString());
     }
   }
 
   Future<void> _toggleActive(int perawatId, bool nextActive) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
     try {
       await ApiClient.put(
         '/manager/perawat/$perawatId/toggle-active',
         body: {'is_active': nextActive},
       );
 
-      _popLoadingIfAny();
       _toastSuccess('Berhasil', 'Status aktif diperbarui.');
       _reload();
     } catch (e) {
-      _popLoadingIfAny();
       _toastError('Gagal update status', e.toString());
     }
   }

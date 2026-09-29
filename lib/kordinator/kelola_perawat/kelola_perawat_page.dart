@@ -7,6 +7,7 @@ import 'package:home_care/kordinator/kelola_perawat/detail_perawat_page.dart';
 
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/theme/app_colors.dart';
+import 'package:home_care/core/utils/app_image_compressor.dart';
 import 'package:home_care/features/nurses/domain/nurse_model.dart';
 import 'services/kelola_perawat_service.dart';
 
@@ -735,13 +736,13 @@ class _PerawatFormDialogState extends State<_PerawatFormDialog> {
     );
     if (picked == null) return;
 
-    final bytes = await picked.readAsBytes();
+    final bytes = await AppImageCompressor.compressXFile(
+      picked,
+      maxDimension: 1024,
+      quality: 75,
+    );
 
-    String mime = 'image/jpeg';
-    final path = picked.path.toLowerCase();
-    if (path.endsWith('.png')) mime = 'image/png';
-    if (path.endsWith('.webp')) mime = 'image/webp';
-
+    const mime = 'image/jpeg';
     final b64 = 'data:$mime;base64,${base64Encode(bytes)}';
 
     setState(() {

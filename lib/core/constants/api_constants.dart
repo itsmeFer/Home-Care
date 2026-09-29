@@ -101,8 +101,6 @@ class ApiConstants {
   static const String me = '$apiBase/me';
   static const String logout = '$apiBase/logout';
   static const String deleteAccount = '$apiBase/account/delete';
-  static const String checkVerificationStatus =
-      '$apiBase/check-verification-status';
   static const String resendVerification = '$apiBase/resend-verification';
   static const String forgotPassword = '$apiBase/forgot-password';
   static const String resetPassword = '$apiBase/reset-password';
