@@ -2,12 +2,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/core/widgets/patient_app_bar.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/skeletons/presets/order_detail_skeleton.dart';
+import 'package:home_care/users/widgets/patient_app_bar.dart';
 import 'package:home_care/users/histori_pemesanan/lihat_detail_histori_pemesanan_page.dart';
 import 'package:home_care/users/pemesanan/models/payment_draft_model.dart';
 import 'package:home_care/users/pemesanan/services/payment_service.dart';
-import 'package:home_care/users/pemesanan/widgets/widgets.dart';
+import 'package:home_care/users/pemesanan/widgets/payment_confirmation_dialog.dart';
+import 'package:home_care/users/pemesanan/widgets/payment_success_dialog.dart';
+import 'package:home_care/users/pemesanan/widgets/payment/payment_error_view.dart';
+import 'package:home_care/users/pemesanan/widgets/payment/payment_order_summary_card.dart';
+import 'package:home_care/users/pemesanan/widgets/payment/payment_method_card.dart';
+import 'package:home_care/users/pemesanan/widgets/payment/payment_bottom_bar.dart';
 
 class PaymentMethodPage extends StatefulWidget {
   final int draftId;

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/features/reports/presentation/screens/dashboard_keuangan_screen.dart';
 
-export 'package:home_care/features/reports/presentation/screens/dashboard_keuangan_screen.dart';
-
 class ManagerKeuanganPage extends StatelessWidget {
   final bool isDesktop;
   final bool isTablet;

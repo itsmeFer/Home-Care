@@ -1,4 +1,5 @@
 import 'package:home_care/admin/perawat/models/perawat_admin_models.dart';
+import 'package:home_care/features/nurses/domain/nurse_model.dart';
 import 'package:home_care/core/network/api_client.dart';
 
 class PerawatAdminService {

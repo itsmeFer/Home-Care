@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/admin/perawat/models/perawat_admin_models.dart';
+import 'package:home_care/features/nurses/domain/nurse_model.dart';
 import 'package:home_care/admin/perawat/services/perawat_admin_service.dart';
 import 'package:home_care/admin/perawat/widgets/assign_koordinator_dialog.dart';
 import 'package:home_care/admin/perawat/widgets/perawat_card.dart';

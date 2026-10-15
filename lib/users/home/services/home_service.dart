@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/network/api_client.dart';
 import '../models/home_models.dart';
-export 'package:home_care/features/banners/data/banner_service.dart';
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
 
 class TestimonialService {
   static Future<List<Testimonial>> fetchTestimonials() async {

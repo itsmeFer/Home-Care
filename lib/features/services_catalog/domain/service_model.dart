@@ -1,6 +1,5 @@
 import 'package:home_care/core/constants/api_constants.dart';
 
-export 'package:home_care/features/orders/domain/addon_model.dart';
 
 /// Canonical Service Model untuk seluruh aplikasi HomeCare.
 /// Mengonsolidasi duplikasi model Layanan dari modul User, Admin, Banners, dan Fee Management.

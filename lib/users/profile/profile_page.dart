@@ -6,12 +6,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/core/utils/app_image_compressor.dart';
-import 'package:home_care/core/widgets/patient_app_bar.dart';
+import 'package:home_care/users/widgets/patient_app_bar.dart';
 import 'package:home_care/features/auth/data/auth_repository.dart';
 import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'models/user_profile_models.dart';
 import 'services/user_profile_service.dart';
-import 'widgets/widgets.dart';
+import 'widgets/profile_edit_view.dart';
+import 'widgets/profile_ui_components.dart';
+import 'widgets/profile_view_mode.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

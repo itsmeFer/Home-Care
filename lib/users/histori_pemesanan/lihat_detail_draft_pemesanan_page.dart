@@ -3,9 +3,11 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/skeletons/presets/order_detail_skeleton.dart';
 import 'package:home_care/users/histori_pemesanan/services/histori_pemesanan_service.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/widgets.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_layanan_detail_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_catatan_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_pembayaran_card.dart';
 import 'package:home_care/users/pemesanan/payment_method_page.dart';
 
 class LihatDetailDraftPemesananPage extends StatefulWidget {

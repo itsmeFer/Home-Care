@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/skeletons/presets/order_detail_skeleton.dart';
 import 'package:home_care/users/histori_pemesanan/services/histori_pemesanan_service.dart';
-import 'package:home_care/users/histori_pemesanan/widgets/widgets.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_cancel_dialog.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_timeline_tracker.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_rating_section.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_alasan_batal_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_layanan_detail_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_petugas_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_catatan_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_pembayaran_card.dart';
+import 'package:home_care/users/histori_pemesanan/widgets/order_foto_section.dart';
 
 class LihatDetailHistoriPemesananPage extends StatefulWidget {
   final int orderId;

@@ -4,7 +4,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:home_care/core/services/storage_service.dart';
 import 'package:home_care/features/auth/data/auth_repository.dart';
 
-import 'package:home_care/ITDev/pages/dashboard_it_page.dart';
+import 'package:home_care/ITDev/pages/dashboard_it_overview.dart';
 import 'package:home_care/ITDev/pages/audit_sistem_page.dart';
 import 'package:home_care/ITDev/pages/user_monitor_page.dart';
 import 'package:home_care/ITDev/pages/support_ticket_page.dart';
@@ -132,7 +132,7 @@ class _ITDevDashboardState extends State<ITDevDashboard> {
   }) {
     switch (i) {
       case 0:
-        return DashboardITPage(
+        return DashboardITOverview(
           isDesktop: isDesktop,
           isTablet: isTablet,
           range: range,

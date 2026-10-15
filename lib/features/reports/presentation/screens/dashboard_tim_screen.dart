@@ -12,7 +12,14 @@ import 'package:universal_io/io.dart' as uio;
 import 'package:universal_html/html.dart' as html;
 
 import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
+import 'package:home_care/shared/widgets/dashboard/buttons/dashboard_buttons.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/kpi_card.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/table_card.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/x_card.dart';
+import 'package:home_care/shared/widgets/dashboard/feedback/dashboard_feedback.dart';
+import 'package:home_care/shared/widgets/dashboard/layout/responsive_grid.dart';
+import 'package:home_care/shared/widgets/dashboard/layout/section_header.dart';
+import 'package:home_care/shared/widgets/dashboard/metrics/dashboard_charts.dart';
 
 enum TimChartMode { lineOrders, barTopNurse, pieComplaints }
 

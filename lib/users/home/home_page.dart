@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
-import 'package:home_care/users/chat/pasien_chat_list_page.dart';
+import 'package:home_care/users/chat/chat_page.dart';
 import 'package:home_care/users/histori_pemesanan/lihat_histori_pemesanan_page.dart';
 import 'package:home_care/users/layanan/layanan_page.dart';
 import 'package:home_care/users/profile/profile_page.dart';
 import 'views/home_feed_view.dart';
 import 'widgets/home_bottom_nav.dart';
 
-export 'models/home_models.dart';
-export 'services/home_service.dart';
-export 'views/home_feed_view.dart';
-export 'widgets/home_bottom_nav.dart';
+
 
 String formatRupiah(dynamic value) => AppFormatters.formatRupiah(value);
 

@@ -1,6 +1,5 @@
 import 'package:home_care/features/nurses/domain/nurse_model.dart';
 
-export 'package:home_care/features/nurses/domain/nurse_model.dart';
 
 typedef PerawatAdmin = PerawatModel;
 

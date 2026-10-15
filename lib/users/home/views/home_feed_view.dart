@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
-import '../widgets/widgets.dart';
+import '../widgets/home_category_icons.dart';
+import '../widgets/home_health_tips.dart';
+import '../widgets/home_immersive_hero_header.dart';
+import '../widgets/home_landscape_banners.dart';
+import '../widgets/home_promo_full_width.dart';
+import '../widgets/home_square_banners.dart';
+import '../widgets/home_testimonials.dart';
 
 /// Primary feed view for the patient dashboard.
 /// Wraps all sections in a smooth CustomScrollView with pull-to-refresh.

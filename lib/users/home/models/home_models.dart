@@ -1,6 +1,3 @@
-export 'package:home_care/features/banners/domain/banner_model.dart' hide LayananModel;
-export 'package:home_care/features/services_catalog/domain/service_model.dart';
-
 class Testimonial {
   final int id;
   final String nama;

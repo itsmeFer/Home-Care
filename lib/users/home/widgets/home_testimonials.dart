@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
-import '../home_page.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
+import '../models/home_models.dart';
+import '../services/home_service.dart';
 
 class TestimonialsSection extends StatefulWidget {
   const TestimonialsSection({super.key});

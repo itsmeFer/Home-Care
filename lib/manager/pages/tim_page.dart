@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/features/reports/presentation/screens/dashboard_tim_screen.dart';
 
-export 'package:home_care/features/reports/presentation/screens/dashboard_tim_screen.dart';
-
 class TimPage extends StatelessWidget {
   final bool isDesktop;
   final bool isTablet;

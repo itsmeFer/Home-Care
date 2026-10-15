@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/features/reports/presentation/screens/dashboard_pasien_screen.dart';
 
-export 'package:home_care/features/reports/presentation/screens/dashboard_pasien_screen.dart';
-
 class PasienPage extends StatelessWidget {
   final bool isDesktop;
   final bool isTablet;

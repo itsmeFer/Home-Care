@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:home_care/core/constants/api_constants.dart';
 import 'package:home_care/core/network/api_client.dart';
+import 'package:home_care/features/orders/domain/addon_model.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/profile/models/user_profile_models.dart';
 import 'package:http/http.dart' as http;

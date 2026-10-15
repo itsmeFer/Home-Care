@@ -5,8 +5,6 @@ import 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:home_care/kordinator/orderan/lihat_detail_orderan_masuk_page.dart';
 import 'package:home_care/kordinator/orderan/services/koordinator_orderan_service.dart';
 
-export 'package:home_care/features/orders/domain/order_models.dart';
-
 String get kBaseUrl => ApiConstants.apiBase;
 
 class LihatOrderanMasukKoordinatorPage extends StatefulWidget {

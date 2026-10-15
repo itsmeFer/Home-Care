@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:home_care/core/network/api_client.dart';
 import 'package:home_care/ITDev/pages/system_maintenance_page.dart';
-import '../widgets/ui_components.dart';
+import 'package:home_care/shared/widgets/dashboard/buttons/dashboard_buttons.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/kpi_card.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/x_card.dart';
+import 'package:home_care/shared/widgets/dashboard/layout/responsive_grid.dart';
+import 'package:home_care/shared/widgets/dashboard/layout/section_header.dart';
 
-class DashboardITPage extends StatefulWidget {
+class DashboardITOverview extends StatefulWidget {
   final bool isDesktop;
   final bool isTablet;
   final String range;
 
-  const DashboardITPage({
+  const DashboardITOverview({
     super.key,
     required this.isDesktop,
     required this.isTablet,
@@ -18,10 +22,10 @@ class DashboardITPage extends StatefulWidget {
   });
 
   @override
-  State<DashboardITPage> createState() => _DashboardITPageState();
+  State<DashboardITOverview> createState() => _DashboardITOverviewState();
 }
 
-class _DashboardITPageState extends State<DashboardITPage> {
+class _DashboardITOverviewState extends State<DashboardITOverview> {
   Timer? _timer;
   final ValueNotifier<Future<Map<String, dynamic>>?> _metricsNotifier =
       ValueNotifier(null);
@@ -41,7 +45,7 @@ class _DashboardITPageState extends State<DashboardITPage> {
   }
 
   @override
-  void didUpdateWidget(covariant DashboardITPage oldWidget) {
+  void didUpdateWidget(covariant DashboardITOverview oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.range != widget.range) {
       setState(() {

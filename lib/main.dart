@@ -11,8 +11,6 @@ import 'package:home_care/features/auth/presentation/screens/login.dart';
 import 'package:home_care/features/auth/presentation/screens/splash_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-// Re-export RootAuthGate for backward compatibility
-export 'package:home_care/features/auth/presentation/screens/root_auth_gate.dart';
 
 /// Global Navigation Key untuk routing di luar BuildContext (misal: 401 interceptor).
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

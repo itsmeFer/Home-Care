@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/network/api_client.dart';
-import '../widgets/ui_components.dart';
+import 'package:home_care/shared/widgets/dashboard/buttons/dashboard_buttons.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/x_card.dart';
+import 'package:home_care/shared/widgets/dashboard/layout/section_header.dart';
 
 class SupportTicketPage extends StatefulWidget {
   final bool isDesktop;
@@ -37,7 +39,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   Future<Map<String, dynamic>>? _future;
 
   int? _myUserId;
-  SupportTicket? _selected;
+  Map<String, dynamic>? _selected;
 
   String _normalizeStatus(String v) {
     final x = v.trim().toLowerCase();
@@ -277,7 +279,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       return;
     }
 
-    _selected = SupportTicket.fromMap(t);
+    _selected = t;
     _notesC.text = _s(t['it_notes'], '');
 
     if (!widget.isDesktop) {
@@ -565,7 +567,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         final lastPage = _i(pager['last_page'] ?? 1);
         final total = _i(pager['total'] ?? items.length);
 
-        final selectedMap = _selected?.raw;
+        final selectedMap = _selected;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -894,11 +896,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   }
 }
 
-class SupportTicket {
-  final Map<String, dynamic> raw;
-  SupportTicket(this.raw);
-  factory SupportTicket.fromMap(Map<String, dynamic> m) => SupportTicket(m);
-}
+
 
 class _TicketRow extends StatelessWidget {
   final String title;

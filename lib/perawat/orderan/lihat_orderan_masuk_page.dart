@@ -8,8 +8,6 @@ import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/features/orders/domain/order_models.dart';
 import 'package:home_care/perawat/orderan/lihat_detail_orderan_masuk_page.dart';
 
-export 'package:home_care/features/orders/domain/order_models.dart';
-
 String get kBaseUrl => ApiConstants.apiBase;
 
 class LihatOrderanMasukPerawatPage extends StatefulWidget {

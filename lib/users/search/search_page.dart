@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:home_care/core/widgets/patient_app_bar.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/users/widgets/patient_app_bar.dart';
+import 'package:home_care/core/widgets/skeletons/presets/search_result_skeleton.dart';
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'package:home_care/users/layanan/layanan_page.dart';
 import 'models/search_models.dart';
 import 'services/user_search_service.dart';
-import 'widgets/widgets.dart';
+import 'widgets/layanan_search_card.dart';
+import 'widgets/recent_viewed_card.dart';
+import 'widgets/search_history_tile.dart';
 
-export 'models/search_models.dart';
-export 'services/user_search_service.dart';
+
+
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});

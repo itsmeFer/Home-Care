@@ -4,7 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:home_care/core/theme/app_colors.dart';
 import 'package:home_care/perawat/orderan/services/perawat_orderan_service.dart';
-import 'package:home_care/perawat/orderan/tabs/tabs.dart';
+import 'package:home_care/perawat/orderan/tabs/order_tab_detail.dart';
+import 'package:home_care/perawat/orderan/tabs/order_tab_lokasi.dart';
+import 'package:home_care/perawat/orderan/tabs/order_tab_pembayaran.dart';
+import 'package:home_care/perawat/orderan/tabs/order_tab_addons.dart';
+import 'package:home_care/perawat/orderan/tabs/order_tab_foto.dart';
 
 class DetailOrderanMasukPerawatPage extends StatefulWidget {
   final int orderId;

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:home_care/core/network/api_client.dart';
-import 'package:home_care/shared/widgets/dashboard/ui_components.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/kpi_card.dart';
+import 'package:home_care/shared/widgets/dashboard/cards/x_card.dart';
+import 'package:home_care/shared/widgets/dashboard/layout/section_header.dart';
 
 class DashboardPasienScreen extends StatefulWidget {
   final String role;

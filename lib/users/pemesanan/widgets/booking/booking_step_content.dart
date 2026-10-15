@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:home_care/core/utils/app_formatters.dart';
+import 'package:home_care/features/orders/domain/addon_model.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 import 'booking_addons_step.dart';
 import 'booking_details_step.dart';

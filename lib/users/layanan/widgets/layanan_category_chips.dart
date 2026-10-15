@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/core/theme/app_colors.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
 import 'package:home_care/features/services_catalog/domain/service_model.dart';
 
 class LayananCategoryChips extends StatelessWidget {

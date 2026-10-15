@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import '../home_page.dart';
-import 'package:home_care/users/layanan/layanan_page.dart';
-import 'package:home_care/core/widgets/skeletons/skeletons.dart';
 import 'package:home_care/core/widgets/app_cached_image.dart';
+import 'package:home_care/core/widgets/skeletons/app_skeleton.dart';
+import 'package:home_care/features/services_catalog/domain/service_model.dart';
+import 'package:home_care/users/home/home_page.dart';
+import 'package:home_care/users/layanan/layanan_page.dart';
+import '../services/home_service.dart';
 
 class CategoryIconsSection extends StatefulWidget {
   const CategoryIconsSection({super.key});

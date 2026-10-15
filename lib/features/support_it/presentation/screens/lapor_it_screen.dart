@@ -7,9 +7,6 @@ import 'package:home_care/features/support_it/presentation/screens/riwayat_lapor
 import 'package:home_care/features/support_it/presentation/widgets/support_it_info_card.dart';
 import 'package:home_care/features/support_it/presentation/widgets/support_it_selectors.dart';
 
-export 'package:home_care/features/support_it/domain/support_it_models.dart';
-export 'package:home_care/features/support_it/presentation/screens/riwayat_laporan_it_screen.dart';
-
 class LaporITScreen extends StatefulWidget {
   final String source;
   final String title;

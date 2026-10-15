@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_care/features/support_it/presentation/screens/lapor_it_screen.dart';
-
-export 'package:home_care/features/support_it/presentation/screens/lapor_it_screen.dart';
+import 'package:home_care/features/support_it/presentation/screens/riwayat_laporan_it_screen.dart';
 
 class LaporITPage extends StatelessWidget {
   const LaporITPage({super.key});
